@@ -54,7 +54,7 @@ class Podcast:
     file['album'] = self.__title
     file['genre'] = 'Podcast'
     file['comment'] = episode['itunes:summary']
-    file['artist'] = episode['itunes:author']
+    file['artist'] = self.__title
     file['compilation'] = True
     file.resolve('album artist')
     self.__log('Getting image')
