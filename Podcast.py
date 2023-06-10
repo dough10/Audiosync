@@ -22,6 +22,7 @@ class Podcast:
     count = len(self.__list)
     self.__log(self.__title + ' ' + str(count) + ' episodes')
     self.__location = config.folder + '/' + self.__title
+    # self.__downloadAll()
     if os.path.exists(self.__location):
       self.__downloadNewest()
     else:
