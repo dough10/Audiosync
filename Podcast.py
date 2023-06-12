@@ -11,7 +11,7 @@ from filename import formatFilename
 class Podcast:
 
   def __init__(self, url):
-    print(datetime.datetime.now().strftime("%H:%M %B %d, %Y"))
+    print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
     res = requests.get(url)
     xml = xmltodict.parse(res.content)
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
@@ -51,18 +51,17 @@ class Podcast:
       self.__id3Image(file, self.__image.content)
     file.save()
 
-  def __dlWithProgressBar(self, episode, path):
-    media = requests.get(episode['enclosure']['@url'], stream=True)
+  def __dlWithProgressBar(self, url, path):
+    media = requests.get(url, stream=True)
     bytes = int(media.headers.get('content-length', 0))
     progress = tqdm(total=bytes, unit='iB', unit_scale=True)
-    with open(path, 'wb') as mp3:
+    with open(path, 'wb') as file:
       for data in media.iter_content(1024):
         progress.update(len(data))
-        mp3.write(data)
+        file.write(data)
     progress.close()
     if bytes != 0 and progress.n != bytes:
-      print("ERROR, something went wrong")
-
+      print("ERROR!!, something went wrong")
 
   def __fileDL(self, episode):
     if ('itunes:season' in episode and 'itunes:episode' in episode):
@@ -74,7 +73,7 @@ class Podcast:
       print(f'Episode {filename} already downloaded')
       return
     print(f'Downloading - {filename}')
-    self.__dlWithProgressBar(episode, path)
+    self.__dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path)
 
   def __mkdir(self):
@@ -97,12 +96,10 @@ class Podcast:
     if os.path.exists(self.__location):
       self.downloadNewest()
     else:
-      self.__mkdir()
       self.downloadAll()
-    print('download complete')
 
 if __name__ == "__main__":
   try:
     t = Podcast(sys.argv[1]).auto()
   except KeyboardInterrupt:
-    print('Stopped by user')
+    print('Download stopped by user')
