@@ -12,6 +12,7 @@ from filename import formatFilename
 class Podcast:
 
   def __init__(self, url):
+    url = url.strip()
     if not validators.url(url):
       print('Invalid URL address')
       return
@@ -98,17 +99,19 @@ class Podcast:
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
-  def subscribe(self):
+  def subscribe(self, alert):
     print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{self.__title}.log 2>&1\") | crontab -")
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{formatFilename(self.__title)}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
     self.downloadNewest()
 
-  def unsubscribe(self):
+  def unsubscribe(self, delete):
     print('Removing cronjob')
-    cron = os.system('crontab -l')
-    print(cron)
-    # os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
+    os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
+    if delete:
+      print(f'removing directory {self.__location}')
+      cmd = self.__location.replace(" ", "\ ")
+      os.system(f'rm -r {cmd}')
 
   def downloadNewest(self):
     self.__mkdir()
