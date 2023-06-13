@@ -3,22 +3,26 @@ import xmltodict
 import os
 import sys
 import datetime
+import validators
 import music_tag as id3
 from tqdm import tqdm
-from config import folder
+from config import folder, logLocation
 from filename import formatFilename
 
 class Podcast:
 
   def __init__(self, url):
+    if not validators.url(url):
+      print('Invalid URL address')
+      return
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
     res = requests.get(url)
     xml = xmltodict.parse(res.content)
+    self.__xml = url
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
+    self.__imgURL = xml['rss']['channel']['image']['url']
     print(f'{self.__title} {str(len(self.__list))} episodes')
-    print('getting cover image')
-    self.__image = requests.get(xml['rss']['channel']['image']['url']) # main podcast image. this will be the substitute for any missing episode image
     self.__location = f'{folder}/{self.__title}'
 
   def __id3Image(self, file, img):
@@ -39,16 +43,26 @@ class Podcast:
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z').year
     except:
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z').year
-    if 'itunes:episode' in episode:
+    try:
       file['tracknumber'] = episode['itunes:episode']
+    except:
+      pass
     print('Getting image')
-    if 'itunes:image' in episode: 
+    try: 
       img = requests.get(episode['itunes:image']['@href'])
       if img.status_code != 200:
-        img = self.__image
+        try:
+          img = self.__image
+        except:
+          self.__image = requests.get(self.__imgURL)
+          img = self.__image
       self.__id3Image(file, img.content)
-    else:
-      self.__id3Image(file, self.__image.content)
+    except:
+      try:
+        self.__id3Image(file, self.__image.content)
+      except:
+        self.__image = requests.get(self.__imgURL)
+        self.__id3Image(file, self.__image.content)
     file.save()
 
   def __dlWithProgressBar(self, url, path):
@@ -64,9 +78,9 @@ class Podcast:
       print("ERROR!!, something went wrong")
 
   def __fileDL(self, episode):
-    if ('itunes:season' in episode and 'itunes:episode' in episode):
+    try:
       filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
-    else:
+    except:
       filename = formatFilename(f"{episode['title']}.mp3")
     path = f'{self.__location}/{filename}'
     if os.path.exists(path):
@@ -78,8 +92,23 @@ class Podcast:
 
   def __mkdir(self):
     if not os.path.exists(self.__location):
+      print(f'Creating folder {self.__location}')
       os.mkdir(self.__location)
+      print(f'getting  {self.__location}/cover.jpg')
+      self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
+
+  def subscribe(self):
+    print('Creating cronjob')
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{self.__title}.log 2>&1\") | crontab -")
+    print('Starting download. This may take a minuite.')
+    self.downloadNewest()
+
+  def unsubscribe(self):
+    print('Removing cronjob')
+    cron = os.system('crontab -l')
+    print(cron)
+    # os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
 
   def downloadNewest(self):
     self.__mkdir()
