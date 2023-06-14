@@ -17,7 +17,7 @@ class Podcast:
       print('Invalid URL address')
       sys.exit()
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
-    print('Fetching XML')
+    print(f'Fetching XML from {url}')
     res = requests.get(url)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
@@ -38,7 +38,7 @@ class Podcast:
     try:
       file['artwork'] = img
     except Exception as e:
-      print(f'Error {e} adding image')
+      print(f'Error encoding image {e}')
 
   def __id3tag(self, episode, path):
     print('Updating ID3 tags & encoding artwork')
@@ -50,11 +50,11 @@ class Podcast:
     file['album artist'] = 'Various Artist'
     try:
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z').year
-    except:
+    except (ValueError, TypeError):
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z').year
     try:
       file['tracknumber'] = episode['itunes:episode']
-    except:
+    except KeyError:
       pass
     try: # checking if itunes:image exists
       img = requests.get(episode['itunes:image']['@href'])
@@ -65,16 +65,20 @@ class Podcast:
           self.__image = requests.get(self.__imgURL)
           img = self.__image
       self.__id3Image(file, img.content)
-    except: # itunes:image doesn't exist
+    except KeyError: # itunes:image doesn't exist
       try: # attempt to encode cached image
         self.__id3Image(file, self.__image.content)
-      except:  # image was not cached
+      except Exception as e:  # image was not cached
+        print(e)
         self.__image = requests.get(self.__imgURL)
         self.__id3Image(file, self.__image.content)
     file.save()
 
   def __dlWithProgressBar(self, url, path):
     media = requests.get(url, stream=True)
+    if media.status_code != 200:
+      print(f'Content download error code {media.status_code}')
+      sys.exit()
     bytes = int(media.headers.get('content-length', 0))
     progress = tqdm(total=bytes, unit='iB', unit_scale=True)
     with open(path, 'wb') as file:
@@ -98,7 +102,7 @@ class Podcast:
   def __fileDL(self, episode):
     try:
       filename = self.__formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
-    except:
+    except KeyError:
       filename = self.__formatFilename(f"{episode['title']}.mp3")
     path = f'{self.__location}/{filename}'
     if os.path.exists(path):
@@ -147,16 +151,24 @@ class Podcast:
       self.__fileDL(episode)
     print('download complete')
 
+  def downloadCount(self, count):
+    for num in range(count):
+      self.__fileDL(self.__list[num])
+
   def auto(self):
     if download == 'all':
       self.downloadAll()
     elif download == 'newest':
       self.downloadNewest()
+    elif type(download) == int:
+      self.downloadCount(download)
     else:
-      print(f'invalid option {download}. all or newest choose one')
+      print(f'invalid option {download}. Options are "all", "newest" or a number as a count. choose one.')
 
 if __name__ == "__main__":
   try:
-    t = Podcast(sys.argv[1]).auto()
+    Podcast(sys.argv[1]).auto()
   except KeyboardInterrupt:
     print('Download stopped by user')
+  except IndexError:
+    print('1 argument required "URL"')
