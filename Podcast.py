@@ -6,18 +6,22 @@ import datetime
 import validators
 import music_tag as id3
 from tqdm import tqdm
-from config import folder, logLocation
+from config import *
 from filename import formatFilename
 
 class Podcast:
 
-  def __init__(self, url):
-    url = url.strip()
+  def __init__(self, u):
+    url = u.strip()
     if not validators.url(url):
       print('Invalid URL address')
-      return
+      sys.exit()
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
+    print('Fetching XML data')
     res = requests.get(url)
+    if res.status_code != 200:
+      print(f'Error getting XML data. Error code {res.status_code}')
+      sys.exit()
     xml = xmltodict.parse(res.content)
     self.__xml = url
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
@@ -95,23 +99,26 @@ class Podcast:
     if not os.path.exists(self.__location):
       print(f'Creating folder {self.__location}')
       os.mkdir(self.__location)
-      print(f'getting  {self.__location}/cover.jpg')
+      print(f'getting cover art {self.__location}/cover.jpg')
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
-  def subscribe(self, alert):
+  def subscribe(self):
     print('Creating cronjob')
+    if not os.path.exists(logLocation):
+      print(f'logLocation {logLocation} does not exist')
+      sys.exit()
     os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{formatFilename(self.__title)}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
-    self.downloadNewest()
+    self.auto()
 
-  def unsubscribe(self, delete):
+  def unsubscribe(self, deleteFiles):
     print('Removing cronjob')
     os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
-    if delete:
-      print(f'removing directory {self.__location}')
-      cmd = self.__location.replace(" ", "\ ")
-      os.system(f'rm -r {cmd}')
+    if deleteFiles:
+      print(f'Deleteing directory {self.__location}')
+      folder = self.__location.replace(" ", "\ ")
+      os.system(f'rm -r {folder}')
 
   def downloadNewest(self):
     self.__mkdir()
@@ -125,10 +132,12 @@ class Podcast:
     print('download complete')
 
   def auto(self):
-    if os.path.exists(self.__location):
+    if download == 'all':
+      self.downloadAll()
+    elif download == 'newest':
       self.downloadNewest()
     else:
-      self.downloadAll()
+      print(f'invalid option {download}. all or newest choose one')
 
 if __name__ == "__main__":
   try:
