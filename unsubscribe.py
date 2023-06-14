@@ -20,7 +20,8 @@ try:
     count = count + 1
     print(f'{count}.) {url}')
   unsubURL = int(input(f'Enter Choice: 1 - {count} '))
-  if unsubURL > 0 and unsubURL < count:
+  print(unsubURL)
+  if unsubURL > 0 and unsubURL <= count:
     Podcast(urls[unsubURL - 1]).unsubscribe(deleteFiles())
   else:
     print('Invalid input closing')

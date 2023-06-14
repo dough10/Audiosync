@@ -2,12 +2,12 @@ import requests
 import xmltodict
 import os
 import sys
+import string
 import datetime
 import validators
 import music_tag as id3
 from tqdm import tqdm
 from config import *
-from filename import formatFilename
 
 class Podcast:
 
@@ -17,12 +17,16 @@ class Podcast:
       print('Invalid URL address')
       sys.exit()
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
-    print('Fetching XML data')
+    print('Fetching XML')
     res = requests.get(url)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
       sys.exit()
-    xml = xmltodict.parse(res.content)
+    try:
+      xml = xmltodict.parse(res.content)
+    except Exception as e:
+      print(f'Error parsing XML {e}')
+      sys.exit()
     self.__xml = url
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
@@ -37,7 +41,7 @@ class Podcast:
       print(f'Error {e} adding image')
 
   def __id3tag(self, episode, path):
-    print('Updating ID3 tags')
+    print('Updating ID3 tags & encoding artwork')
     file = id3.load_file(path)
     file['title'] = episode['title']
     file['album'] = self.__title
@@ -52,20 +56,19 @@ class Podcast:
       file['tracknumber'] = episode['itunes:episode']
     except:
       pass
-    print('Getting image')
-    try: 
+    try: # checking if itunes:image exists
       img = requests.get(episode['itunes:image']['@href'])
-      if img.status_code != 200:
-        try:
+      if img.status_code != 200: # image isn't there
+        try: # checking for cached image
           img = self.__image
-        except:
+        except: # image was not cached 
           self.__image = requests.get(self.__imgURL)
           img = self.__image
       self.__id3Image(file, img.content)
-    except:
-      try:
+    except: # itunes:image doesn't exist
+      try: # attempt to encode cached image
         self.__id3Image(file, self.__image.content)
-      except:
+      except:  # image was not cached
         self.__image = requests.get(self.__imgURL)
         self.__id3Image(file, self.__image.content)
     file.save()
@@ -82,11 +85,21 @@ class Podcast:
     if bytes != 0 and progress.n != bytes:
       print("ERROR!!, something went wrong")
 
+  def __formatFilename(self, s):
+    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+    filename = ''.join(c for c in s if c in valid_chars)
+    filename = filename.replace(' ','.')  # no spaces in filename
+    filename = filename.replace('..','.') # after removing spaces can have instances where .. is in a filename
+    return filename
+
+  def __escapeFolder(self, string):
+    return string.replace(' ', '\ ')
+
   def __fileDL(self, episode):
     try:
-      filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
+      filename = self.__formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
     except:
-      filename = formatFilename(f"{episode['title']}.mp3")
+      filename = self.__formatFilename(f"{episode['title']}.mp3")
     path = f'{self.__location}/{filename}'
     if os.path.exists(path):
       print(f'Episode {filename} already downloaded')
@@ -96,6 +109,10 @@ class Podcast:
     self.__id3tag(episode, path)
 
   def __mkdir(self):
+    if not os.path.exists(folder):
+      print(f'Error accessing location {folder}')
+      print('Check if network drive is mounted')
+      sys.exit()
     if not os.path.exists(self.__location):
       print(f'Creating folder {self.__location}')
       os.mkdir(self.__location)
@@ -104,11 +121,11 @@ class Podcast:
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
   def subscribe(self):
-    print('Creating cronjob')
     if not os.path.exists(logLocation):
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{formatFilename(self.__title)}.log 2>&1\") | crontab -")
+    print('Creating cronjob')
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{self.__formatFilename(self.__title)}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
     self.auto()
 
@@ -117,8 +134,7 @@ class Podcast:
     os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
     if deleteFiles:
       print(f'Deleteing directory {self.__location}')
-      folder = self.__location.replace(" ", "\ ")
-      os.system(f'rm -r {folder}')
+      os.system(f'rm -r {self.__escapeFolder(self.__location)}')
 
   def downloadNewest(self):
     self.__mkdir()
