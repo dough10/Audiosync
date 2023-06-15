@@ -11,14 +11,14 @@ from config import *
 
 class Podcast:
 
-  def __init__(self, u):
-    url = u.strip()
-    if not validators.url(url):
+  def __init__(self, url):
+    self.__xmlURL = url.strip()
+    if not validators.url(self.__xmlURL):
       print('Invalid URL address')
       sys.exit()
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
-    print(f'Fetching XML from {url}')
-    res = requests.get(url)
+    print(f'Fetching XML from {self.__xmlURL}')
+    res = requests.get(self.__xmlURL)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
       sys.exit()
@@ -27,11 +27,15 @@ class Podcast:
     except Exception as e:
       print(f'Error parsing XML {e}')
       sys.exit()
-    self.__xml = url
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
-    self.__imgURL = xml['rss']['channel']['image']['url']
-    print(f'{self.__title} {str(len(self.__list))} episodes')
+    try:
+      self.__imgURL = xml['rss']['channel']['image']['url']
+    except TypeError:
+      self.__imgURL = xml['rss']['channel']['image'][0]['url']
+    except KeyError:
+      self.__imgURL = xml['rss']['channel']['itunes:image']['@href']
+    print(f'{self.__title} {str(self.episodeCount())} episodes')
     self.__location = f'{folder}/{self.__title}'
 
   def __id3Image(self, file, img):
@@ -68,8 +72,7 @@ class Podcast:
     except KeyError: # itunes:image doesn't exist
       try: # attempt to encode cached image
         self.__id3Image(file, self.__image.content)
-      except Exception as e:  # image was not cached
-        print(e)
+      except:  # image was not cached
         self.__image = requests.get(self.__imgURL)
         self.__id3Image(file, self.__image.content)
     file.save()
@@ -124,18 +127,21 @@ class Podcast:
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
+  def episodeCount(self):
+    return len(self.__list)
+
   def subscribe(self):
     if not os.path.exists(logLocation):
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
     print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xml} > {logLocation}/{self.__formatFilename(self.__title)}.log 2>&1\") | crontab -")
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xmlURL} > {logLocation}/{self.__formatFilename(self.__title)}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
     self.auto()
 
   def unsubscribe(self, deleteFiles):
     print('Removing cronjob')
-    os.system(f'crontab -l | grep -v "{self.__xml}" | crontab -')
+    os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
     if deleteFiles:
       print(f'Deleteing directory {self.__location}')
       os.system(f'rm -r {self.__escapeFolder(self.__location)}')
@@ -160,10 +166,11 @@ class Podcast:
       self.downloadAll()
     elif download == 'newest':
       self.downloadNewest()
-    elif type(download) == int:
+    elif type(download) == int and download <= self.episodeCount():
       self.downloadCount(download)
     else:
-      print(f'invalid option {download}. Options are "all", "newest" or a number as a count. choose one.')
+      print(f'invalid option {download}')
+      print('Options are "all", "newest" or a count that can not exceede the total number of episodes')
 
 if __name__ == "__main__":
   try:

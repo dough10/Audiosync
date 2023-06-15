@@ -19,7 +19,7 @@ try:
   for url in urls:
     count = count + 1
     print(f'{count}.) {url}')
-  unsubURL = int(input(f'Enter Choice: 1 - {count} or 0 to exit'))
+  unsubURL = int(input(f'Enter Choice: 1 - {count} or 0 to exit '))
   if unsubURL == 0:
     sys.exit()
   elif unsubURL > 0 and unsubURL <= count:
