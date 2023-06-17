@@ -1,31 +1,25 @@
 import sys
 from listCron import listCron
 from Podcast import Podcast
-
-def deleteFiles():
-  choice = input('Remove all downloaded files? y or n? ').strip()
-  if choice == 'y':
-    return True
-  elif choice == 'n':
-    return False
-  else:
-    print('invalid option')
-    return deleteFiles()
+from config import *
   
 try:
   urls = listCron()
-  count = 0
   print('Choose a URL to unsubscribe from')
-  for url in urls:
-    count = count + 1
-    print(f'{count}.) {url}')
-  unsubURL = int(input(f'Enter Choice: 1 - {count} or 0 to exit '))
+  print('0.) Quit')
+  for ndx, url in enumerate(urls):
+    print(f'{ndx + 1}.) {url}')
+  try:
+    unsubURL = int(input(f'Enter Choice: (0-{len(urls)}) '))
+  except ValueError:
+    print('Invalid input. Number required')
+    sys.exit()
   if unsubURL == 0:
     sys.exit()
-  elif unsubURL > 0 and unsubURL <= count:
-    Podcast(urls[unsubURL - 1]).unsubscribe(deleteFiles())
+  elif unsubURL > 0 and unsubURL <= len(urls):
+    Podcast(urls[unsubURL - 1]).unsubscribe()
   else:
-    print('Invalid input closing')
+    print('Invalid input')
     sys.exit()
 except KeyboardInterrupt:
   pass

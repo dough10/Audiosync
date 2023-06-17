@@ -29,6 +29,7 @@ class Podcast:
       sys.exit()
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
+    self.__location = f'{folder}/{self.__title}'
     try:
       self.__imgURL = xml['rss']['channel']['image']['url']
     except TypeError:
@@ -36,7 +37,6 @@ class Podcast:
     except KeyError:
       self.__imgURL = xml['rss']['channel']['itunes:image']['@href']
     print(f'{self.__title} {str(self.episodeCount())} episodes')
-    self.__location = f'{folder}/{self.__title}'
 
   def __id3Image(self, file, img):
     try:
@@ -44,7 +44,7 @@ class Podcast:
     except Exception as e:
       print(f'Error encoding image {e}')
 
-  def __id3tag(self, episode, path):
+  def __id3tag(self, episode, path, epNum):
     print('Updating ID3 tags & encoding artwork')
     file = id3.load_file(path)
     file['title'] = episode['title']
@@ -59,7 +59,7 @@ class Podcast:
     try:
       file['tracknumber'] = episode['itunes:episode']
     except KeyError:
-      pass
+      file['tracknumber'] = epNum
     try: # checking if itunes:image exists
       img = requests.get(episode['itunes:image']['@href'])
       if img.status_code != 200: # image isn't there
@@ -102,7 +102,7 @@ class Podcast:
   def __escapeFolder(self, string):
     return string.replace(' ', '\ ')
 
-  def __fileDL(self, episode):
+  def __fileDL(self, episode, epNum):
     try:
       filename = self.__formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
     except KeyError:
@@ -113,7 +113,7 @@ class Podcast:
       return
     print(f'Downloading - {filename}')
     self.__dlWithProgressBar(episode['enclosure']['@url'], path)
-    self.__id3tag(episode, path)
+    self.__id3tag(episode, path, epNum)
 
   def __mkdir(self):
     if not os.path.exists(folder):
@@ -127,6 +127,16 @@ class Podcast:
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
+  def __question(self, question):
+    ask = input(question).strip()
+    if ask.lower() in ['yes', 'y']:
+      return True
+    elif ask.lower() in ['no', 'n']:
+      return False
+    else:
+      print('invalid option')
+      return self.__question(question)
+
   def episodeCount(self):
     return len(self.__list)
 
@@ -139,27 +149,30 @@ class Podcast:
     print('Starting download. This may take a minuite.')
     self.auto()
 
-  def unsubscribe(self, deleteFiles):
-    print('Removing cronjob')
-    os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
-    if deleteFiles:
-      print(f'Deleteing directory {self.__location}')
-      os.system(f'rm -r {self.__escapeFolder(self.__location)}')
+  def unsubscribe(self):
+    if self.__question(f'is "{self.__title}" the right podcast? (yes/no) '):
+      os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
+      print('Cronjob removed')
+      if self.__question('Remove all downloaded files? (yes/no) '):
+        if self.__question('files can not be recovered. are you sure? (yes/no) '):
+          print(f'Deleteing directory {self.__location}')
+          os.system(f'rm -r {self.__escapeFolder(self.__location)}')
 
   def downloadNewest(self):
     self.__mkdir()
-    self.__fileDL(self.__list[0])
+    self.__fileDL(self.__list[0], len(self.__list))
     print('download complete')
 
   def downloadAll(self):
     self.__mkdir()
-    for episode in self.__list:
-      self.__fileDL(episode)
+    for ndx, episode in enumerate(self.__list):
+      self.__fileDL(episode, len(self.__list) - ndx)
     print('download complete')
 
   def downloadCount(self, count):
+    self.__mkdir()
     for num in range(count):
-      self.__fileDL(self.__list[num])
+      self.__fileDL(self.__list[num], len(self.__list) - num)
 
   def auto(self):
     if download == 'all':
