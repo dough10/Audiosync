@@ -1,13 +1,12 @@
 import sys
-from listCron import listCron
-from Podcast import Podcast
+from Podcast import Podcast, listCronjobs
 
 try:
   try:
     url = sys.argv[1]
   except IndexError:
-    url = input('XML feed URL ? = ').strip()
-  if url in listCron():
+    url = input('XML feed URL ? = ')
+  if url.strip() in listCronjobs():
     print('already subscribed to URL')
     sys.exit()
   Podcast(url).subscribe()

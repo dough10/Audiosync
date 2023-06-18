@@ -1,13 +1,92 @@
 import requests
 import xmltodict
 import os
+import re
 import sys
+import glob
 import string
 import datetime
 import validators
 import music_tag as id3
 from tqdm import tqdm
 from config import *
+
+today = datetime.date.today()
+last_month = today.replace(day=1) - datetime.timedelta(days=1)
+
+def list_of_new_files(path):
+  return [
+    file for file in glob.glob(path + '*.mp3')
+    if last_month < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
+  ]
+
+def list_of_old_files(path):
+  return [
+    file for file in glob.glob(path + '*.mp3')
+    if last_month > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
+  ]
+
+def updatePlayer():
+  # os.system(f'cp -Rvn {folder}/* {player}/Podcasts')
+  if not os.path.exists(player):
+    print(f'{player} Missing. Check is drive mounted')
+    sys.exit()
+  if not os.path.exists(f'{player}/Podcasts/'):
+    os.mkdir(f'{player}/Podcasts')
+  for dir in os.listdir(folder):
+    if not dir == '.DS_Store':
+      # os.system(f'rm -r {player}/Podcasts/{escapeFolder(dir)}')
+      for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
+        os.system(f'rm -r {file}')
+      if not os.path.exists(f'{player}/Podcasts/{dir}'):
+        os.mkdir(f'{player}/Podcasts/{dir}')
+      os.system(f'cp -vn {folder}/{escapeFolder(dir)}/cover.jpg {player}/Podcasts/{escapeFolder(dir)}')
+      for file in list_of_new_files(f'{folder}/{dir}/'):
+        os.system(f'cp -vn {escapeFolder(file)} {player}/Podcasts/{escapeFolder(dir)}')
+
+def listCronjobs():
+  return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
+
+def escapeFolder(string):
+  return string.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
+
+def formatFilename(s):
+  valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
+  filename = ''.join(c for c in s if c in valid_chars)
+  filename = filename.replace(' ','.')  # no spaces in filename
+  filename = filename.replace('..','.') # after removing spaces can have instances where .. is in a filename
+  return filename
+
+def question(q):
+  ask = input(q).strip()
+  if ask.lower() in ['yes', 'y']:
+    return True
+  elif ask.lower() in ['no', 'n']:
+    return False
+  else:
+    print('invalid option')
+    return question(q)
+
+def dlWithProgressBar(url, path):
+  media = requests.get(url, stream=True)
+  if media.status_code != 200:
+    print(f'Content download error code {media.status_code}')
+    sys.exit()
+  bytes = int(media.headers.get('content-length', 0))
+  progress = tqdm(total=bytes, unit='iB', unit_scale=True)
+  with open(path, 'wb') as file:
+    for data in media.iter_content(1024):
+      progress.update(len(data))
+      file.write(data)
+  progress.close()
+  if bytes != 0 and progress.n != bytes:
+    print("ERROR!!, something went wrong")
+
+def id3Image(file, img):
+  try:
+    file['artwork'] = img
+  except Exception as e:
+    print(f'Error encoding image {e}')
 
 class Podcast:
 
@@ -38,12 +117,6 @@ class Podcast:
       self.__imgURL = xml['rss']['channel']['itunes:image']['@href']
     print(f'{self.__title} {str(self.episodeCount())} episodes')
 
-  def __id3Image(self, file, img):
-    try:
-      file['artwork'] = img
-    except Exception as e:
-      print(f'Error encoding image {e}')
-
   def __id3tag(self, episode, path, epNum):
     print('Updating ID3 tags & encoding artwork')
     file = id3.load_file(path)
@@ -68,51 +141,26 @@ class Podcast:
         except: # image was not cached 
           self.__image = requests.get(self.__imgURL)
           img = self.__image
-      self.__id3Image(file, img.content)
+      id3Image(file, img.content)
     except KeyError: # itunes:image doesn't exist
       try: # attempt to encode cached image
-        self.__id3Image(file, self.__image.content)
+        id3Image(file, self.__image.content)
       except:  # image was not cached
         self.__image = requests.get(self.__imgURL)
-        self.__id3Image(file, self.__image.content)
+        id3Image(file, self.__image.content)
     file.save()
-
-  def __dlWithProgressBar(self, url, path):
-    media = requests.get(url, stream=True)
-    if media.status_code != 200:
-      print(f'Content download error code {media.status_code}')
-      sys.exit()
-    bytes = int(media.headers.get('content-length', 0))
-    progress = tqdm(total=bytes, unit='iB', unit_scale=True)
-    with open(path, 'wb') as file:
-      for data in media.iter_content(1024):
-        progress.update(len(data))
-        file.write(data)
-    progress.close()
-    if bytes != 0 and progress.n != bytes:
-      print("ERROR!!, something went wrong")
-
-  def __formatFilename(self, s):
-    valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    filename = ''.join(c for c in s if c in valid_chars)
-    filename = filename.replace(' ','.')  # no spaces in filename
-    filename = filename.replace('..','.') # after removing spaces can have instances where .. is in a filename
-    return filename
-
-  def __escapeFolder(self, string):
-    return string.replace(' ', '\ ')
 
   def __fileDL(self, episode, epNum):
     try:
-      filename = self.__formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
+      filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
     except KeyError:
-      filename = self.__formatFilename(f"{episode['title']}.mp3")
+      filename = formatFilename(f"{episode['title']}.mp3")
     path = f'{self.__location}/{filename}'
     if os.path.exists(path):
       print(f'Episode {filename} already downloaded')
       return
     print(f'Downloading - {filename}')
-    self.__dlWithProgressBar(episode['enclosure']['@url'], path)
+    dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path, epNum)
 
   def __mkdir(self):
@@ -127,16 +175,6 @@ class Podcast:
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
 
-  def __question(self, question):
-    ask = input(question).strip()
-    if ask.lower() in ['yes', 'y']:
-      return True
-    elif ask.lower() in ['no', 'n']:
-      return False
-    else:
-      print('invalid option')
-      return self.__question(question)
-
   def episodeCount(self):
     return len(self.__list)
 
@@ -145,18 +183,18 @@ class Podcast:
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
     print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xmlURL} > {logLocation}/{self.__formatFilename(self.__title)}.log 2>&1\") | crontab -")
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xmlURL} > {logLocation}/{formatFilename(self.__title)}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
     self.auto()
 
   def unsubscribe(self):
-    if self.__question(f'is "{self.__title}" the right podcast? (yes/no) '):
+    if question(f'is "{self.__title}" the right podcast? (yes/no) '):
       os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
       print('Cronjob removed')
-      if self.__question('Remove all downloaded files? (yes/no) '):
-        if self.__question('files can not be recovered. are you sure? (yes/no) '):
+      if question('Remove all downloaded files? (yes/no) '):
+        if question('files can not be recovered. are you sure? (yes/no) '):
           print(f'Deleteing directory {self.__location}')
-          os.system(f'rm -r {self.__escapeFolder(self.__location)}')
+          os.system(f'rm -r {escapeFolder(self.__location)}')
 
   def downloadNewest(self):
     self.__mkdir()

@@ -1,10 +1,9 @@
 import sys
-from listCron import listCron
-from Podcast import Podcast
+from Podcast import Podcast, listCronjobs
 from config import *
   
 try:
-  urls = listCron()
+  urls = listCronjobs()
   print('Choose a URL to unsubscribe from')
   print('0.) Quit')
   for ndx, url in enumerate(urls):
