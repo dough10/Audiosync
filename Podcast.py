@@ -36,13 +36,13 @@ def updatePlayer():
   for dir in os.listdir(folder):
     if not dir == '.DS_Store':
       # os.system(f'rm -r {player}/Podcasts/{escapeFolder(dir)}')
-      for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
-        os.system(f'rm -r {file}')
       if not os.path.exists(f'{player}/Podcasts/{dir}'):
         os.mkdir(f'{player}/Podcasts/{dir}')
       os.system(f'cp -vn {folder}/{escapeFolder(dir)}/cover.jpg {player}/Podcasts/{escapeFolder(dir)}')
       for file in list_of_new_files(f'{folder}/{dir}/'):
         os.system(f'cp -vn {escapeFolder(file)} {player}/Podcasts/{escapeFolder(dir)}')
+      for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
+        os.system(f'rm -r {file}')
 
 def listCronjobs():
   return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
