@@ -1,9 +1,11 @@
 import sys
 from Podcast import Podcast, listCronjobs
 from config import *
-  
+from art import *
+
 try:
   urls = listCronjobs()
+  tprint("Podcast.py", font="italic")
   print('Choose a URL to unsubscribe from')
   print('0.) Quit')
   for ndx, url in enumerate(urls):

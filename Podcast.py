@@ -4,6 +4,7 @@ import os
 import re
 import sys
 import glob
+import shutil
 import string
 import datetime
 import validators
@@ -27,22 +28,33 @@ def list_of_old_files(path):
   ]
 
 def updatePlayer():
-  # os.system(f'cp -Rvn {folder}/* {player}/Podcasts')
   if not os.path.exists(player):
     print(f'{player} Missing. Check is drive mounted')
     sys.exit()
-  if not os.path.exists(f'{player}/Podcasts/'):
+  print('Begining sync')
+  if not os.path.exists(f'{player}/Podcasts'):
     os.mkdir(f'{player}/Podcasts')
   for dir in os.listdir(folder):
     if not dir == '.DS_Store':
-      # os.system(f'rm -r {player}/Podcasts/{escapeFolder(dir)}')
       if not os.path.exists(f'{player}/Podcasts/{dir}'):
         os.mkdir(f'{player}/Podcasts/{dir}')
-      os.system(f'cp -vn {folder}/{escapeFolder(dir)}/cover.jpg {player}/Podcasts/{escapeFolder(dir)}')
+      if not os.path.exists(f'{player}/Podcasts/{dir}/cover.jpg'):
+        print(f'{folder}/{dir}/cover.jpg -> {player}/Podcasts/{dir}/cover.jpg')
+        shutil.copy(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
+      else:
+        print(f'{player}/Podcasts/{dir}/cover.jpg not overwriten')
       for file in list_of_new_files(f'{folder}/{dir}/'):
-        os.system(f'cp -vn {escapeFolder(file)} {player}/Podcasts/{escapeFolder(dir)}')
+        f = file.split('/')
+        filename = f[len(f)-1]
+        if not os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
+          print(f'{file} -> {player}/Podcasts/{dir}/{filename}')
+          shutil.copy(file, f'{player}/Podcasts/{dir}')
+        else:
+          print(f'{player}/Podcasts/{dir}/{filename} not overwriten')
       for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
-        os.system(f'rm -r {file}')
+        print(f'deleting - {file}')
+        os.remove(file)
+  print('Sync complete')
 
 def listCronjobs():
   return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
@@ -191,10 +203,9 @@ class Podcast:
     if question(f'is "{self.__title}" the right podcast? (yes/no) '):
       os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
       print('Cronjob removed')
-      if question('Remove all downloaded files? (yes/no) '):
-        if question('files can not be recovered. are you sure? (yes/no) '):
-          print(f'Deleteing directory {self.__location}')
-          os.system(f'rm -r {escapeFolder(self.__location)}')
+      if question('Remove all downloaded files? (yes/no) ') and question('files can not be recovered. are you sure? (yes/no) '):
+        print(f'Deleteing directory {self.__location}')
+        shutil.rmtree(self.__location)
 
   def downloadNewest(self):
     self.__mkdir()
