@@ -1,7 +1,9 @@
+import os
 import sys
 from art import *
 from Podcast import Podcast, listCronjobs
 
+os.system('clear')
 try:
   tprint("Podcast.py",font="italic")
   try:

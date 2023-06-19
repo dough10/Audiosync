@@ -1,8 +1,10 @@
+import os
 import sys
 from Podcast import Podcast, listCronjobs
 from config import *
 from art import *
 
+os.system('clear')
 try:
   urls = listCronjobs()
   tprint("Podcast.py", font="italic")

@@ -29,7 +29,7 @@ def list_of_old_files(path):
 
 def updatePlayer():
   if not os.path.exists(player):
-    print(f'{player} Missing. Check is drive mounted')
+    print(f'{player} Missing. Check if the drive is mounted')
     sys.exit()
   print('Begining sync')
   if not os.path.exists(f'{player}/Podcasts'):
@@ -103,6 +103,9 @@ def id3Image(file, img):
 class Podcast:
 
   def __init__(self, url):
+    if not os.path.exists(folder):
+      print(f'Folder {folder} does not exist. check config.py')
+      sys.exit()
     self.__xmlURL = url.strip()
     if not validators.url(self.__xmlURL):
       print('Invalid URL address')
