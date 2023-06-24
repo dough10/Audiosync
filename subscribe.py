@@ -4,15 +4,15 @@ from art import *
 from Podcast import Podcast, listCronjobs
 
 os.system('clear')
+tprint("Podcast.py",font="italic")
 try:
-  tprint("Podcast.py",font="italic")
+  url = sys.argv[1]
+except IndexError:
   try:
-    url = sys.argv[1]
-  except IndexError:
     url = input('XML feed URL ? = ')
-  if url.strip() in listCronjobs():
-    print(f'already subscribed to {url}')
+  except KeyboardInterrupt:
     sys.exit()
-  Podcast(url).subscribe()
-except KeyboardInterrupt:
-  pass
+if url.strip() in listCronjobs():
+  print(f'already subscribed to {url}')
+  sys.exit()
+Podcast(url).subscribe()

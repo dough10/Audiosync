@@ -27,7 +27,7 @@ def list_of_old_files(path):
     if last_month > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
-def updatePlayer():
+def updatePlayer(player):
   if not os.path.exists(player):
     print(f'{player} Missing. Check if the drive is mounted')
     sys.exit()
@@ -40,7 +40,7 @@ def updatePlayer():
         os.mkdir(f'{player}/Podcasts/{dir}')
       if not os.path.exists(f'{player}/Podcasts/{dir}/cover.jpg'):
         print(f'{folder}/{dir}/cover.jpg -> {player}/Podcasts/{dir}/cover.jpg')
-        shutil.copy(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
+        shutil.copy2(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
       else:
         print(f'{player}/Podcasts/{dir}/cover.jpg not overwriten')
       for file in list_of_new_files(f'{folder}/{dir}/'):
@@ -48,7 +48,7 @@ def updatePlayer():
         filename = f[len(f)-1]
         if not os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
           print(f'{file} -> {player}/Podcasts/{dir}/{filename}')
-          shutil.copy(file, f'{player}/Podcasts/{dir}')
+          shutil.copy2(file, f'{player}/Podcasts/{dir}')
         else:
           print(f'{player}/Podcasts/{dir}/{filename} not overwriten')
       for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
