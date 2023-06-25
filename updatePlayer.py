@@ -1,7 +1,7 @@
 from Podcast import *
 from art import *
 import os
-from config import folder
+from config import folder, hostname
 
 def getVolumes():
   volumes = []

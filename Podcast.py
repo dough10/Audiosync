@@ -13,18 +13,18 @@ from tqdm import tqdm
 from config import *
 
 today = datetime.date.today()
-last_month = today.replace(day=1) - datetime.timedelta(days=1)
+old_date = today.replace(day=1) - datetime.timedelta(days=1)
 
 def list_of_new_files(path):
   return [
     file for file in glob.glob(path + '*.mp3')
-    if last_month < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
+    if old_date < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
 def list_of_old_files(path):
   return [
     file for file in glob.glob(path + '*.mp3')
-    if last_month > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
+    if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
 def updatePlayer(player):
