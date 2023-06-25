@@ -54,6 +54,9 @@ def updatePlayer(player):
       for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
         print(f'deleting - {file}')
         os.remove(file)
+  print('')
+  if question(f'Would you like to eject {player} (y/n) '):
+    os.system(f'diskutil eject {escapeFolder(player)}')
   print('Sync complete')
 
 def listCronjobs():
