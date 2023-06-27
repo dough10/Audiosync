@@ -20,7 +20,7 @@ try:
   tprint("Podcast.py",font="italic")
   volumes = getVolumes()
   if len(volumes) == 0:
-    print('No drive present')
+    print('No drives present')
     sys.exit()
   print('Choose a drive')
   print('0.) Exit')

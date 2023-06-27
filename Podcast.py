@@ -43,6 +43,7 @@ def updatePlayer(player):
         shutil.copy2(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
       else:
         print(f'{player}/Podcasts/{dir}/cover.jpg not overwriten')
+      # copy files from storage location
       for file in list_of_new_files(f'{folder}/{dir}/'):
         f = file.split('/')
         filename = f[len(f)-1]
@@ -51,6 +52,7 @@ def updatePlayer(player):
           shutil.copy2(file, f'{player}/Podcasts/{dir}')
         else:
           print(f'{player}/Podcasts/{dir}/{filename} not overwriten')
+      # remove "old" (a month old in this case) files from player
       for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
         print(f'deleting - {file}')
         os.remove(file)
@@ -86,7 +88,7 @@ def dlWithProgressBar(url, path):
   media = requests.get(url, stream=True)
   if media.status_code != 200:
     print(f'Content download error code {media.status_code}')
-    sys.exit()
+    return
   bytes = int(media.headers.get('content-length', 0))
   progress = tqdm(total=bytes, unit='iB', unit_scale=True)
   with open(path, 'wb') as file:
@@ -136,8 +138,11 @@ class Podcast:
     print(f'{self.__title} {str(self.episodeCount())} episodes')
 
   def __id3tag(self, episode, path, epNum):
+    try:
+      file = id3.load_file(path)
+    except:
+      return
     print('Updating ID3 tags & encoding artwork')
-    file = id3.load_file(path)
     file['title'] = episode['title']
     file['album'] = self.__title
     file['artist'] = self.__title
