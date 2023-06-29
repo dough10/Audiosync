@@ -35,7 +35,7 @@ try:
     sys.exit()
   elif choice > 0 and choice <= len(volumes):
     vol = volumes[choice - 1]
-    if question(f'is /Volumes/{vol} the correct Drive? (y/n) ') and question(f'you want to write all new podcast to /Volumes/{vol}/Podcasts (y/n) '):
+    if question(f'is /Volumes/{vol} the correct Drive? (yes/no) ') and question(f'you want to write all new podcast to /Volumes/{vol}/Podcasts (yes/no) '):
       updatePlayer(f'/Volumes/{vol}')
   else:
     print('Invalid input')

@@ -25,5 +25,3 @@ elif unsubURL > 0 and unsubURL <= len(urls):
 else:
   print('Invalid input')
   sys.exit()
-
-

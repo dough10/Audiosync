@@ -9,7 +9,7 @@ try:
   url = sys.argv[1]
 except IndexError:
   try:
-    url = input('XML feed URL ? = ')
+    url = input('Enter the XML feed URL: ')
   except KeyboardInterrupt:
     sys.exit()
 if url.strip() in listCronjobs():

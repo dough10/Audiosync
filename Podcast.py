@@ -28,8 +28,11 @@ def list_of_old_files(path):
   ]
 
 def updatePlayer(player):
+  if not os.path.exists(folder):
+    print(f'Error accessing {folder}. Check if the drive is mounted')
+    sys.exit()
   if not os.path.exists(player):
-    print(f'{player} Missing. Check if the drive is mounted')
+    print(f'Error accessing {player}. Check if the drive is mounted')
     sys.exit()
   print('Begining sync')
   if not os.path.exists(f'{player}/Podcasts'):
@@ -57,7 +60,7 @@ def updatePlayer(player):
         print(f'deleting - {file}')
         os.remove(file)
   print('')
-  if question(f'Would you like to eject {player} (y/n) '):
+  if question(f'Would you like to eject {player} (yes/no) '):
     os.system(f'diskutil eject {escapeFolder(player)}')
   print('Sync complete')
 
@@ -76,9 +79,9 @@ def formatFilename(s):
 
 def question(q):
   ask = input(q).strip()
-  if ask.lower() in ['yes', 'y']:
+  if ask.lower() in ['yes', 'y', '1']:
     return True
-  elif ask.lower() in ['no', 'n']:
+  elif ask.lower() in ['no', 'n', '0']:
     return False
   else:
     print('invalid option')
