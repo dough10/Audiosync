@@ -3,3 +3,4 @@ validators
 xmltodict
 music_tag
 tqdm
+pillow

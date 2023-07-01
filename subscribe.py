@@ -3,16 +3,16 @@ import sys
 from art import *
 from Podcast import Podcast, listCronjobs
 
-os.system('clear')
-tprint("Podcast.py",font="italic")
 try:
-  url = sys.argv[1]
-except IndexError:
+  os.system('clear')
+  tprint("Podcast.py",font="italic")
   try:
+    url = sys.argv[1]
+  except IndexError:
     url = input('Enter the XML feed URL: ')
-  except KeyboardInterrupt:
+  if url.strip() in listCronjobs():
+    print(f'already subscribed to {url}')
     sys.exit()
-if url.strip() in listCronjobs():
-  print(f'already subscribed to {url}')
+  Podcast(url).subscribe()
+except KeyboardInterrupt:
   sys.exit()
-Podcast(url).subscribe()

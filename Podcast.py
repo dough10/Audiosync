@@ -11,6 +11,7 @@ import validators
 import music_tag as id3
 from tqdm import tqdm
 from config import *
+from PIL import Image
 
 today = datetime.date.today()
 old_date = today.replace(day=1) - datetime.timedelta(days=1)
@@ -105,8 +106,15 @@ def dlWithProgressBar(url, path):
 def id3Image(file, img):
   try:
     file['artwork'] = img
-  except Exception as e:
-    print(f'Error encoding image {e}')
+  except:
+    print('Attempting Image embed workaround')
+    tmp = f'{os.getcwd()}/tmp.jpg'
+    open(tmp, 'wb').write(img)
+    try:
+      file['artwork'] = Image.open(tmp)
+    except Exception as e:
+      print(f'Error encoding image {e}')
+    os.remove(tmp)
 
 class Podcast:
 
