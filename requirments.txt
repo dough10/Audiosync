@@ -4,3 +4,4 @@ xmltodict
 music_tag
 tqdm
 pillow
+python-dateutil

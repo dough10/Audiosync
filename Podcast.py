@@ -12,9 +12,10 @@ import music_tag as id3
 from tqdm import tqdm
 from config import *
 from PIL import Image
+from dateutil.relativedelta import relativedelta
 
 today = datetime.date.today()
-old_date = today.replace(day=1) - datetime.timedelta(days=1)
+old_date = today - relativedelta(months=1)
 
 def list_of_new_files(path):
   return [
@@ -29,6 +30,11 @@ def list_of_old_files(path):
   ]
 
 def updatePlayer(player):
+  filesWriten = 0
+  filesDeleted = 0
+  foldersDeleted = 0
+  foldersContained = 0
+  # check locations
   if not os.path.exists(folder):
     print(f'Error accessing {folder}. Check if the drive is mounted')
     sys.exit()
@@ -38,32 +44,61 @@ def updatePlayer(player):
   print('Begining sync')
   if not os.path.exists(f'{player}/Podcasts'):
     os.mkdir(f'{player}/Podcasts')
+
+  # copy "new" files to the player and remove "old" files
   for dir in os.listdir(folder):
     if not dir == '.DS_Store':
+      # create folder
       if not os.path.exists(f'{player}/Podcasts/{dir}'):
         os.mkdir(f'{player}/Podcasts/{dir}')
+
+      # copy cover.jpg
       if not os.path.exists(f'{player}/Podcasts/{dir}/cover.jpg'):
-        print(f'{folder}/{dir}/cover.jpg -> {player}/Podcasts/{dir}/cover.jpg')
-        shutil.copy2(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
-      else:
-        print(f'{player}/Podcasts/{dir}/cover.jpg not overwriten')
-      # copy files from storage location
+        try:
+          print(f'{folder}/{dir}/cover.jpg -> {player}/Podcasts/{dir}/cover.jpg')
+          shutil.copy2(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
+        except Exception as e:
+          print(e)
+          sys.exit()
+
+      # copy "new" files to player from storage location
       for file in list_of_new_files(f'{folder}/{dir}/'):
         f = file.split('/')
         filename = f[len(f)-1]
         if not os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
-          print(f'{file} -> {player}/Podcasts/{dir}/{filename}')
-          shutil.copy2(file, f'{player}/Podcasts/{dir}')
-        else:
-          print(f'{player}/Podcasts/{dir}/{filename} not overwriten')
-      # remove "old" (a month old in this case) files from player
+          try:
+            print(f'{file} -> {player}/Podcasts/{dir}/{filename}')
+            shutil.copy2(file, f'{player}/Podcasts/{dir}')
+          except Exception as e:
+            print(e)
+            sys.exit()
+          if os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
+            filesWriten += 1
+
+      # remove "old" files from player
       for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
         print(f'deleting - {file}')
         os.remove(file)
-  print('')
+        if not os.path.exists(file):
+          filesDeleted += 1
+
+  # remove folders no longer in source directory
+  for dir in os.listdir(f'{player}/Podcasts'):
+    dirPath = f'{player}/Podcasts/{dir}'
+    if not '._' in dir:
+      if not dir in os.listdir(folder):
+        foldersContained += len([entry for entry in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, entry))])
+        try:
+          print(f'deleting - {player}/Podcasts/{dir}')
+          shutil.rmtree(f'{player}/Podcasts/{dir}')
+        except Exception as e:
+          print(f'Error removing folder {e}')
+        if not os.path.exists(f'{player}/Podcasts/{dir}'):
+          foldersDeleted += 1
+
+  print(f'Sync complete: {filesWriten} file{"s" if not filesWriten == 1 else ""} copied, {filesDeleted} file{"s" if not filesDeleted == 1 else ""} removed and {foldersDeleted} folder{"s" if not foldersDeleted == 1 else ""} deleted containing {foldersContained} file{"s" if not foldersContained == 1 else ""}')
   if question(f'Would you like to eject {player} (yes/no) '):
     os.system(f'diskutil eject {escapeFolder(player)}')
-  print('Sync complete')
 
 def listCronjobs():
   return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
@@ -116,6 +151,12 @@ def id3Image(file, img):
       print(f'Error encoding image {e}')
     os.remove(tmp)
 
+def setTrackNum(file, episode, epNum):
+  try:
+    file['tracknumber'] = episode['itunes:episode']
+  except KeyError:
+    file['tracknumber'] = epNum
+
 class Podcast:
 
   def __init__(self, url):
@@ -163,10 +204,15 @@ class Podcast:
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z').year
     except (ValueError, TypeError):
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z').year
-    try:
-      file['tracknumber'] = episode['itunes:episode']
-    except KeyError:
-      file['tracknumber'] = epNum
+    if self.__title == 'Hospital Records Podcast':
+      a = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
+      try:
+        if a[0] < 2000 and not int(file['tracknumber']) == a[0]:
+          file['tracknumber'] = a[0]
+      except:
+        setTrackNum(file, episode, epNum)
+    else:
+      setTrackNum(file, episode, epNum)
     try: # checking if itunes:image exists
       img = requests.get(episode['itunes:image']['@href'])
       if img.status_code != 200: # image isn't there
