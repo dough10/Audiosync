@@ -7,7 +7,8 @@ import glob
 import shutil
 import string
 import datetime
-import validators
+from urllib.parse import urlparse
+# import validators
 import music_tag as id3
 from tqdm import tqdm
 from config import *
@@ -16,6 +17,27 @@ from dateutil.relativedelta import relativedelta
 
 today = datetime.date.today()
 old_date = today - relativedelta(months=1)
+
+def is_connected():
+  try:
+    response = requests.get("https://google.com", timeout=5)
+    return response.status_code == 200
+  except requests.exceptions.RequestException:
+    return False
+
+def validate_url(url):
+  try:
+    parsed_url = urlparse(url)
+    return all([parsed_url.scheme, parsed_url.netloc])
+  except Exception:
+    return False
+
+def is_live_url(url):
+  try:
+    response = requests.get(url)
+    return response.status_code == 200
+  except requests.exceptions.RequestException:
+    return False
 
 def list_of_new_files(path):
   return [
@@ -34,7 +56,7 @@ def updatePlayer(player):
   filesDeleted = 0
   foldersDeleted = 0
   foldersContained = 0
-  # check locations
+  # check locations exist
   if not os.path.exists(folder):
     print(f'Error accessing {folder}. Check if the drive is mounted')
     sys.exit()
@@ -85,16 +107,15 @@ def updatePlayer(player):
   # remove folders no longer in source directory
   for dir in os.listdir(f'{player}/Podcasts'):
     dirPath = f'{player}/Podcasts/{dir}'
-    if not '._' in dir:
-      if not dir in os.listdir(folder):
-        foldersContained += len([entry for entry in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, entry))])
-        try:
-          print(f'deleting - {player}/Podcasts/{dir}')
-          shutil.rmtree(f'{player}/Podcasts/{dir}')
-        except Exception as e:
-          print(f'Error removing folder {e}')
-        if not os.path.exists(f'{player}/Podcasts/{dir}'):
-          foldersDeleted += 1
+    if not '._' in dir and not dir in os.listdir(folder):
+      foldersContained += len([entry for entry in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, entry)) and not '._' in entry])
+      try:
+        print(f'deleting - {player}/Podcasts/{dir}')
+        shutil.rmtree(f'{player}/Podcasts/{dir}')
+      except Exception as e:
+        print(f'Error removing folder {e}')
+      if not os.path.exists(f'{player}/Podcasts/{dir}'):
+        foldersDeleted += 1
 
   print(f'Sync complete: {filesWriten} file{"s" if not filesWriten == 1 else ""} copied, {filesDeleted} file{"s" if not filesDeleted == 1 else ""} removed and {foldersDeleted} folder{"s" if not foldersDeleted == 1 else ""} deleted containing {foldersContained} file{"s" if not foldersContained == 1 else ""}')
   if question(f'Would you like to eject {player} (yes/no) '):
@@ -103,8 +124,8 @@ def updatePlayer(player):
 def listCronjobs():
   return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
 
-def escapeFolder(string):
-  return string.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
+def escapeFolder(s):
+  return s.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
 
 def formatFilename(s):
   valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
@@ -160,13 +181,29 @@ def setTrackNum(file, episode, epNum):
 class Podcast:
 
   def __init__(self, url):
+    # check internet
+    if not is_connected():
+      print('Error connecting to the internet. Please check network connection and try again')
+      sys.exit()
+
+    # check folder exists
     if not os.path.exists(folder):
       print(f'Folder {folder} does not exist. check config.py')
       sys.exit()
+
     self.__xmlURL = url.strip()
-    if not validators.url(self.__xmlURL):
+    # if not validators.url(self.__xmlURL):
+    #   print('Invalid URL address')
+    #   sys.exit()
+
+    if not validate_url(self.__xmlURL):
       print('Invalid URL address')
       sys.exit()
+
+    if not is_live_url(self.__xmlURL):
+      print('Error validating URL')
+      sys.exit()
+      
     print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
     print(f'Fetching XML from {self.__xmlURL}')
     res = requests.get(self.__xmlURL)
@@ -200,6 +237,10 @@ class Podcast:
     file['artist'] = self.__title
     file['genre'] = 'Podcast'
     file['album artist'] = 'Various Artist'
+    try:
+      file['comment'] = episode['itunes:subtitle']
+    except KeyError:
+      pass
     try:
       file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z').year
     except (ValueError, TypeError):
