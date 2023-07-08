@@ -52,72 +52,87 @@ def list_of_old_files(path):
   ]
 
 def updatePlayer(player):
+  newPodcast = 0
   filesWriten = 0
   filesDeleted = 0
   foldersDeleted = 0
   foldersContained = 0
   # check locations exist
   if not os.path.exists(folder):
-    print(f'Error accessing {folder}. Check if the drive is mounted')
-    sys.exit()
+    raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
+  
   if not os.path.exists(player):
-    print(f'Error accessing {player}. Check if the drive is mounted')
-    sys.exit()
+    raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
+  
   print('Begining sync')
-  if not os.path.exists(f'{player}/Podcasts'):
-    os.mkdir(f'{player}/Podcasts')
 
-  # copy "new" files to the player and remove "old" files
+  podcast_folder_on_player = os.path.join(player, 'Podcasts')
+  if not os.path.exists(podcast_folder_on_player):
+    try:
+      os.makedirs(podcast_folder_on_player)
+    except OSError as e:
+      raise OSError(f"Error creating folder {podcast_folder_on_player}: {str(e)}")
+
+  # copy/remove files
   for dir in os.listdir(folder):
-    if not dir == '.DS_Store':
-      # create folder
-      if not os.path.exists(f'{player}/Podcasts/{dir}'):
-        os.mkdir(f'{player}/Podcasts/{dir}')
+    if not dir.startswith('.'): # no hidden directorys
+      src = os.path.join(folder, dir) # where all the files are at
+      dest = os.path.join(player, 'Podcasts', dir) # where awe will send them
 
-      # copy cover.jpg
-      if not os.path.exists(f'{player}/Podcasts/{dir}/cover.jpg'):
+      # create folder
+      if not os.path.exists(dest):
         try:
-          print(f'{folder}/{dir}/cover.jpg -> {player}/Podcasts/{dir}/cover.jpg')
-          shutil.copy2(f'{folder}/{dir}/cover.jpg', f'{player}/Podcasts/{dir}')
+          os.makedirs(dest)
+          newPodcast += 1
+        except OSError as e:
+          raise OSError(f"Error creating folder {dest}: {str(e)}")
+        
+      # copy cover.jpg
+      dest_art = os.path.join(player, 'Podcasts', dir, 'cover.jpg')
+      if not os.path.exists(dest_art):
+        src_art = os.path.join(src, 'cover.jpg')
+        try:
+          print(f'{src_art} -> {dest_art}')
+          shutil.copy2(src_art, dest)
         except Exception as e:
-          print(e)
-          sys.exit()
+          raise Exception(f"Error copying cover.jpg: {str(e)}")
 
       # copy "new" files to player from storage location
-      for file in list_of_new_files(f'{folder}/{dir}/'):
-        f = file.split('/')
-        filename = f[len(f)-1]
-        if not os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
+      for file in list_of_new_files(f'{src}/'):
+        filename = os.path.basename(file)
+        dest_dir = os.path.join(player, 'Podcasts', dir)
+        path = os.path.join(dest_dir, filename)
+        if not os.path.exists(path):
           try:
-            print(f'{file} -> {player}/Podcasts/{dir}/{filename}')
-            shutil.copy2(file, f'{player}/Podcasts/{dir}')
-          except Exception as e:
-            print(e)
-            sys.exit()
-          if os.path.exists(f'{player}/Podcasts/{dir}/{filename}'):
+            print(f'{file} -> {path}')
+            shutil.copy2(file, dest_dir)
             filesWriten += 1
+          except Exception as e:
+            raise Exception(f"Error copying file {file}: {str(e)}")
 
       # remove "old" files from player
-      for file in list_of_old_files(f'{player}/Podcasts/{dir}'):
-        print(f'deleting - {file}')
-        os.remove(file)
-        if not os.path.exists(file):
+      for file in list_of_old_files(f'{dest}/'):
+        try:
+          print(f'deleting - {file}')
+          os.remove(file)
           filesDeleted += 1
+        except Exception as e:
+          raise Exception(f"Error deleting file {file}: {str(e)}")
 
   # remove folders no longer in source directory
-  for dir in os.listdir(f'{player}/Podcasts'):
-    dirPath = f'{player}/Podcasts/{dir}'
-    if not '._' in dir and not dir in os.listdir(folder):
-      foldersContained += len([entry for entry in os.listdir(dirPath) if os.path.isfile(os.path.join(dirPath, entry)) and not '._' in entry])
+  for dir in os.listdir(podcast_folder_on_player):
+    dest = os.path.join(player, 'Podcasts', dir)
+    if not dir.startswith('.') and not dir in os.listdir(folder):
+      foldersContained += len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
       try:
-        print(f'deleting - {player}/Podcasts/{dir}')
-        shutil.rmtree(f'{player}/Podcasts/{dir}')
-      except Exception as e:
-        print(f'Error removing folder {e}')
-      if not os.path.exists(f'{player}/Podcasts/{dir}'):
+        print(f'deleting - {dest}')
+        shutil.rmtree(dest)
         foldersDeleted += 1
+      except Exception as e:
+        raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
-  print(f'Sync complete: {filesWriten} file{"s" if not filesWriten == 1 else ""} copied, {filesDeleted} file{"s" if not filesDeleted == 1 else ""} removed and {foldersDeleted} folder{"s" if not foldersDeleted == 1 else ""} deleted containing {foldersContained} file{"s" if not foldersContained == 1 else ""}')
+  extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
+  print(f'Sync complete: {newPodcast} podcast{"s" if newPodcast != 1 else ""} added, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} podcast{"s" if foldersDeleted != 1 else ""} deleted{extra_text}')
   if question(f'Would you like to eject {player} (yes/no) '):
     os.system(f'diskutil eject {escapeFolder(player)}')
 
@@ -145,13 +160,15 @@ def question(q):
     return question(q)
 
 def dlWithProgressBar(url, path):
+  chunk_size = 8192
   try:
-    media = requests.get(url, stream=True)
+    session = requests.Session()
+    media = session.get(url, stream=True)
     media.raise_for_status()  # Raise an exception for any HTTP errors (status code >= 400)
     bytes = int(media.headers.get('content-length', 0))
     progress = tqdm(total=bytes, unit='iB', unit_scale=True)
-    with open(path, 'wb') as file:
-      for data in media.iter_content(1024):
+    with open(path, 'wb', buffering=chunk_size) as file:
+      for data in media.iter_content(chunk_size):
         progress.update(len(data))
         file.write(data)
     progress.close()
@@ -282,8 +299,8 @@ class Podcast:
       filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
     except KeyError:
       filename = formatFilename(f"{episode['title']}.mp3")
-    path = f'{self.__location}/{filename}'
-    if os.path.exists(path):
+    path = os.path.join(self.__location, filename)
+    if os.path.isfile(path):
       print(f'Episode {filename} already downloaded')
       return
     print(f'Downloading - {filename}')
@@ -297,7 +314,10 @@ class Podcast:
       sys.exit()
     if not os.path.exists(self.__location):
       print(f'Creating folder {self.__location}')
-      os.mkdir(self.__location)
+      try:
+        os.makedirs(self.__location)
+      except OSError as e:
+        raise OSError(f"Error creating folder {self.__location}: {str(e)}")
       print(f'getting cover art {self.__location}/cover.jpg')
       self.__image = requests.get(self.__imgURL)
       open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
