@@ -145,19 +145,25 @@ def question(q):
     return question(q)
 
 def dlWithProgressBar(url, path):
-  media = requests.get(url, stream=True)
-  if media.status_code != 200:
-    print(f'Content download error code {media.status_code}')
-    return
-  bytes = int(media.headers.get('content-length', 0))
-  progress = tqdm(total=bytes, unit='iB', unit_scale=True)
-  with open(path, 'wb') as file:
-    for data in media.iter_content(1024):
-      progress.update(len(data))
-      file.write(data)
-  progress.close()
-  if bytes != 0 and progress.n != bytes:
-    print("ERROR!!, something went wrong")
+  try:
+    media = requests.get(url, stream=True)
+    media.raise_for_status()  # Raise an exception for any HTTP errors (status code >= 400)
+    bytes = int(media.headers.get('content-length', 0))
+    progress = tqdm(total=bytes, unit='iB', unit_scale=True)
+    with open(path, 'wb') as file:
+      for data in media.iter_content(1024):
+        progress.update(len(data))
+        file.write(data)
+    progress.close()
+    if bytes != 0 and progress.n != bytes:
+      print("ERROR: Incomplete download detected.")
+      sys.exit()
+  except requests.exceptions.RequestException as e:
+    print(f"ERROR: An error occurred during the download: {str(e)}")
+    sys.exit()
+  except IOError as e:
+    print(f"ERROR: An I/O error occurred while writing the file: {str(e)}")
+    sys.exit()
 
 def id3Image(file, img):
   try:
