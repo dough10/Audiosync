@@ -1,18 +1,18 @@
-import requests
-import xmltodict
 import os
 import re
 import sys
 import glob
 import shutil
 import string
+import requests
 import datetime
-from urllib.parse import urlparse
-# import validators
+import tempfile
+import xmltodict
 import music_tag as id3
 from tqdm import tqdm
 from config import *
 from PIL import Image
+from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
 today = datetime.date.today()
@@ -150,17 +150,17 @@ def formatFilename(s):
   return filename
 
 def question(q):
-  ask = input(q).strip()
-  if ask.lower() in ['yes', 'y', '1']:
-    return True
-  elif ask.lower() in ['no', 'n', '0']:
-    return False
-  else:
-    print('invalid option')
-    return question(q)
+  while True:
+    ask = input(q).strip().lower()
+    if ask in ['yes', 'y', '1']:
+      return True
+    elif ask in ['no', 'n', '0']:
+      return False
+    else:
+      print('Invalid option. Please enter "yes" or "no".')
 
 def dlWithProgressBar(url, path):
-  chunk_size = 8192
+  chunk_size = 4096
   try:
     session = requests.Session()
     media = session.get(url, stream=True)
@@ -183,21 +183,49 @@ def dlWithProgressBar(url, path):
     sys.exit()
 
 def id3Image(file, img):
+  """
+  Sets the ID3 artwork for the given file using the provided image data.
+
+  Args:
+      file (id3.ID3): The ID3 file object.
+      img (bytes): The image data.
+
+  Returns:
+      None
+  """
   try:
     file['artwork'] = img
-  except:
+  except Exception as e:
     print('Attempting Image embed workaround')
-    tmp = f'{os.getcwd()}/tmp.jpg'
-    open(tmp, 'wb').write(img)
     try:
-      file['artwork'] = Image.open(tmp)
+      with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+        tmp_file.write(img)
+        tmp_file_path = tmp_file.name
+        file['artwork'] = Image.open(tmp_file_path)
     except Exception as e:
-      print(f'Error encoding image {e}')
-    os.remove(tmp)
+      print(f'Error encoding image: {str(e)}')
+    finally:
+      if tmp_file_path and os.path.exists(tmp_file_path):
+        os.remove(tmp_file_path)
 
 def setTrackNum(file, episode, epNum):
+  """
+  Sets the track number for the given ID3 file based on the episode's metadata.
+
+  Args:
+      file (id3.ID3): The ID3 file object.
+      episode (dict): The metadata of the episode.
+      epNum (int): The fallback track number.
+
+  Returns:
+      None
+  """
   try:
-    file['tracknumber'] = episode['itunes:episode']
+    track_number = episode.get('itunes:episode')
+    if track_number:
+      file['tracknumber'] = track_number
+    else:
+      file['tracknumber'] = epNum
   except KeyError:
     file['tracknumber'] = epNum
 
@@ -215,9 +243,6 @@ class Podcast:
       sys.exit()
 
     self.__xmlURL = url.strip()
-    # if not validators.url(self.__xmlURL):
-    #   print('Invalid URL address')
-    #   sys.exit()
 
     if not validate_url(self.__xmlURL):
       print('Invalid URL address')
@@ -252,49 +277,84 @@ class Podcast:
   def __id3tag(self, episode, path, epNum):
     try:
       file = id3.load_file(path)
-    except:
+    except Exception as e:
+      print(f"Error loading ID3 file: {str(e)}")
       return
-    print('Updating ID3 tags & encoding artwork')
-    file['title'] = episode['title']
-    file['album'] = self.__title
-    file['artist'] = self.__title
-    file['genre'] = 'Podcast'
-    file['album artist'] = 'Various Artist'
     try:
-      file['comment'] = episode['itunes:subtitle']
-    except KeyError:
-      pass
-    try:
-      file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z').year
-    except (ValueError, TypeError):
-      file['year'] = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z').year
-    if self.__title == 'Hospital Records Podcast':
-      a = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
+      print('Updating ID3 tags & encoding artwork')
+      file['title'] = episode['title']
+      file['album'] = self.__title
+      file['artist'] = self.__title
+      file['genre'] = 'Podcast'
+      file['album artist'] = 'Various Artist'
+
+      # Set comment tag if 'itunes:subtitle' key exists
+      if 'itunes:subtitle' in episode:
+        file['comment'] = episode['itunes:subtitle']
+
+      # Set year tag
       try:
-        if a[0] < 2000 and not int(file['tracknumber']) == a[0]:
+        pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z')
+      except (ValueError, TypeError):
+        try:
+          pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z')
+        except (ValueError, TypeError) as e:
+          print(f"Error setting year tag: {str(e)}")
+          pub_date = None
+      if pub_date:
+          file['year'] = pub_date.year
+
+      # Set track number
+      try:
+        a = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
+        if self.__title == 'Hospital Records Podcast' and a and a[0] < 2000:
           file['tracknumber'] = a[0]
-      except:
-        setTrackNum(file, episode, epNum)
-    else:
-      setTrackNum(file, episode, epNum)
-    try: # checking if itunes:image exists
-      img = requests.get(episode['itunes:image']['@href'])
-      if img.status_code != 200: # image isn't there
-        try: # checking for cached image
-          img = self.__image
-        except: # image was not cached 
-          self.__image = requests.get(self.__imgURL)
-          img = self.__image
-      id3Image(file, img.content)
-    except KeyError: # itunes:image doesn't exist
-      try: # attempt to encode cached image
-        id3Image(file, self.__image.content)
-      except:  # image was not cached
-        self.__image = requests.get(self.__imgURL)
-        id3Image(file, self.__image.content)
-    file.save()
+        else:
+          setTrackNum(file, episode, epNum)
+      except Exception as e:
+        print(f"Error setting track number: {str(e)}")
+
+      # Set ID3 artwork
+      try:
+        if 'itunes:image' in episode:
+          img_url = episode['itunes:image']['@href']
+          img = requests.get(img_url)
+          if img.status_code == 200:
+            id3Image(file, img.content)
+          else:
+            if hasattr(self, '__image'):
+              id3Image(file, self.__image.content)
+            else:
+              self.__image = requests.get(self.__imgURL)
+              id3Image(file, self.__image.content)
+        else:
+          if hasattr(self, '__image'):
+            id3Image(file, self.__image.content)
+          else:
+            self.__image = requests.get(self.__imgURL)
+            id3Image(file, self.__image.content)
+      except Exception as e:
+          print(f"Error setting ID3 artwork: {str(e)}")
+
+      # Save the modified ID3 tags
+      try:
+        file.save()
+      except Exception as e:
+        print(f"Error saving ID3 tags: {str(e)}")
+    except Exception as e:
+      print(f"Error updating ID3 tags: {str(e)}")
 
   def __fileDL(self, episode, epNum):
+    """
+    Downloads a podcast episode and sets the ID3 tags for the downloaded file.
+
+    Args:
+        episode (dict): The metadata of the episode.
+        epNum (int): The episode number.
+
+    Returns:
+        None
+    """
     try:
       filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
     except KeyError:

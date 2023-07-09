@@ -1,5 +1,4 @@
 art
-validators
 xmltodict
 music_tag
 tqdm
