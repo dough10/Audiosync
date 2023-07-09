@@ -1,8 +1,15 @@
 import os
 import sys
+import json
 from Podcast import Podcast, listCronjobs
-from config import *
 from art import *
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'), 'r') as f:
+  config = json.load(f)
+
+folder = config['folder']
+download = config['download']
+logLocation = config['logLocation']
 
 try:
   os.system('clear')

@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import json
 import glob
 import shutil
 import string
@@ -10,10 +11,16 @@ import tempfile
 import xmltodict
 import music_tag as id3
 from tqdm import tqdm
-from config import *
 from PIL import Image
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
+
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'), 'r') as f:
+  config = json.load(f)
+
+folder = config['folder']
+download = config['download']
+logLocation = config['logLocation']
 
 today = datetime.date.today()
 old_date = today - relativedelta(months=1)
@@ -228,10 +235,13 @@ def setTrackNum(file, episode, epNum):
       file['tracknumber'] = epNum
   except KeyError:
     file['tracknumber'] = epNum
+  except Exception as e:
+    print(f"Error setting track number: {str(e)}")
 
 class Podcast:
 
   def __init__(self, url):
+    print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
     # check internet
     if not is_connected():
       print('Error connecting to the internet. Please check network connection and try again')
@@ -252,7 +262,6 @@ class Podcast:
       print('Error validating URL')
       sys.exit()
       
-    print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
     print(f'Fetching XML from {self.__xmlURL}')
     res = requests.get(self.__xmlURL)
     if res.status_code != 200:
@@ -265,7 +274,7 @@ class Podcast:
       sys.exit()
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
-    self.__location = f'{folder}/{self.__title}'
+    self.__location = os.path.join(folder, self.__title)
     try:
       self.__imgURL = xml['rss']['channel']['image']['url']
     except TypeError:
@@ -280,6 +289,7 @@ class Podcast:
     except Exception as e:
       print(f"Error loading ID3 file: {str(e)}")
       return
+    
     try:
       print('Updating ID3 tags & encoding artwork')
       file['title'] = episode['title']
@@ -317,8 +327,7 @@ class Podcast:
       # Set ID3 artwork
       try:
         if 'itunes:image' in episode:
-          img_url = episode['itunes:image']['@href']
-          img = requests.get(img_url)
+          img = requests.get(episode['itunes:image']['@href'])
           if img.status_code == 200:
             id3Image(file, img.content)
           else:
