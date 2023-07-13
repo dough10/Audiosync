@@ -15,7 +15,8 @@ from PIL import Image
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'), 'r') as f:
+script_path = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(script_path, 'config.json'), 'r') as f:
   config = json.load(f)
 
 folder = config['folder']
@@ -48,13 +49,13 @@ def is_live_url(url):
 
 def list_of_new_files(path):
   return [
-    file for file in glob.glob(path + '*.mp3')
+    file for file in glob.glob(f'{path}/*.mp3')
     if old_date < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
 def list_of_old_files(path):
   return [
-    file for file in glob.glob(path + '*.mp3')
+    file for file in glob.glob(f'{path}/*.mp3')
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
@@ -105,7 +106,7 @@ def updatePlayer(player):
           raise Exception(f"Error copying cover.jpg: {str(e)}")
 
       # copy "new" files to player from storage location
-      for file in list_of_new_files(f'{src}/'):
+      for file in list_of_new_files(src):
         filename = os.path.basename(file)
         dest_dir = os.path.join(player, 'Podcasts', dir)
         path = os.path.join(dest_dir, filename)
@@ -118,7 +119,7 @@ def updatePlayer(player):
             raise Exception(f"Error copying file {file}: {str(e)}")
 
       # remove "old" files from player
-      for file in list_of_old_files(f'{dest}/'):
+      for file in list_of_old_files(dest):
         try:
           print(f'deleting - {file}')
           os.remove(file)
@@ -128,7 +129,7 @@ def updatePlayer(player):
 
   # remove folders no longer in source directory
   for dir in os.listdir(podcast_folder_on_player):
-    dest = os.path.join(player, 'Podcasts', dir)
+    dest = os.path.join(podcast_folder_on_player, dir)
     if not dir.startswith('.') and not dir in os.listdir(folder):
       foldersContained += len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
       try:
@@ -138,8 +139,10 @@ def updatePlayer(player):
       except Exception as e:
         raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
+  print('')
+  filesDeleted += foldersContained
   extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
-  print(f'Sync complete: {newPodcast} podcast{"s" if newPodcast != 1 else ""} added, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} podcast{"s" if foldersDeleted != 1 else ""} deleted{extra_text}')
+  print(f'Sync complete: {newPodcast} folder{"s" if newPodcast != 1 else ""} created, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} folder{"s" if foldersDeleted != 1 else ""} removed{extra_text}')
   if question(f'Would you like to eject {player} (yes/no) '):
     os.system(f'diskutil eject {escapeFolder(player)}')
 

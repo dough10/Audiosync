@@ -5,7 +5,8 @@ import socket
 from art import tprint
 from Podcast import updatePlayer, question
 
-with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json'), 'r') as f:
+script_path = os.path.dirname(os.path.abspath(__file__))
+with open(os.path.join(script_path, 'config.json'), 'r') as f:
   config = json.load(f)
 
 folder = config['folder']
