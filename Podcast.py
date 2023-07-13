@@ -3,6 +3,7 @@ import re
 import sys
 import json
 import glob
+import time
 import shutil
 import string
 import requests
@@ -12,6 +13,7 @@ import xmltodict
 import music_tag as id3
 from tqdm import tqdm
 from PIL import Image
+from io import BytesIO
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
@@ -59,6 +61,22 @@ def list_of_old_files(path):
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
+def copy_file_with_retry(source, destination, max_retries=3, timeout=10):
+  retries = 0
+  while retries < max_retries:
+    try:
+      shutil.copy2(source, destination)
+      break  # Copy successful, exit the loop
+    except shutil.Error as e:
+      print(f"Error copying file: {str(e)}")
+      retries += 1
+      if retries < max_retries:
+        print(f"Retrying after {timeout} seconds...")
+        time.sleep(timeout)
+      else:
+        print(f"Maximum retries reached. Copy failed.")
+        raise  # Reraise the exception if maximum retries reached
+
 def updatePlayer(player):
   newPodcast = 0
   filesWriten = 0
@@ -72,7 +90,7 @@ def updatePlayer(player):
   if not os.path.exists(player):
     raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
   
-  print('Begining sync')
+  print('Begining sync. This may take a while')
 
   podcast_folder_on_player = os.path.join(player, 'Podcasts')
   if not os.path.exists(podcast_folder_on_player):
@@ -85,47 +103,62 @@ def updatePlayer(player):
   for dir in os.listdir(folder):
     if not dir.startswith('.'): # no hidden directorys
       src = os.path.join(folder, dir) # where all the files are at
-      dest = os.path.join(player, 'Podcasts', dir) # where awe will send them
+      dest = os.path.join(podcast_folder_on_player, dir) # where we will send the files
+      dest_art = os.path.join(podcast_folder_on_player, dir, 'cover.jpg')
+      files_to_add = list_of_new_files(src)
+      files_to_delete = list_of_old_files(dest)
+      num_files = len(files_to_add)
 
       # create folder
-      if not os.path.exists(dest):
+      if not os.path.exists(dest) and num_files > 0:
         try:
+          print(f'Creating folder {dest}')
           os.makedirs(dest)
           newPodcast += 1
         except OSError as e:
           raise OSError(f"Error creating folder {dest}: {str(e)}")
         
       # copy cover.jpg
-      dest_art = os.path.join(player, 'Podcasts', dir, 'cover.jpg')
-      if not os.path.exists(dest_art):
+      if not os.path.exists(dest_art) and num_files > 0:
         src_art = os.path.join(src, 'cover.jpg')
         try:
           print(f'{src_art} -> {dest_art}')
-          shutil.copy2(src_art, dest)
+          copy_file_with_retry(src_art, dest)
+          filesWriten += 1
         except Exception as e:
           raise Exception(f"Error copying cover.jpg: {str(e)}")
 
       # copy "new" files to player from storage location
-      for file in list_of_new_files(src):
+      for file in files_to_add:
         filename = os.path.basename(file)
-        dest_dir = os.path.join(player, 'Podcasts', dir)
+        dest_dir = os.path.join(podcast_folder_on_player, dir)
         path = os.path.join(dest_dir, filename)
         if not os.path.exists(path):
           try:
             print(f'{file} -> {path}')
-            shutil.copy2(file, dest_dir)
+            copy_file_with_retry(file, dest_dir)
             filesWriten += 1
           except Exception as e:
             raise Exception(f"Error copying file {file}: {str(e)}")
 
       # remove "old" files from player
-      for file in list_of_old_files(dest):
+      for file in files_to_delete:
         try:
           print(f'deleting - {file}')
           os.remove(file)
           filesDeleted += 1
         except Exception as e:
           raise Exception(f"Error deleting file {file}: {str(e)}")
+
+      # check for empty folder
+      if os.path.exists(dest) and len(glob.glob(f'{dest}/*.mp3')) == 0:
+        try:
+          print(f'Removing empty folder {dest}')
+          shutil.rmtree(dest)
+          foldersDeleted += 1
+          foldersContained += 1 # cover.jpg
+        except:
+          pass
 
   # remove folders no longer in source directory
   for dir in os.listdir(podcast_folder_on_player):
@@ -140,9 +173,12 @@ def updatePlayer(player):
         raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
   print('')
-  filesDeleted += foldersContained
-  extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
-  print(f'Sync complete: {newPodcast} folder{"s" if newPodcast != 1 else ""} created, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} folder{"s" if foldersDeleted != 1 else ""} removed{extra_text}')
+  if foldersDeleted == 0 and newPodcast == 0 and filesWriten == 0 and filesDeleted == 0 and foldersContained == 0:
+    print(f'Sync complete: No changes made to drive')
+  else:
+    filesDeleted += foldersContained
+    extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
+    print(f'Sync complete: {newPodcast} folder{"s" if newPodcast != 1 else ""} created, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} folder{"s" if foldersDeleted != 1 else ""} removed{extra_text}')
   if question(f'Would you like to eject {player} (yes/no) '):
     os.system(f'diskutil eject {escapeFolder(player)}')
 
@@ -335,16 +371,16 @@ class Podcast:
             id3Image(file, img.content)
           else:
             if hasattr(self, '__image'):
-              id3Image(file, self.__image.content)
+              id3Image(file, self.__image)
             else:
               self.__image = requests.get(self.__imgURL)
-              id3Image(file, self.__image.content)
+              id3Image(file, self.__image)
         else:
           if hasattr(self, '__image'):
-            id3Image(file, self.__image.content)
+            id3Image(file, self.__image)
           else:
             self.__image = requests.get(self.__imgURL)
-            id3Image(file, self.__image.content)
+            id3Image(file, self.__image)
       except Exception as e:
           print(f"Error setting ID3 artwork: {str(e)}")
 
@@ -379,6 +415,22 @@ class Podcast:
     dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path, epNum)
 
+  def __get_cover_art(self):
+    cover = os.path.join(self.__location, 'cover.jpg')
+    if not os.path.exists(cover):
+      print(f'getting cover art {cover}')
+      res = requests.get(self.__imgURL)
+      img = Image.open(BytesIO(res.content))
+      width, height = img.size 
+      if width > 500 or height > 500:
+        img.thumbnail((500, 500), Image.ANTIALIAS)
+      img.convert('RGB')
+      try:
+        img.save(cover, 'JPEG')
+      except OSError:
+        img.save(cover, 'PNG')
+      self.__image = img
+
   def __mkdir(self):
     if not os.path.exists(folder):
       print(f'Error accessing location {folder}')
@@ -390,9 +442,7 @@ class Podcast:
         os.makedirs(self.__location)
       except OSError as e:
         raise OSError(f"Error creating folder {self.__location}: {str(e)}")
-      print(f'getting cover art {self.__location}/cover.jpg')
-      self.__image = requests.get(self.__imgURL)
-      open(f'{self.__location}/cover.jpg', 'wb').write(self.__image.content)
+    self.__get_cover_art()
 
   def episodeCount(self):
     return len(self.__list)
