@@ -109,7 +109,7 @@ def updatePlayer(player):
       files_to_delete = list_of_old_files(dest)
       num_files = len(files_to_add)
 
-      # create folder
+      # create folder if there are file to write in it
       if not os.path.exists(dest) and num_files > 0:
         try:
           print(f'Creating folder {dest}')
@@ -119,7 +119,7 @@ def updatePlayer(player):
           raise OSError(f"Error creating folder {dest}: {str(e)}")
         
       # copy cover.jpg
-      if not os.path.exists(dest_art) and num_files > 0:
+      if not os.path.exists(dest_art) and os.path.exists(dest):
         src_art = os.path.join(src, 'cover.jpg')
         try:
           print(f'{src_art} -> {dest_art}')
@@ -157,8 +157,8 @@ def updatePlayer(player):
           shutil.rmtree(dest)
           foldersDeleted += 1
           foldersContained += 1 # cover.jpg
-        except:
-          pass
+        except Exception as e:
+          raise Exception(f"Error deleting directory {dest}: {str(e)}")
 
   # remove folders no longer in source directory
   for dir in os.listdir(podcast_folder_on_player):
@@ -243,6 +243,7 @@ def id3Image(file, img):
     file['artwork'] = img
   except Exception as e:
     print('Attempting Image embed workaround')
+    tmp_file_path = None
     try:
       with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
         tmp_file.write(img)
@@ -373,13 +374,13 @@ class Podcast:
             if hasattr(self, '__image'):
               id3Image(file, self.__image)
             else:
-              self.__image = requests.get(self.__imgURL)
+              self.__image = requests.get(self.__imgURL).content
               id3Image(file, self.__image)
         else:
           if hasattr(self, '__image'):
             id3Image(file, self.__image)
           else:
-            self.__image = requests.get(self.__imgURL)
+            self.__image = requests.get(self.__imgURL).content
             id3Image(file, self.__image)
       except Exception as e:
           print(f"Error setting ID3 artwork: {str(e)}")
