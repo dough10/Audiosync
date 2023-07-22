@@ -5,9 +5,10 @@ import socket
 from art import tprint
 from Podcast import updatePlayer, question
 
-script_path = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(script_path, 'config.json'), 'r') as f:
-  config = json.load(f)
+file_path = os.path.abspath(__file__)
+script_folder = os.path.dirname(file_path)
+with open(os.path.join(script_folder, 'config.json'), 'r') as jason:
+  config = json.load(jason)
 
 folder = config['folder']
 download = config['download']
@@ -48,7 +49,7 @@ def main():
       sys.exit()
     elif 0 < choice <= len(volumes):
       path = os.path.join('/Volumes', volumes[choice - 1])
-      if question(f'Is {path} the correct drive? (yes/no) ') and question(f'Do you want to write all new podcasts to {path}/Podcasts? (yes/no) '):
+      if question(f'Is {path} the correct location? (yes/no) ') and question(f'Do you want to write podcasts to {path}/Podcasts? (yes/no) '):
         updatePlayer(path)
     else:
       print('Invalid input')

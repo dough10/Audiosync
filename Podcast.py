@@ -17,9 +17,10 @@ from io import BytesIO
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
-script_path = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(script_path, 'config.json'), 'r') as f:
-  config = json.load(f)
+file_path = os.path.abspath(__file__)
+script_folder = os.path.dirname(file_path)
+with open(os.path.join(script_folder, 'config.json'), 'r') as jason:
+  config = json.load(jason)
 
 folder = config['folder']
 download = config['download']
@@ -61,7 +62,7 @@ def list_of_old_files(path):
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
-def copy_file_with_retry(source, destination, max_retries=3, timeout=10):
+def copy_file(source, destination, max_retries=3, timeout=10):
   retries = 0
   while retries < max_retries:
     try:
@@ -123,7 +124,7 @@ def updatePlayer(player):
         src_art = os.path.join(src, 'cover.jpg')
         try:
           print(f'{src_art} -> {dest_art}')
-          copy_file_with_retry(src_art, dest)
+          copy_file(src_art, dest)
           filesWriten += 1
         except Exception as e:
           raise Exception(f"Error copying cover.jpg: {str(e)}")
@@ -136,7 +137,7 @@ def updatePlayer(player):
         if not os.path.exists(path):
           try:
             print(f'{file} -> {path}')
-            copy_file_with_retry(file, dest_dir)
+            copy_file(file, dest_dir)
             filesWriten += 1
           except Exception as e:
             raise Exception(f"Error copying file {file}: {str(e)}")
@@ -144,7 +145,7 @@ def updatePlayer(player):
       # remove "old" files from player
       for file in files_to_delete:
         try:
-          print(f'deleting - {file}')
+          print(f'{file} -> Trash')
           os.remove(file)
           filesDeleted += 1
         except Exception as e:
@@ -160,7 +161,7 @@ def updatePlayer(player):
         except Exception as e:
           raise Exception(f"Error deleting directory {dest}: {str(e)}")
 
-  # remove folders no longer in source directory
+  # remove folders no longer in source directory (unsubscribed podcast)
   for dir in os.listdir(podcast_folder_on_player):
     dest = os.path.join(podcast_folder_on_player, dir)
     if not dir.startswith('.') and not dir in os.listdir(folder):
@@ -180,6 +181,7 @@ def updatePlayer(player):
     extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
     print(f'Sync complete: {newPodcast} folder{"s" if newPodcast != 1 else ""} created, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} folder{"s" if foldersDeleted != 1 else ""} removed{extra_text}')
   if question(f'Would you like to eject {player} (yes/no) '):
+    print('Please wait for prompt before removing the drive')
     os.system(f'diskutil eject {escapeFolder(player)}')
 
 def listCronjobs():
@@ -197,10 +199,10 @@ def formatFilename(s):
 
 def question(q):
   while True:
-    ask = input(q).strip().lower()
-    if ask in ['yes', 'y', '1']:
+    answer = input(q).strip().lower()
+    if answer in ['yes', 'y', '1']:
       return True
-    elif ask in ['no', 'n', '0']:
+    elif answer in ['no', 'n', '0']:
       return False
     else:
       print('Invalid option. Please enter "yes" or "no".')
@@ -268,13 +270,10 @@ def setTrackNum(file, episode, epNum):
       None
   """
   try:
-    track_number = episode.get('itunes:episode')
-    if track_number:
-      file['tracknumber'] = track_number
+    if 'itunes:episode' in episode:
+      file['tracknumber'] = episode['itunes:episode']
     else:
       file['tracknumber'] = epNum
-  except KeyError:
-    file['tracknumber'] = epNum
   except Exception as e:
     print(f"Error setting track number: {str(e)}")
 
@@ -356,9 +355,9 @@ class Podcast:
 
       # Set track number
       try:
-        a = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
-        if self.__title == 'Hospital Records Podcast' and a and a[0] < 2000:
-          file['tracknumber'] = a[0]
+        ep = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
+        if self.__title == 'Hospital Records Podcast' and ep and ep[0] < 2000:
+          file['tracknumber'] = ep[0]
         else:
           setTrackNum(file, episode, epNum)
       except Exception as e:
@@ -374,13 +373,13 @@ class Podcast:
             if hasattr(self, '__image'):
               id3Image(file, self.__image)
             else:
-              self.__image = requests.get(self.__imgURL).content
+              self.__image = Image.open(self.__coverJPG)
               id3Image(file, self.__image)
         else:
           if hasattr(self, '__image'):
             id3Image(file, self.__image)
           else:
-            self.__image = requests.get(self.__imgURL).content
+            self.__image = Image.open(self.__coverJPG)
             id3Image(file, self.__image)
       except Exception as e:
           print(f"Error setting ID3 artwork: {str(e)}")
@@ -417,9 +416,9 @@ class Podcast:
     self.__id3tag(episode, path, epNum)
 
   def __get_cover_art(self):
-    cover = os.path.join(self.__location, 'cover.jpg')
-    if not os.path.exists(cover):
-      print(f'getting cover art {cover}')
+    self.__coverJPG = os.path.join(self.__location, 'cover.jpg')
+    if not os.path.exists(self.__coverJPG):
+      print(f'getting cover art {self.__coverJPG}')
       res = requests.get(self.__imgURL)
       img = Image.open(BytesIO(res.content))
       width, height = img.size 
@@ -427,9 +426,9 @@ class Podcast:
         img.thumbnail((500, 500), Image.ANTIALIAS)
       img.convert('RGB')
       try:
-        img.save(cover, 'JPEG')
+        img.save(self.__coverJPG, 'JPEG')
       except OSError:
-        img.save(cover, 'PNG')
+        img.save(self.__coverJPG, 'PNG')
       self.__image = img
 
   def __mkdir(self):
@@ -453,7 +452,7 @@ class Podcast:
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
     print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {os.getcwd()}/Podcast.py {self.__xmlURL} > {logLocation}/{formatFilename(self.__title)}.log 2>&1\") | crontab -")
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, formatFilename(self.__title))}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
     self.auto()
 
