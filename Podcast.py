@@ -100,66 +100,67 @@ def updatePlayer(player):
     except OSError as e:
       raise OSError(f"Error creating folder {podcast_folder_on_player}: {str(e)}")
 
-  # copy/remove files
-  for dir in os.listdir(folder):
-    if not dir.startswith('.'): # no hidden directorys
-      src = os.path.join(folder, dir) # where all the files are at
-      dest = os.path.join(podcast_folder_on_player, dir) # where we will send the files
-      dest_art = os.path.join(podcast_folder_on_player, dir, 'cover.jpg')
-      files_to_add = list_of_new_files(src)
-      files_to_delete = list_of_old_files(dest)
-      num_files = len(files_to_add)
+  dirs = [dir for dir in os.listdir(folder) if not dir.startswith('.')]
 
-      # create folder if there are file to write in it
-      if not os.path.exists(dest) and num_files > 0:
+  # copy/remove files
+  for dir in dirs:
+    src = os.path.join(folder, dir) # where all the files are at
+    src_art = os.path.join(src, 'cover.jpg')
+    dest = os.path.join(podcast_folder_on_player, dir) # where we will send the files
+    dest_art = os.path.join(dest, 'cover.jpg')
+    files_to_add = list_of_new_files(src)
+    files_to_delete = list_of_old_files(dest)
+    num_files = len(files_to_add)
+
+    # create folder if there are file to write in it
+    if not os.path.exists(dest) and num_files > 0:
+      try:
+        print(f'Creating folder {dest}')
+        os.makedirs(dest)
+        newPodcast += 1
+      except OSError as e:
+        raise OSError(f"Error creating folder {dest}: {str(e)}")
+      
+    # copy cover.jpg
+    if not os.path.exists(dest_art) and os.path.exists(dest):
+      try:
+        print(f'{src_art} -> {dest_art}')
+        copy_file(src_art, dest)
+        filesWriten += 1
+      except Exception as e:
+        raise Exception(f"Error copying cover.jpg: {str(e)}")
+
+    # copy "new" files to player from storage location
+    for file in files_to_add:
+      filename = os.path.basename(file)
+      dest_dir = os.path.join(podcast_folder_on_player, dir)
+      path = os.path.join(dest_dir, filename)
+      if not os.path.exists(path):
         try:
-          print(f'Creating folder {dest}')
-          os.makedirs(dest)
-          newPodcast += 1
-        except OSError as e:
-          raise OSError(f"Error creating folder {dest}: {str(e)}")
-        
-      # copy cover.jpg
-      if not os.path.exists(dest_art) and os.path.exists(dest):
-        src_art = os.path.join(src, 'cover.jpg')
-        try:
-          print(f'{src_art} -> {dest_art}')
-          copy_file(src_art, dest)
+          print(f'{file} -> {path}')
+          copy_file(file, dest_dir)
           filesWriten += 1
         except Exception as e:
-          raise Exception(f"Error copying cover.jpg: {str(e)}")
+          raise Exception(f"Error copying file {file}: {str(e)}")
 
-      # copy "new" files to player from storage location
-      for file in files_to_add:
-        filename = os.path.basename(file)
-        dest_dir = os.path.join(podcast_folder_on_player, dir)
-        path = os.path.join(dest_dir, filename)
-        if not os.path.exists(path):
-          try:
-            print(f'{file} -> {path}')
-            copy_file(file, dest_dir)
-            filesWriten += 1
-          except Exception as e:
-            raise Exception(f"Error copying file {file}: {str(e)}")
+    # remove "old" files from player
+    for file in files_to_delete:
+      try:
+        print(f'{file} -> Trash')
+        os.remove(file)
+        filesDeleted += 1
+      except Exception as e:
+        raise Exception(f"Error deleting file {file}: {str(e)}")
 
-      # remove "old" files from player
-      for file in files_to_delete:
-        try:
-          print(f'{file} -> Trash')
-          os.remove(file)
-          filesDeleted += 1
-        except Exception as e:
-          raise Exception(f"Error deleting file {file}: {str(e)}")
-
-      # check for empty folder
-      if os.path.exists(dest) and len(glob.glob(f'{dest}/*.mp3')) == 0:
-        try:
-          print(f'Removing empty folder {dest}')
-          shutil.rmtree(dest)
-          foldersDeleted += 1
-          foldersContained += 1 # cover.jpg
-        except Exception as e:
-          raise Exception(f"Error deleting directory {dest}: {str(e)}")
+    # check for empty folder
+    if os.path.exists(dest) and len(glob.glob(f'{dest}/*.mp3')) == 0:
+      try:
+        print(f'Removing empty folder {dest}')
+        shutil.rmtree(dest)
+        foldersDeleted += 1
+        foldersContained += 1 # cover.jpg
+      except Exception as e:
+        raise Exception(f"Error deleting directory {dest}: {str(e)}")
 
   # remove folders no longer in source directory (unsubscribed podcast)
   for dir in os.listdir(podcast_folder_on_player):
@@ -250,7 +251,7 @@ def id3Image(file, img):
       with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
         tmp_file.write(img)
         tmp_file_path = tmp_file.name
-        file['artwork'] = Image.open(tmp_file_path)
+        file['artwork'] = load_saved_image(tmp_file_path)
     except Exception as e:
       print(f'Error encoding image: {str(e)}')
     finally:
@@ -276,6 +277,12 @@ def setTrackNum(file, episode, epNum):
       file['tracknumber'] = epNum
   except Exception as e:
     print(f"Error setting track number: {str(e)}")
+
+def load_saved_image(location):
+  img = Image.open(location)
+  bytes = BytesIO()
+  img.save(bytes, format='JPEG')
+  return bytes.getvalue() 
 
 class Podcast:
 
@@ -373,13 +380,13 @@ class Podcast:
             if hasattr(self, '__image'):
               id3Image(file, self.__image)
             else:
-              self.__image = Image.open(self.__coverJPG)
+              self.__image = load_saved_image(self.__coverJPG)
               id3Image(file, self.__image)
         else:
           if hasattr(self, '__image'):
             id3Image(file, self.__image)
           else:
-            self.__image = Image.open(self.__coverJPG)
+            self.__image = load_saved_image(self.__coverJPG)
             id3Image(file, self.__image)
       except Exception as e:
           print(f"Error setting ID3 artwork: {str(e)}")
