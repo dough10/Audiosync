@@ -17,16 +17,14 @@ logLocation = config['logLocation']
 hostname = socket.gethostname().replace(".local", "").replace("-", " ")
 
 def getVolumes():
-  volumes = []
-  for volume in os.listdir('/Volumes'):
-    timemachine = volume == 'com.apple.TimeMachine.localsnapshots'
-    timemachinehidden = volume == '.timemachine'
-    backup = volume == f'Backups of {hostname}'
-    ssd = volume == 'Macintosh HD'
-    recovery = volume == 'Recovery'
-    if not timemachine and not backup and not ssd and not recovery and not timemachinehidden and f'/Volumes/{volume}' not in folder:
-      volumes.append(volume)
-  return volumes
+  excluded = [
+    'com.apple.TimeMachine.localsnapshots',
+    f'Backups of {hostname}',
+    'Recovery',
+    'Macintosh HD',
+    '.timemachine'
+  ]
+  return [volume for volume in os.listdir('/Volumes') if volume not in excluded and os.path.join('/Volumes', volume) not in folder]
 
 def main():
   try:
