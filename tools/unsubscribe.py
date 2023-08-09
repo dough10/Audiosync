@@ -1,16 +1,10 @@
 import os
 import sys
-import json
-from Podcast import Podcast, listCronjobs
 from art import *
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+from Podcast import Podcast, listCronjobs
 
-script_path = os.path.dirname(os.path.abspath(__file__))
-with open(os.path.join(script_path, 'config.json'), 'r') as f:
-  config = json.load(f)
-
-folder = config['folder']
-download = config['download']
-logLocation = config['logLocation']
 
 try:
   os.system('clear')

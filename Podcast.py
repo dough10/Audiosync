@@ -19,12 +19,13 @@ from dateutil.relativedelta import relativedelta
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-with open(os.path.join(script_folder, 'config.json'), 'r') as jason:
-  config = json.load(jason)
+with open(os.path.join(script_folder, 'config.json'), 'r') as j:
+  config = json.load(j)
 
 folder = config['folder']
 download = config['download']
 logLocation = config['logLocation']
+art_size = config['art_size']
 
 today = datetime.date.today()
 old_date = today - relativedelta(months=1)
@@ -153,7 +154,7 @@ def updatePlayer(player):
         raise Exception(f"Error deleting file {file}: {str(e)}")
 
     # check for empty folder
-    if os.path.exists(dest) and len(glob.glob(f'{dest}/*.mp3')) == 0:
+    if os.path.exists(dest) and len(glob.glob(os.path.join(dest, '*.mp3'))) == 0:
       try:
         print(f'Removing empty folder {dest}')
         shutil.rmtree(dest)
@@ -429,8 +430,8 @@ class Podcast:
       res = requests.get(self.__imgURL)
       img = Image.open(BytesIO(res.content))
       width, height = img.size 
-      if width > 500 or height > 500:
-        img.thumbnail((500, 500), Image.ANTIALIAS)
+      if width > art_size or height > art_size:
+        img.thumbnail((art_size, art_size), Image.ANTIALIAS)
       img.convert('RGB')
       try:
         img.save(self.__coverJPG, 'JPEG')
@@ -473,19 +474,19 @@ class Podcast:
 
   def downloadNewest(self):
     self.__mkdir()
-    self.__fileDL(self.__list[0], len(self.__list))
+    self.__fileDL(self.__list[0], self.episodeCount())
     print('download complete')
 
   def downloadAll(self):
     self.__mkdir()
     for ndx, episode in enumerate(self.__list):
-      self.__fileDL(episode, len(self.__list) - ndx)
+      self.__fileDL(episode, self.episodeCount() - ndx)
     print('download complete')
 
   def downloadCount(self, count):
     self.__mkdir()
-    for num in range(count):
-      self.__fileDL(self.__list[num], len(self.__list) - num)
+    for ndx in range(count):
+      self.__fileDL(self.__list[ndx], self.episodeCount() - ndx)
 
   def auto(self):
     if download == 'all':

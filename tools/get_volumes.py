@@ -1,18 +1,16 @@
+
+
 import os
 import sys
 import json
 import socket
 from art import tprint
-from Podcast import updatePlayer, question
+parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(parent_dir)
+from Podcast import question
 
-file_path = os.path.abspath(__file__)
-script_folder = os.path.dirname(file_path)
-with open(os.path.join(script_folder, 'config.json'), 'r') as jason:
-  config = json.load(jason)
-
-folder = config['folder']
-download = config['download']
-logLocation = config['logLocation']
+with open(os.path.join(parent_dir, 'config.json'), 'r') as j:
+  config = json.load(j)
 
 hostname = socket.gethostname().replace(".local", "").replace("-", " ")
 
@@ -24,9 +22,10 @@ def getVolumes():
     'Macintosh HD',
     '.timemachine'
   ]
-  return [volume for volume in os.listdir('/Volumes') if volume not in excluded and os.path.join('/Volumes', volume) not in folder]
+  return [volume for volume in os.listdir('/Volumes') if volume not in excluded and os.path.join('/Volumes', volume) not in config['folder']]
 
-def main():
+
+def volumes(q):
   try:
     os.system('clear')
     tprint("Podcast.py", font="italic")
@@ -47,12 +46,14 @@ def main():
       sys.exit()
     elif 0 < choice <= len(volumes):
       path = os.path.join('/Volumes', volumes[choice - 1])
-      if question(f'Is {path} the correct location? (yes/no) ') and question(f'Do you want to write podcasts to {path}/Podcasts? (yes/no) '):
-        updatePlayer(path)
+      if question(f'Is {path} the correct location? (yes/no) ') and question(f'{q} {path}? (yes/no) '):
+        print()
+        return path
     else:
       print('Invalid input')
   except KeyboardInterrupt:
     print('Closed by user')
 
+
 if __name__ == "__main__":
-    main()
+  print(volumes('this will output the pathselected to the command line'))
