@@ -20,6 +20,7 @@ try:
     print('Invalid input. Number required')
     sys.exit()
   if unsubURL == 0:
+    print('Goodbye.')
     sys.exit()
   elif unsubURL > 0 and unsubURL <= len(urls):
     Podcast(urls[unsubURL - 1]).unsubscribe()
