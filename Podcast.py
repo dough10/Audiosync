@@ -422,8 +422,7 @@ class Podcast:
     print(f'Downloading - {filename}')
     dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path, epNum)
-    command = f"osascript -e 'display notification \"New Episode {episode['title']} downloaded to {path}\" with title \"{self.__title}\"'"
-    os.system(command)
+    os.system(f"osascript -e 'display notification \"Downloaded to {path}\" with title \"{self.__title}\" subtitle \"{episode['title']}\"'")
 
   def __get_cover_art(self):
     self.__coverJPG = os.path.join(self.__location, 'cover.jpg')
