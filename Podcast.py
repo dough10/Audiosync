@@ -10,10 +10,11 @@ import requests
 import datetime
 import tempfile
 import xmltodict
-import music_tag as id3
 from tqdm import tqdm
 from PIL import Image
 from io import BytesIO
+import music_tag as id3
+from pync import Notifier
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
@@ -31,11 +32,7 @@ today = datetime.date.today()
 old_date = today - relativedelta(months=1)
 
 def is_connected():
-  try:
-    response = requests.get("https://google.com", timeout=5)
-    return response.status_code == 200
-  except requests.exceptions.RequestException:
-    return False
+  return is_live_url("https://google.com")
 
 def validate_url(url):
   try:
@@ -46,7 +43,7 @@ def validate_url(url):
 
 def is_live_url(url):
   try:
-    response = requests.get(url)
+    response = requests.get(url, timeout=5)
     return response.status_code == 200
   except requests.exceptions.RequestException:
     return False
@@ -285,10 +282,13 @@ def load_saved_image(location):
   img.save(bytes, format='JPEG')
   return bytes.getvalue() 
 
+def time_stamp():
+  return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
+
 class Podcast:
 
   def __init__(self, url):
-    print(datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z'))
+    print(time_stamp())
     # check internet
     if not is_connected():
       print('Error connecting to the internet. Please check network connection and try again')
@@ -422,7 +422,7 @@ class Podcast:
     print(f'Downloading - {filename}')
     dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path, epNum)
-    os.system(f"osascript -e 'display notification \"Downloaded to {path}\" with title \"{self.__title}\" subtitle \"{episode['title']}\"'")
+    self.notification(self.__title, episode['title'])
 
   def __get_cover_art(self):
     self.__coverJPG = os.path.join(self.__location, 'cover.jpg')
@@ -439,6 +439,19 @@ class Podcast:
       except OSError:
         img.save(self.__coverJPG, 'PNG')
       self.__image = img
+
+  def notification(self, podcast_title, episode_title):
+    try:
+      Notifier.notify(
+        episode_title, 
+        title=podcast_title, 
+        subtitle=time_stamp(), 
+        contentImage=self.__coverJPG,
+        execute=f'open {self.__location}',
+        sound='default'
+      )
+    except Exception as e:
+      print(f"Error sending notification: {e}")
 
   def __mkdir(self):
     if not os.path.exists(folder):
@@ -488,6 +501,7 @@ class Podcast:
     self.__mkdir()
     for ndx in range(count):
       self.__fileDL(self.__list[ndx], self.episodeCount() - ndx)
+    print('download complete')
 
   def auto(self):
     if download == 'all':
