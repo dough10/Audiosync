@@ -27,6 +27,7 @@ folder = config['folder']
 download = config['download']
 logLocation = config['logLocation']
 art_size = config['art_size']
+smb = config['smb_location']
 
 today = datetime.date.today()
 old_date = today - relativedelta(months=1)
@@ -64,17 +65,29 @@ def copy_file(source, destination, max_retries=3, timeout=10):
   retries = 0
   while retries < max_retries:
     try:
+      print(f'{source} -> {destination}')
       shutil.copy2(source, destination)
       break  # Copy successful, exit the loop
     except shutil.Error as e:
       print(f"Error copying file: {str(e)}")
       retries += 1
+      mount_network_location()
       if retries < max_retries:
         print(f"Retrying after {timeout} seconds...")
         time.sleep(timeout)
       else:
         print(f"Maximum retries reached. Copy failed.")
         raise  # Reraise the exception if maximum retries reached
+
+def mount_network_location():
+  delay = 10
+  try:
+    print(f'Attempting to mount smb://{smb}')
+    os.system(f'open smb://{smb}')
+  except Exception as e:
+    print(f'error mounting smb share: {str(e)}')
+  print(f'Waiting {delay} seconds to reconnect')
+  time.sleep(delay)
 
 def updatePlayer(player):
   newPodcast = 0
@@ -84,7 +97,9 @@ def updatePlayer(player):
   foldersContained = 0
   # check locations exist
   if not os.path.exists(folder):
-    raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
+    mount_network_location()
+    if not os.path.exists(folder):
+      raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
   
   if not os.path.exists(player):
     raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
@@ -110,7 +125,7 @@ def updatePlayer(player):
     files_to_delete = list_of_old_files(dest)
     num_files = len(files_to_add)
 
-    # create folder if there are file to write in it
+    # create folder if there are files to write in it
     if not os.path.exists(dest) and num_files > 0:
       try:
         print(f'Creating folder {dest}')
@@ -122,7 +137,6 @@ def updatePlayer(player):
     # copy cover.jpg
     if not os.path.exists(dest_art) and os.path.exists(dest):
       try:
-        print(f'{src_art} -> {dest_art}')
         copy_file(src_art, dest)
         filesWriten += 1
       except Exception as e:
@@ -135,7 +149,6 @@ def updatePlayer(player):
       path = os.path.join(dest_dir, filename)
       if not os.path.exists(path):
         try:
-          print(f'{file} -> {path}')
           copy_file(file, dest_dir)
           filesWriten += 1
         except Exception as e:
@@ -285,6 +298,18 @@ def load_saved_image(location):
 def time_stamp():
   return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
 
+def notification(self, podcast_title, episode_title, image):
+  try:
+    Notifier.notify(
+      episode_title, 
+      title=podcast_title, 
+      subtitle=time_stamp(), 
+      contentImage=image,
+      sound='default'
+    )
+  except Exception as e:
+    print(f"Error sending notification: {str(e)}")
+
 class Podcast:
 
   def __init__(self, url):
@@ -296,8 +321,10 @@ class Podcast:
 
     # check folder exists
     if not os.path.exists(folder):
-      print(f'Folder {folder} does not exist. check config.py')
-      sys.exit()
+      mount_network_location()
+      if not os.path.exists(folder):
+        print(f'Folder {folder} does not exist. check config.py')
+        sys.exit()
 
     self.__xmlURL = url.strip()
 
@@ -422,7 +449,7 @@ class Podcast:
     print(f'Downloading - {filename}')
     dlWithProgressBar(episode['enclosure']['@url'], path)
     self.__id3tag(episode, path, epNum)
-    self.notification(self.__title, episode['title'])
+    notification(self.__title, episode['title'], self.__coverJPG)
 
   def __get_cover_art(self):
     self.__coverJPG = os.path.join(self.__location, 'cover.jpg')
@@ -439,19 +466,6 @@ class Podcast:
       except OSError:
         img.save(self.__coverJPG, 'PNG')
       self.__image = img
-
-  def notification(self, podcast_title, episode_title):
-    try:
-      Notifier.notify(
-        episode_title, 
-        title=podcast_title, 
-        subtitle=time_stamp(), 
-        contentImage=self.__coverJPG,
-        execute=f'open {self.__location}',
-        sound='default'
-      )
-    except Exception as e:
-      print(f"Error sending notification: {e}")
 
   def __mkdir(self):
     if not os.path.exists(folder):
