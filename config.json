@@ -2,5 +2,6 @@
   "folder": "/Volumes/Main/Music/Podcasts",
   "logLocation": "/Users/dough10/Downloads",
   "download": "newest",
-  "art_size": 500
+  "art_size": 500,
+  "smb_location": "username:password@server/share"
 }

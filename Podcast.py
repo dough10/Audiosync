@@ -84,10 +84,10 @@ def mount_network_location():
   try:
     print(f'Attempting to mount smb://{smb}')
     os.system(f'open smb://{smb}')
+    print(f'Waiting {delay} seconds')
+    time.sleep(delay)
   except Exception as e:
     print(f'error mounting smb share: {str(e)}')
-  print(f'Waiting {delay} seconds to reconnect')
-  time.sleep(delay)
 
 def updatePlayer(player):
   newPodcast = 0
