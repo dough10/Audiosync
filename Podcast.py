@@ -14,9 +14,11 @@ from tqdm import tqdm
 from PIL import Image
 from io import BytesIO
 import music_tag as id3
-from pync import Notifier
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
+
+if sys.platform == "darwin":
+  from pync import Notifier
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
@@ -51,21 +53,21 @@ def is_live_url(url):
 
 def list_of_new_files(path):
   return [
-    file for file in glob.glob(f'{path}/*.mp3')
+    file for file in glob.glob(os.path.join(path, '*.mp3'))
     if old_date < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
 def list_of_old_files(path):
   return [
-    file for file in glob.glob(f'{path}/*.mp3')
+    file for file in glob.glob(os.path.join(path, '*.mp3'))
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
-def copy_file(source, destination, max_retries=3, timeout=10):
+def copy_file(source, destination, path, max_retries=3, timeout=10):
   retries = 0
   while retries < max_retries:
     try:
-      print(f'{source} -> {destination}')
+      print(f'{source} -> {path}')
       shutil.copy2(source, destination)
       break  # Copy successful, exit the loop
     except shutil.Error as e:
@@ -79,10 +81,9 @@ def copy_file(source, destination, max_retries=3, timeout=10):
         print(f"Maximum retries reached. Copy failed.")
         raise  # Reraise the exception if maximum retries reached
 
-def mount_network_location():
-  delay = 10
+def mount_network_location(delay=10):
   try:
-    print(f'Attempting to mount smb://{smb}')
+    print(f'Attempting to mount network share')
     os.system(f'open smb://{smb}')
     print(f'Waiting {delay} seconds')
     time.sleep(delay)
@@ -137,7 +138,7 @@ def updatePlayer(player):
     # copy cover.jpg
     if not os.path.exists(dest_art) and os.path.exists(dest):
       try:
-        copy_file(src_art, dest)
+        copy_file(src_art, dest, dest_art)
         filesWriten += 1
       except Exception as e:
         raise Exception(f"Error copying cover.jpg: {str(e)}")
@@ -149,7 +150,7 @@ def updatePlayer(player):
       path = os.path.join(dest_dir, filename)
       if not os.path.exists(path):
         try:
-          copy_file(file, dest_dir)
+          copy_file(file, dest_dir, path)
           filesWriten += 1
         except Exception as e:
           raise Exception(f"Error copying file {file}: {str(e)}")
@@ -298,7 +299,9 @@ def load_saved_image(location):
 def time_stamp():
   return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
 
-def notification(self, podcast_title, episode_title, image):
+def notification(podcast_title, episode_title, image):
+  if not sys.platform == "darwin":
+    return
   try:
     Notifier.notify(
       episode_title, 
@@ -308,7 +311,7 @@ def notification(self, podcast_title, episode_title, image):
       sound='default'
     )
   except Exception as e:
-    print(f"Error sending notification: {str(e)}")
+    print(f"Error sending osx notification: {str(e)}")
 
 class Podcast:
 
