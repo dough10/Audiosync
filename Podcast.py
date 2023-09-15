@@ -29,7 +29,8 @@ folder = config['folder']
 download = config['download']
 logLocation = config['logLocation']
 art_size = config['art_size']
-smb = config['smb_location']
+smb_enabled = config['smb_enable']
+smb = f"smb://{config['smb_u']}:{config['smb_p']}@{config['smb_server']}/{config['smb_share']}"
 
 today = datetime.date.today()
 old_date = today - relativedelta(months=1)
@@ -73,7 +74,7 @@ def copy_file(source, destination, path, max_retries=3, timeout=10):
     except shutil.Error as e:
       print(f"Error copying file: {str(e)}")
       retries += 1
-      mount_network_location()
+      mount_location()
       if retries < max_retries:
         print(f"Retrying after {timeout} seconds...")
         time.sleep(timeout)
@@ -81,12 +82,16 @@ def copy_file(source, destination, path, max_retries=3, timeout=10):
         print(f"Maximum retries reached. Copy failed.")
         raise  # Reraise the exception if maximum retries reached
 
-def mount_network_location(delay=10):
+def mount_location(delay=10):
   try:
-    print(f'Attempting to mount network share')
-    os.system(f'open smb://{smb}')
-    print(f'Waiting {delay} seconds')
-    time.sleep(delay)
+    if not os.path.exists(folder) and smb_enabled:
+      print(f'Attempting to mount share')
+      os.system(f'open {smb}')
+      print(f'Waiting {delay} seconds')
+      time.sleep(delay)
+      if not os.path.exists(folder):
+        print(f'Folder {folder} does not exist. check config.py')
+        sys.exit()
   except Exception as e:
     print(f'error mounting smb share: {str(e)}')
 
@@ -98,7 +103,7 @@ def updatePlayer(player):
   foldersContained = 0
   # check locations exist
   if not os.path.exists(folder):
-    mount_network_location()
+    mount_location()
     if not os.path.exists(folder):
       raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
   
@@ -323,11 +328,7 @@ class Podcast:
       sys.exit()
 
     # check folder exists
-    if not os.path.exists(folder):
-      mount_network_location()
-      if not os.path.exists(folder):
-        print(f'Folder {folder} does not exist. check config.py')
-        sys.exit()
+    mount_location()
 
     self.__xmlURL = url.strip()
 

@@ -3,5 +3,9 @@
   "logLocation": "/Users/dough10/Downloads",
   "download": "newest",
   "art_size": 500,
-  "smb_location": "username:password@server/share"
+  "smb_enable": true,
+  "smb_u": "username",
+  "smb_p": "password",
+  "smb_server": "server",
+  "smb_share": "share"
 }
