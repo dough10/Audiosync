@@ -657,6 +657,23 @@
             ripple.remove();
           }
         }
+
+        function svgIcon(d, viewbox, color) {
+          if (!viewbox) viewbox = false;
+
+          const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+          path.setAttribute("d", d);
+          if (color) {
+            path.setAttribute('fill', color);
+          } else {
+            path.setAttribute('fill', 'currentColor');
+          }
+          
+          const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+          svg.appendChild(path);
+          if (viewbox) svg.setAttribute('viewBox', "0 -960 960 960");
+          return svg;
+        }
   
         /**
          * displays the music library in a selectable form
@@ -899,7 +916,7 @@
           /**
            * creates a new object from selected elements to be saved as sync.json
            */
-          buildArtistAlbumsObject() {
+          buildObject() {
             const artistAlbums = {};
             // Select all elements with the data-artist attribute
             const artistElements = qsa('.selected', this.shadow);
@@ -1051,13 +1068,8 @@
             let last_top = 0;
   
             // floating action button
-            const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            path.setAttribute("d", "M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z");
-            path.setAttribute('fill', 'currentColor');
-            
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-            svg.appendChild(path);
-            
+            const svg = svgIcon("M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z", false);
+
             const fab = document.createElement('div');
             fab.appendChild(svg);
             fab.classList.add('fab');
@@ -1315,13 +1327,7 @@
             // empty the footer
             this.foot.innerHTML = '';
   
-            const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            path.setAttribute("d", icon);
-            path.setAttribute('fill', 'currentColor');
-            
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-            svg.setAttribute('viewBox', "0 -960 960 960");
-            svg.appendChild(path);
+            const svg = svgIcon(icon, true);
             
             const fsText = document.createElement('div');
             fsText.textContent = `music: ${text}`;
@@ -1712,34 +1718,35 @@
                 border-radius: 50%;
               }
             `;
-            // create {header}
-            const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            path.setAttribute("d", "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
-            path.setAttribute('fill', 'red');
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-            svg.appendChild(path);
+ 
+            const svg = svgIcon("M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z", false, 'red');
+
             const close = document.createElement('div');
-            close.classList.add('small-button');
             close.appendChild(svg);
+            close.classList.add('small-button');
             close.onClick(e => {
               createRipple(e);
               this.close();
+            
             });
             const headerContent = document.createElement('div');
             headerContent.classList.add('header-content');
             headerContent.appendChild(close);
+            
             const header = document.createElement('header');
             header.appendChild(headerContent);
-            // shadow!!!!! {headerShadow}
+            
             const headerShadow = document.createElement('div');
             headerShadow.classList.add('header-shadow');
-            // settings body {wrapper}
+            
             const card = document.createElement('div');
             card.classList.add('card');
             card.appendChild(document.createElement('slot'));
+            
             const wrapper = document.createElement('div');
             wrapper.classList.add('wrapper');
             wrapper.appendChild(card);
+            
             this.drawer = document.createElement('div');
             this.drawer.classList.add('settings');
             [
@@ -1747,11 +1754,13 @@
               headerShadow,
               wrapper
             ].forEach(el => this.drawer.appendChild(el));
+
             const shadow = this.attachShadow({mode: "open"});
             [
               sheet,
               this.drawer
             ].forEach(el => shadow.appendChild(el));
+
             window.addEventListener('resize', _ => {
               if (!Boolean(this.getAttribute('opened'))) this.drawer.style.transform = `translateY(${elementHeight(this.drawer)}px)`;
             });
@@ -2040,14 +2049,18 @@
                 transform: translateX(-100%);
               }
             `;
+
             const label = document.createElement('div');
             label.classList.add('label');
             label.appendChild(document.createElement('slot'));
+
             this.bar = document.createElement('div');
             this.bar.classList.add('bar');
+
             const wrapper = document.createElement('div');
             wrapper.classList.add('wrapper');
             wrapper.appendChild(this.bar);
+
             const shadow = this.attachShadow({mode: "open"});
             [
               sheet,
@@ -2268,6 +2281,7 @@
               newVal = 0;
               await sleep(sleepTime);
             }
+            
             // elements in the customelement "slot"
             const assignedElements = qs('slot', this.shadowRoot).assignedElements({flatten: true}).filter(node => node.nodeType === Node.ELEMENT_NODE);
             if (assignedElements[newVal] && assignedElements[oldVal]) {
@@ -2395,27 +2409,18 @@
             `;
             // bind this
             this._resetCheckMarks = this._resetCheckMarks.bind(this);
-            
-            // svg path
-            const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-            path.setAttribute("d", "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z");
-            path.setAttribute('fill', 'currentColor');
-            
-            //  svg refresh arrow circle icon
-            const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-            svg.appendChild(path);
-            svg.setAttribute('viewBox', "0 -960 960 960")
-            this.svg = svg;
+                        
+            this.svg = svgIcon("M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z", true);
   
             // refresh button
             const refresh = document.createElement('div');
-            refresh.appendChild(svg);
+            refresh.appendChild(this.svg);
             refresh.classList.add('small-button'); 
             refresh.onClick(async e => {
               if (Boolean(refresh.getAttribute('disabled'))) return;
               createRipple(e);
               refresh.setAttribute('disabled', 1);
-              svg.classList.add('spinning');
+              this.svg.classList.add('spinning');
               const t = new Timer('Podcasts Update');
               await pywebview.api.get_podcasts();
               refresh.removeAttribute('disabled');
@@ -2528,17 +2533,9 @@
               const text = document.createElement('div');
               text.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
               
-              // svg path
-              const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-              path.setAttribute("d", "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z");
-              path.setAttribute('fill', 'green');
-              
-              // svg checkmark
-              const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-              svg.appendChild(path);
-              svg.setAttribute('viewBox', "0 -960 960 960")
+              const svg = svgIcon("M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z", true, 'green');
               svg.style.opacity = 0;
-  
+
               // wrapper for title and checkmark
               const wrapper = document.createElement('div');
               [
@@ -2809,7 +2806,7 @@
           qs('#save').onClick(async event => {
             createRipple(event);
             qs('audiosync-menu').close();
-            const dataObj = qs('music-library').buildArtistAlbumsObject();
+            const dataObj = qs('music-library').buildObject();
             if (Object.keys(dataObj).length === 0) {
               new Toast('No albums selected');
               return
@@ -2820,10 +2817,10 @@
   
           // menu drawer refresh / update icon
           qs('#update').onClick(async event => {
-            const st = new Timer('sync ui');
             createRipple(event);
             qs('audiosync-menu').close();
             await qs('sync-ui').open();
+            const st = new Timer('sync');
             await pywebview.api.run_sync();
             console.log(st.endString());
           });
@@ -2896,7 +2893,8 @@
 
     <!-- place to display errors and issues -->
     <div id="alert" class="alert hidden">
-      <div id="alert-text"></div><div class="yellow-text">Click to dismiss</div>
+      <div id="alert-text"></div>
+      <div class="yellow-text">Click to dismiss</div>
     </div>
 
     <!-- hide the app while loading UI data -->
