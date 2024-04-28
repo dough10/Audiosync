@@ -2829,11 +2829,6 @@
             _toastCache.splice(0,1);
           }, 500);
   
-          // qs('#scan').onClick(event => {
-          //   createRipple(event);
-          //   qs('audiosync-menu').close();
-          // });
-  
           // header hamburger icon
           qs('#menu-button').onClick(event => {
             if (Boolean(event.target.getAttribute('disabled'))) return;
@@ -2964,14 +2959,6 @@
 
     <!-- hamburger menu -->
     <audiosync-menu>
-      <!-- <div id="scan" class="menu-button">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
-          <path fill="currentColor"  d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z"/>
-        </svg>
-        <div>
-          Scan Library
-        </div>
-      </div> -->
       <div id="save" class="menu-button">
         <svg xmlns="http://www.w3.org/2000/svg">
           <path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
