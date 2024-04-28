@@ -327,18 +327,17 @@ def time_stamp():
   return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
 
 def notification(podcast_title, episode_title, image):
-  if not sys.platform == "darwin":
-    return
-  try:
-    Notifier.notify(
-      episode_title, 
-      title=podcast_title, 
-      subtitle=time_stamp(), 
-      contentImage=image,
-      sound='default'
-    )
-  except Exception as e:
-    print(f"Error sending osx notification: {str(e)}")
+  if sys.platform == "darwin":    
+    try:
+      Notifier.notify(
+        episode_title, 
+        title=podcast_title, 
+        subtitle=time_stamp(), 
+        contentImage=image,
+        sound='default'
+      )
+    except Exception as e:
+      print(f"Error sending osx notification: {str(e)}")
 
 class Podcast:
 
@@ -556,6 +555,10 @@ class Podcast:
     if not os.path.exists(logLocation):
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
+
+    if self.__xmlURL in listCronjobs():
+      return
+
     # config['subscriptions'].append(self.__xmlURL)
     print('Creating cronjob')
     os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
