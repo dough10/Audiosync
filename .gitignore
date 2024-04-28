@@ -2,3 +2,5 @@
 /__pycache__
 /t.py
 /config.json
+/tools/search.py
+/process_files.py

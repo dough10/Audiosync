@@ -17,6 +17,12 @@ import music_tag as id3
 from urllib.parse import urlparse
 from dateutil.relativedelta import relativedelta
 
+file_types = [
+  '*.mp3',
+  '*.wav',
+  '*.flac'
+]
+
 if sys.platform == "darwin":
   from pync import Notifier
 
@@ -89,11 +95,18 @@ def mount_location(delay=10):
       os.system(f'open {smb}')
       print(f'Waiting {delay} seconds')
       time.sleep(delay)
-      if not os.path.exists(folder):
-        print(f'Folder {folder} does not exist. check config.py')
-        sys.exit()
+
   except Exception as e:
     print(f'error mounting smb share: {str(e)}')
+
+def playable_file_count(dir):
+  count = 0
+  for file_type in file_types:
+    count += len(glob.glob(os.path.join(dir, file_type)))
+  return count
+
+def nonhidden_file_count(dest):
+  return len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
 
 def updatePlayer(player):
   newPodcast = 0
@@ -102,11 +115,11 @@ def updatePlayer(player):
   foldersDeleted = 0
   foldersContained = 0
   # check locations exist
+  mount_location()
   if not os.path.exists(folder):
-    mount_location()
-    if not os.path.exists(folder):
-      raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
-  
+    print(f'Folder {folder} does not exist. check config.py')
+    sys.exit()
+
   if not os.path.exists(player):
     raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
   
@@ -169,9 +182,12 @@ def updatePlayer(player):
       except Exception as e:
         raise Exception(f"Error deleting file {file}: {str(e)}")
 
-    # check for empty folder
-    if os.path.exists(dest) and len(glob.glob(os.path.join(dest, '*.mp3'))) == 0:
+    # check for and remove any empty folder
+    if os.path.exists(dest) and playable_file_count(dest) == 0:
       try:
+        hidden_file = os.path.join(dest, '._cover.jpg')
+        if os.path.exists(hidden_file):
+            os.remove(hidden_file)
         print(f'Removing empty folder {dest}')
         shutil.rmtree(dest)
         foldersDeleted += 1
@@ -181,9 +197,9 @@ def updatePlayer(player):
 
   # remove folders no longer in source directory (unsubscribed podcast)
   for dir in os.listdir(podcast_folder_on_player):
-    dest = os.path.join(podcast_folder_on_player, dir)
+    dest = os.path.join(podcast_folder_on_player, dir) 
     if not dir.startswith('.') and not dir in os.listdir(folder):
-      foldersContained += len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
+      foldersContained += nonhidden_file_count(dest)
       try:
         print(f'deleting - {dest}')
         shutil.rmtree(dest)
@@ -192,6 +208,14 @@ def updatePlayer(player):
         raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
   print('')
+  # delete trash from sdcard/player
+  try:
+    trash_folder = os.path.join(player, ".Trashes", "*")
+    print(f'Removing trash {trash_folder}')
+    os.system(f'rm -rf {trash_folder}')
+  except Exception as e:
+    print(f'Error emptying trash: {str(e)}')
+
   if foldersDeleted == 0 and newPodcast == 0 and filesWriten == 0 and filesDeleted == 0 and foldersContained == 0:
     print(f'Sync complete: No changes made to drive')
   else:
@@ -297,6 +321,8 @@ def setTrackNum(file, episode, epNum):
 
 def load_saved_image(location):
   img = Image.open(location)
+  if img.mode == 'RGBA':
+    img = img.convert('RGB')
   bytes = BytesIO()
   img.save(bytes, format='JPEG')
   return bytes.getvalue() 
@@ -329,7 +355,10 @@ class Podcast:
 
     # check folder exists
     mount_location()
-
+    if not os.path.exists(folder):
+      print(f'Folder {folder} does not exist. check config.py')
+      sys.exit()
+      
     self.__xmlURL = url.strip()
 
     if not validate_url(self.__xmlURL):
@@ -407,7 +436,10 @@ class Podcast:
         if 'itunes:image' in episode:
           img = requests.get(episode['itunes:image']['@href'])
           if img.status_code == 200:
-            id3Image(file, img.content)
+            art = Image.open(BytesIO(img.content))
+            if art.mode == 'RGBA':
+              art = art.convert('RGB')
+            id3Image(file, art.tobytes())
           else:
             if hasattr(self, '__image'):
               id3Image(file, self.__image)
@@ -442,16 +474,18 @@ class Podcast:
     Returns:
         None
     """
+    download_url = episode['enclosure']['@url']
+    file_ext = os.path.splitext(urlparse(download_url).path)[-1]
     try:
-      filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}.mp3")
+      filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}{file_ext}")
     except KeyError:
-      filename = formatFilename(f"{episode['title']}.mp3")
+      filename = formatFilename(f"{episode['title']}{file_ext}")
     path = os.path.join(self.__location, filename)
     if os.path.isfile(path):
       print(f'Episode {filename} already downloaded')
       return
     print(f'Downloading - {filename}')
-    dlWithProgressBar(episode['enclosure']['@url'], path)
+    dlWithProgressBar(download_url, path)
     self.__id3tag(episode, path, epNum)
     notification(self.__title, episode['title'], self.__coverJPG)
 
