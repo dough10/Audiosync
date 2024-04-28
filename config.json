@@ -1,11 +1,16 @@
 {
-  "folder": "/Volumes/Main/Music/Podcasts",
-  "logLocation": "/Users/dough10/Downloads",
-  "download": "newest",
+  "source": "",
+  "podcast_folder": "",
   "art_size": 500,
-  "smb_enable": true,
-  "smb_u": "username",
-  "smb_p": "password",
-  "smb_server": "server",
-  "smb_share": "share"
+  "import_cues": 1,
+  "import_lyrics": 0,
+  "remove_lrc_wd": 0,
+  "podcast": 1,
+  "debug": true,
+  "genius": "",
+  "discogs_token": "",
+  "lrc_ignore_folders": [
+  ],
+  "subscriptions": [
+  ]
 }

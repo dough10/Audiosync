@@ -1,11 +1,10 @@
 import os
 import re
 import sys
+import time
 import json
 import glob
-import time
 import shutil
-import string
 import requests
 import datetime
 import tempfile
@@ -15,31 +14,36 @@ from PIL import Image
 from io import BytesIO
 import music_tag as id3
 from urllib.parse import urlparse
-from dateutil.relativedelta import relativedelta
-
-file_types = [
-  '*.mp3',
-  '*.wav',
-  '*.flac'
-]
+from lib.old_date import old_date
+from lib.is_audio import supported_formats
+from lib.file_manager import File_manager
 
 if sys.platform == "darwin":
   from pync import Notifier
 
+changes = { # log of file changes 
+  "new_folders": 0,
+  "files_writen": 0,
+  "playlist_created": 0,
+  "files_deleted": 0,
+  "folders_deleted": 0,
+  "folders_contained": 0,
+  "images_renamed": 0,
+  "files_renamed": 0
+}
+
+
+fm = File_manager(changes)
+copy_file = fm.copy_file
+
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-with open(os.path.join(script_folder, 'config.json'), 'r') as j:
+config_path = os.path.join(script_folder, 'config.json')
+with open(config_path, 'r') as j:
   config = json.load(j)
 
-folder = config['folder']
-download = config['download']
-logLocation = config['logLocation']
+folder = config['podcast_folder']
 art_size = config['art_size']
-smb_enabled = config['smb_enable']
-smb = f"smb://{config['smb_u']}:{config['smb_p']}@{config['smb_server']}/{config['smb_share']}"
-
-today = datetime.date.today()
-old_date = today - relativedelta(months=1)
 
 def is_connected():
   return is_live_url("https://google.com")
@@ -70,52 +74,22 @@ def list_of_old_files(path):
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
-def copy_file(source, destination, path, max_retries=3, timeout=10):
-  retries = 0
-  while retries < max_retries:
-    try:
-      print(f'{source} -> {path}')
-      shutil.copy2(source, destination)
-      break  # Copy successful, exit the loop
-    except shutil.Error as e:
-      print(f"Error copying file: {str(e)}")
-      retries += 1
-      mount_location()
-      if retries < max_retries:
-        print(f"Retrying after {timeout} seconds...")
-        time.sleep(timeout)
-      else:
-        print(f"Maximum retries reached. Copy failed.")
-        raise  # Reraise the exception if maximum retries reached
-
-def mount_location(delay=10):
-  try:
-    if not os.path.exists(folder) and smb_enabled:
-      print(f'Attempting to mount share')
-      os.system(f'open {smb}')
-      print(f'Waiting {delay} seconds')
-      time.sleep(delay)
-
-  except Exception as e:
-    print(f'error mounting smb share: {str(e)}')
-
 def playable_file_count(dir):
   count = 0
-  for file_type in file_types:
-    count += len(glob.glob(os.path.join(dir, file_type)))
+  for file_type in supported_formats:
+    count += len(glob.glob(os.path.join(dir, f'*{file_type}')))
   return count
 
 def nonhidden_file_count(dest):
   return len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
 
-def updatePlayer(player):
+def updatePlayer(player, window, bypass=False, logger=print):
   newPodcast = 0
   filesWriten = 0
   filesDeleted = 0
   foldersDeleted = 0
   foldersContained = 0
   # check locations exist
-  mount_location()
   if not os.path.exists(folder):
     print(f'Folder {folder} does not exist. check config.py')
     sys.exit()
@@ -123,7 +97,8 @@ def updatePlayer(player):
   if not os.path.exists(player):
     raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
   
-  print('Begining sync. This may take a while')
+  if not bypass:
+    print('Begining sync. This may take a while')
 
   podcast_folder_on_player = os.path.join(player, 'Podcasts')
   if not os.path.exists(podcast_folder_on_player):
@@ -134,20 +109,21 @@ def updatePlayer(player):
 
   dirs = [dir for dir in os.listdir(folder) if not dir.startswith('.')]
 
+  length = len(dirs)
+  last_ndx = 0
   # copy/remove files
-  for dir in dirs:
-    src = os.path.join(folder, dir) # where all the files are at
+  for ndx, dir in enumerate(tqdm(dirs, desc='Updating Podcasts', unit='podcast')):
+    src = os.path.join(folder, dir) # where all the files are located
     src_art = os.path.join(src, 'cover.jpg')
     dest = os.path.join(podcast_folder_on_player, dir) # where we will send the files
     dest_art = os.path.join(dest, 'cover.jpg')
     files_to_add = list_of_new_files(src)
     files_to_delete = list_of_old_files(dest)
     num_files = len(files_to_add)
-
     # create folder if there are files to write in it
     if not os.path.exists(dest) and num_files > 0:
       try:
-        print(f'Creating folder {dest}')
+        logger(f'Creating folder {dest}')
         os.makedirs(dest)
         newPodcast += 1
       except OSError as e:
@@ -162,7 +138,8 @@ def updatePlayer(player):
         raise Exception(f"Error copying cover.jpg: {str(e)}")
 
     # copy "new" files to player from storage location
-    for file in files_to_add:
+    add_count = len(files_to_add)
+    for i, file in enumerate(files_to_add):
       filename = os.path.basename(file)
       dest_dir = os.path.join(podcast_folder_on_player, dir)
       path = os.path.join(dest_dir, filename)
@@ -172,11 +149,14 @@ def updatePlayer(player):
           filesWriten += 1
         except Exception as e:
           raise Exception(f"Error copying file {file}: {str(e)}")
+        if window:
+          last_ndx = (ndx - 1) + ((i + 1) / add_count)
+          window.evaluate_js(f'document.querySelector("sync-ui").updateBar("#podcasts-bar", {last_ndx}, {length});')
 
     # remove "old" files from player
     for file in files_to_delete:
       try:
-        print(f'{file} -> Trash')
+        logger(f'{file} -> Trash')
         os.remove(file)
         filesDeleted += 1
       except Exception as e:
@@ -188,12 +168,15 @@ def updatePlayer(player):
         hidden_file = os.path.join(dest, '._cover.jpg')
         if os.path.exists(hidden_file):
             os.remove(hidden_file)
-        print(f'Removing empty folder {dest}')
+        logger(f'Removing empty folder {dest}')
         shutil.rmtree(dest)
         foldersDeleted += 1
         foldersContained += 1 # cover.jpg
       except Exception as e:
         raise Exception(f"Error deleting directory {dest}: {str(e)}")
+    
+    if window and ndx != last_ndx:
+      window.evaluate_js(f'document.querySelector("sync-ui").updateBar("#podcasts-bar", {ndx}, {length});')
 
   # remove folders no longer in source directory (unsubscribed podcast)
   for dir in os.listdir(podcast_folder_on_player):
@@ -201,21 +184,20 @@ def updatePlayer(player):
     if not dir.startswith('.') and not dir in os.listdir(folder):
       foldersContained += nonhidden_file_count(dest)
       try:
-        print(f'deleting - {dest}')
+        logger(f'deleting - {dest}')
         shutil.rmtree(dest)
         foldersDeleted += 1
       except Exception as e:
         raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
-  print('')
-  # delete trash from sdcard/player
-  try:
-    trash_folder = os.path.join(player, ".Trashes", "*")
-    print(f'Removing trash {trash_folder}')
-    os.system(f'rm -rf {trash_folder}')
-  except Exception as e:
-    print(f'Error emptying trash: {str(e)}')
-
+  if bypass:
+    return {
+      "new_podcasts": newPodcast,
+      "files_writen": filesWriten,
+      "files_deleted": filesDeleted,
+      "folders_deleted": foldersDeleted,
+      "folders_contained": foldersContained
+    }
   if foldersDeleted == 0 and newPodcast == 0 and filesWriten == 0 and filesDeleted == 0 and foldersContained == 0:
     print(f'Sync complete: No changes made to drive')
   else:
@@ -227,17 +209,10 @@ def updatePlayer(player):
     os.system(f'diskutil eject {escapeFolder(player)}')
 
 def listCronjobs():
-  return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
+  return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
 
 def escapeFolder(s):
-  return s.replace(' ', '\ ').replace('(', '\(').replace(')', '\)')
-
-def formatFilename(s):
-  valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-  filename = ''.join(c for c in s if c in valid_chars)
-  filename = filename.replace(' ','.')  # no spaces in filename
-  filename = filename.replace('..','.') # after removing spaces can have instances where .. is in a filename
-  return filename
+  return s.replace(' ', '\\ ').replace('(', '\\(').replace(')', '\\)')
 
 def question(q):
   while True:
@@ -248,21 +223,26 @@ def question(q):
       return False
     else:
       print('Invalid option. Please enter "yes" or "no".')
-
-def dlWithProgressBar(url, path):
+      
+def dlWithProgressBar(url, path, progress_callback=None):
   chunk_size = 4096
   try:
     session = requests.Session()
     media = session.get(url, stream=True)
     media.raise_for_status()  # Raise an exception for any HTTP errors (status code >= 400)
-    bytes = int(media.headers.get('content-length', 0))
-    progress = tqdm(total=bytes, unit='iB', unit_scale=True)
+    total_bytes = int(media.headers.get('content-length', 0))
+    bytes_downloaded = 0
+    start_time = round(time.time() * 1000)
+    progress = tqdm(total=total_bytes, unit='iB', unit_scale=True)
     with open(path, 'wb', buffering=chunk_size) as file:
       for data in media.iter_content(chunk_size):
-        progress.update(len(data))
+        bytes_downloaded += len(data)
         file.write(data)
+        progress.update(len(data))
+        if progress_callback:
+          progress_callback(bytes_downloaded, total_bytes, start_time)
     progress.close()
-    if bytes != 0 and progress.n != bytes:
+    if bytes_downloaded != total_bytes:
       print("ERROR: Incomplete download detected.")
       sys.exit()
   except requests.exceptions.RequestException as e:
@@ -271,6 +251,19 @@ def dlWithProgressBar(url, path):
   except IOError as e:
     print(f"ERROR: An I/O error occurred while writing the file: {str(e)}")
     sys.exit()
+
+def save_image_to_tempfile(img):
+  try:
+    with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+      if isinstance(img, bytes):
+        tmp_file.write(img)
+      else:
+        img.save(tmp_file, format='JPEG')
+      tmp_file_path = tmp_file.name
+      return tmp_file_path
+  except Exception as e:
+      print(f"Error saving image to tempfile: {str(e)}")
+      return None
 
 def id3Image(file, img):
   """
@@ -286,15 +279,14 @@ def id3Image(file, img):
   try:
     file['artwork'] = img
   except Exception as e:
-    print('Attempting Image embed workaround')
-    tmp_file_path = None
+    print('Error setting ID3 artwork:', str(e))
     try:
-      with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
-        tmp_file.write(img)
-        tmp_file_path = tmp_file.name
+      tmp_file_path = save_image_to_tempfile(img)
+      if tmp_file_path:
         file['artwork'] = load_saved_image(tmp_file_path)
+        print('Using workaround for embedding image.')
     except Exception as e:
-      print(f'Error encoding image: {str(e)}')
+      print('Error in workaround:', str(e))
     finally:
       if tmp_file_path and os.path.exists(tmp_file_path):
         os.remove(tmp_file_path)
@@ -320,12 +312,16 @@ def setTrackNum(file, episode, epNum):
     print(f"Error setting track number: {str(e)}")
 
 def load_saved_image(location):
-  img = Image.open(location)
-  if img.mode == 'RGBA':
-    img = img.convert('RGB')
-  bytes = BytesIO()
-  img.save(bytes, format='JPEG')
-  return bytes.getvalue() 
+  if os.path.exists(location):
+    try:
+      img = Image.open(location)
+      if img.mode == 'RGBA':
+        img = img.convert('RGB')
+      bytes = BytesIO()
+      img.save(bytes, format='JPEG')
+      return bytes.getvalue()
+    except Exception as e:
+      print(f'Error loading {location}:', str(e)) 
 
 def time_stamp():
   return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
@@ -347,14 +343,12 @@ def notification(podcast_title, episode_title, image):
 class Podcast:
 
   def __init__(self, url):
-    print(time_stamp())
     # check internet
     if not is_connected():
       print('Error connecting to the internet. Please check network connection and try again')
       sys.exit()
 
     # check folder exists
-    mount_location()
     if not os.path.exists(folder):
       print(f'Folder {folder} does not exist. check config.py')
       sys.exit()
@@ -366,9 +360,10 @@ class Podcast:
       sys.exit()
 
     if not is_live_url(self.__xmlURL):
-      print('Error validating URL')
+      print(f'Error connecting to {self.__xmlURL}')
       sys.exit()
       
+    print(time_stamp())
     print(f'Fetching XML from {self.__xmlURL}')
     res = requests.get(self.__xmlURL)
     if res.status_code != 200:
@@ -381,7 +376,7 @@ class Podcast:
       sys.exit()
     self.__title = xml['rss']['channel']['title']  # the name of the podcast
     self.__list = xml['rss']['channel']['item']  # list of podcast episodes
-    self.__location = os.path.join(folder, self.__title)
+    self.__location = os.path.join(folder, fm.formatFilename(self.__title))
     try:
       self.__imgURL = xml['rss']['channel']['image']['url']
     except TypeError:
@@ -389,6 +384,14 @@ class Podcast:
     except KeyError:
       self.__imgURL = xml['rss']['channel']['itunes:image']['@href']
     print(f'{self.__title} {str(self.episodeCount())} episodes')
+
+  def fallback_image(self, file):
+    print('using fallback image')
+    if hasattr(self, '__image'):
+      id3Image(file, self.__image)
+    else:
+      self.__image = load_saved_image(self.__coverJPG)
+      id3Image(file, self.__image)
 
   def __id3tag(self, episode, path, epNum):
     try:
@@ -434,26 +437,31 @@ class Podcast:
       # Set ID3 artwork
       try:
         if 'itunes:image' in episode:
+          # If the episode metadata contains an 'itunes:image' key
           img = requests.get(episode['itunes:image']['@href'])
-          if img.status_code == 200:
-            art = Image.open(BytesIO(img.content))
-            if art.mode == 'RGBA':
-              art = art.convert('RGB')
-            id3Image(file, art.tobytes())
+
+          # Check if the image retrieval was successful
+          if img.status_code == 200 and 'content-type' in img.headers and 'image' in img.headers['content-type']:
+            try:
+              # Open the image using PIL
+              art = Image.open(img.content)
+              # Convert image to RGB mode if it's in RGBA mode
+              if art.mode == 'RGBA':
+                  art = art.convert('RGB')
+              # Set ID3 artwork using the retrieved image data
+              id3Image(file, art.tobytes())
+            except:
+              self.fallback_image(file)
           else:
-            if hasattr(self, '__image'):
-              id3Image(file, self.__image)
-            else:
-              self.__image = load_saved_image(self.__coverJPG)
-              id3Image(file, self.__image)
+            # If retrieval failed, use a fallback image or previously loaded image
+            self.fallback_image(file)
         else:
-          if hasattr(self, '__image'):
-            id3Image(file, self.__image)
-          else:
-            self.__image = load_saved_image(self.__coverJPG)
-            id3Image(file, self.__image)
+          # If episode metadata does not contain 'itunes:image' key
+          self.fallback_image(file)
+            
       except Exception as e:
-          print(f"Error setting ID3 artwork: {str(e)}")
+        # Handle any exceptions that occur during setting ID3 artwork
+        print(f"Error setting ID3 artwork: {str(e)}")
 
       # Save the modified ID3 tags
       try:
@@ -463,7 +471,7 @@ class Podcast:
     except Exception as e:
       print(f"Error updating ID3 tags: {str(e)}")
 
-  def __fileDL(self, episode, epNum):
+  def __fileDL(self, episode, epNum, window):
     """
     Downloads a podcast episode and sets the ID3 tags for the downloaded file.
 
@@ -474,19 +482,36 @@ class Podcast:
     Returns:
         None
     """
+    # URL!!!
     download_url = episode['enclosure']['@url']
+    # download file extension
     file_ext = os.path.splitext(urlparse(download_url).path)[-1]
+    
+    # name the file
     try:
-      filename = formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}{file_ext}")
+      filename = fm.formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}{file_ext}").replace(' ','.')
     except KeyError:
-      filename = formatFilename(f"{episode['title']}{file_ext}")
+      filename = fm.formatFilename(f"{episode['title']}{file_ext}").replace(' ','.')
+    
+    # file path
     path = os.path.join(self.__location, filename)
+    
+    # reflect download progress on UI
+    def prog_update(downloaded, total, start_time): 
+      if window:
+        window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{filename}")');
+    
+    # check if the file exists
     if os.path.isfile(path):
       print(f'Episode {filename} already downloaded')
       return
+    
     print(f'Downloading - {filename}')
-    dlWithProgressBar(download_url, path)
+    # download the file and update ui with progress
+    dlWithProgressBar(download_url, path, progress_callback=prog_update)
+    # tag file with info
     self.__id3tag(episode, path, epNum)
+    # notify user 
     notification(self.__title, episode['title'], self.__coverJPG)
 
   def __get_cover_art(self):
@@ -494,10 +519,15 @@ class Podcast:
     if not os.path.exists(self.__coverJPG):
       print(f'getting cover art {self.__coverJPG}')
       res = requests.get(self.__imgURL)
-      img = Image.open(BytesIO(res.content))
+      if res.status_code == 200:
+        img = Image.open(BytesIO(res.content))
+      else:
+        print("Failed to fetch image:", res.status_code)
+        return
+      print(f'Image format: {img.format}, Mode: {img.mode}, Size: {img.size}')
       width, height = img.size 
       if width > art_size or height > art_size:
-        img.thumbnail((art_size, art_size), Image.ANTIALIAS)
+        img.thumbnail((art_size, art_size), Image.LANCZOS)
       img.convert('RGB')
       try:
         img.save(self.__coverJPG, 'JPEG')
@@ -522,13 +552,15 @@ class Podcast:
     return len(self.__list)
 
   def subscribe(self):
+    logLocation = os.path.join(script_folder, 'output')
     if not os.path.exists(logLocation):
       print(f'logLocation {logLocation} does not exist')
       sys.exit()
+    # config['subscriptions'].append(self.__xmlURL)
     print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, formatFilename(self.__title))}.log 2>&1\") | crontab -")
+    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
     print('Starting download. This may take a minuite.')
-    self.auto()
+    self.downloadNewest(False)
 
   def unsubscribe(self):
     if question(f'is "{self.__title}" the right podcast? (yes/no) '):
@@ -538,38 +570,29 @@ class Podcast:
         print(f'Deleteing directory {self.__location}')
         shutil.rmtree(self.__location)
 
-  def downloadNewest(self):
+  def downloadNewest(self, window):
     self.__mkdir()
-    self.__fileDL(self.__list[0], self.episodeCount())
+    self.__fileDL(self.__list[0], self.episodeCount(), window)
     print('download complete')
 
-  def downloadAll(self):
+  def downloadAll(self, window):
     self.__mkdir()
     for ndx, episode in enumerate(self.__list):
-      self.__fileDL(episode, self.episodeCount() - ndx)
+      self.__fileDL(episode, self.episodeCount() - ndx, window)
     print('download complete')
 
-  def downloadCount(self, count):
+  def downloadCount(self, count, window):
     self.__mkdir()
     for ndx in range(count):
-      self.__fileDL(self.__list[ndx], self.episodeCount() - ndx)
+      self.__fileDL(self.__list[ndx], self.episodeCount() - ndx, window)
     print('download complete')
-
-  def auto(self):
-    if download == 'all':
-      self.downloadAll()
-    elif download == 'newest':
-      self.downloadNewest()
-    elif type(download) == int and download <= self.episodeCount():
-      self.downloadCount(download)
-    else:
-      print(f'invalid option {download}')
-      print('Options are "all", "newest" or a count that can not exceede the total number of episodes')
 
 if __name__ == "__main__":
   try:
-    Podcast(sys.argv[1]).auto()
-  except KeyboardInterrupt:
-    print('Download stopped by user')
+    Podcast(sys.argv[1]).downloadNewest(False)
   except IndexError:
-    print('1 argument required "URL"')
+    try:
+      for url in config['subscriptions']:
+        Podcast(url).subscribe()
+    except Exception as e:
+      print(e)

@@ -1,6 +1,8 @@
 /tools/__pycache__
+lib/__pycache__
 /__pycache__
+/output
 /t.py
 /config.json
-/tools/search.py
-/process_files.py
+/lib_data.json
+/subscriptions.txt

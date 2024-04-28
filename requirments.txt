@@ -5,3 +5,10 @@ tqdm
 pillow
 python-dateutil
 pync
+mutagen
+tqdm
+BytesIO
+matplotlib
+librosa
+pywebview
+shutil
