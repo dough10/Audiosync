@@ -189,6 +189,79 @@
       align-items: center;
       display: flex;
     }
+    .loading {
+      display: none;
+      position: absolute;
+      top:0;
+      bottom:0;
+      left:0;
+      right:0;
+      opacity:0;
+      background-color: rgba(255,255,255,0.6);
+      justify-content: center;
+      align-items: center;
+    }
+    .close-wrapper {
+      position: absolute;
+      top:0;
+      right:0;
+      left:0;
+      display:flex;
+      justify-content:right;
+    }
+    .form__group {
+      position: relative;
+      padding: 15px 0 0;
+      margin-top: 10px;
+      margin-bottom: 24px;
+    }
+    .form__field {
+      font-family: inherit;
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid #787878;
+      outline: 0;
+      font-size: 16px;
+      color: #333333;
+      padding: 7px 0;
+      background: transparent;
+      transition: border-color 0.2s;
+    }
+    .form__field::placeholder {
+      color: transparent;
+    }
+    .form__field:placeholder-shown ~ .form__label {
+      font-size: 16px;
+      cursor: text;
+      top: 20px;
+    }
+    label,
+    .form__field:focus ~ .form__label {
+      position: absolute;
+      top: 0;
+      display: block;
+      transition: 0.2s;
+      font-size: 12px;
+      color: #787878;
+    }
+    .form__field:focus ~ .form__label {
+      color: var(--main-color);
+    }
+    .form__field:focus {
+      padding-bottom: 6px;
+      border-bottom: 2px solid var(--main-color);
+    }
+    @keyframes spin {
+      from {
+        transform: rotate(0deg)
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    .spinning {
+      animation: spin 1.5s linear infinite;
+    }
   </style>
   </head>
   <body>
@@ -320,6 +393,9 @@
             this._transitionEnd = this._transitionEnd.bind(this);
             this._cleanUp = this._cleanUp.bind(this);
             this._clicked = this._clicked.bind(this);
+
+            console.log(message);
+
             // create the toast
             this._timer = false;
             this._timeout = _timeout * 1000 || 3500;
@@ -689,13 +765,25 @@
         }
   
         /**
+         * validate URL
+         * 
+         * @param {String} url
+         * 
+         * @returns {Boolean}
+         */
+        function isValidURL(url) {
+          const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+          return urlRegex.test(url);
+        }
+
+        /**
          * displays the music library in a selectable form
          */
         class MusicLibrary extends HTMLElement {
           constructor() {
             super();
-            this.makeSelection = this._makeSelection.bind(this);
-            this.displayArtist = this._displayArtist.bind(this);
+            this._makeSelection = this._makeSelection.bind(this);
+            this._displayArtist = this._displayArtist.bind(this);
             const style = document.createElement('style');
             style.textContent = `
               @keyframes ripple-animation {
@@ -788,8 +876,8 @@
               return;
             }
             for (const artist in data) {
-              this._displayArtist(artist)
-              for (let i=0; i < data[artist].length; i++) {
+              this._displayArtist(artist);
+              for (let i = 0; i < data[artist].length; i++) {
                 this._displayAlbum(artist, data[artist][i]);
               }
             }
@@ -809,27 +897,33 @@
               'audiosync-tabs'
             ]
             buttons.forEach(id => qs(id).setAttribute('disabled', 1));
-  
+              
+            // scan library button
+            const button = document.createElement('audiosync-button');
+            button.textContent = 'Scan Music';
+            
             // wrapper to place content
             const wrapper = document.createElement('div');
             wrapper.classList.add('blank');
-            
-            // scan library button (will not be disabled)
-            const button = document.createElement('audiosync-button');
             wrapper.appendChild(button);
-            button.textContent = 'Scan Music';
+
             button.onClick(async _ => {
-              // hide this button (the button that was clicked in the interaction)
+
               new Toast('Scan can take some time to complete', 10);
+              // hide the button
               await fadeOut(button);
-              // remove button once faded
+
+              // remove the button once hidden
               wrapper.innerHTML = '';
+
               // progress bar label
               const label = document.createElement('div');
               label.textContent = 'Building Library';
+
               //  progress percentage text
               const percent = document.createElement('div');
               percent.textContent = '0%';
+
               // create progress bar
               this.bar = document.createElement('audiosync-progress');
               this.bar.style.opacity = 0;
@@ -838,19 +932,22 @@
                 label,
                 percent
               ].forEach(el => this.bar.appendChild(el));
+
               // add the bar to the UI in a hidden state
               wrapper.appendChild(this.bar);
               this.percent = percent;
               await sleep(10);
+
               //  uphide the progress bar
               await fadeIn(this.bar);
               const t = new Timer('Initial Scan');
+
               // do the scan actual in python
               await pywebview.api.create_json();
+
               // scan finished
               buttons.forEach(id => qs(id).removeAttribute('disabled'));
               const s = t.endString();
-              console.log(s);
               new Toast(s);
             });
             this.content.appendChild(wrapper);
@@ -875,7 +972,7 @@
           }
   
           /**
-           * artist element
+           * album element
            * 
            * @param {String} artist
            * @param {String} album
@@ -886,12 +983,12 @@
             albumContainer.dataset.album = album;
             albumContainer.classList.add('album');
             albumContainer.textContent = album;
-            albumContainer.onClick(this.makeSelection);
+            albumContainer.onClick(this._makeSelection);
             this.content.appendChild(albumContainer);
           }
   
           /**
-           * album element
+           * artist element
            * 
            * @param {String} artist
            */
@@ -900,7 +997,7 @@
             artistContainer.dataset.artist = artist;
             artistContainer.classList.add('artist');
             artistContainer.textContent = artist;
-            artistContainer.onClick(this.makeSelection);
+            artistContainer.onClick(this._makeSelection);
             this.content.appendChild(artistContainer);
           }
   
@@ -2190,6 +2287,12 @@
            * element connected to DOM
            */
           connectedCallback() {
+            if (Boolean(this.getAttribute('small'))) {
+              this.dialog.style.top = '300px';
+              this.dialog.style.bottom = '300px';
+              this.dialog.style.left = '100px';
+              this.dialog.style.right = '100px';
+            }
             this.setAttribute('opened', 0);
           }
   
@@ -2432,7 +2535,7 @@
               .head {
                 width: 100%;
                 display: flex;
-                justify-content: right;
+                justify-content: space-between;
               }
               @keyframes spin {
                 from {
@@ -2448,32 +2551,52 @@
             `;
             // bind this
             this._resetCheckMarks = this._resetCheckMarks.bind(this);
-                        
-            this.svg = svgIcon(
-              "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z", 
+               
+            // plus sign icon
+            const addIcon = svgIcon(
+              "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z",
               true
             );
-  
+
+            // wrappper for plus icon
+            const addButton = document.createElement('div');
+            addButton.appendChild(addIcon);
+            addButton.classList.add('small-button');
+            addButton.onClick(e => {
+              if (Boolean(addButton.getAttribute('disabled'))) return;
+              createRipple(e);
+              this._openAddPodcastDialog();
+            });
+
+            // refresh icon path (will be used to loading icon later)
+            this.iconPath = "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z";
+
+            // refresh icon
+            this.svg = svgIcon(
+              this.iconPath,
+              true
+            );
+            
             // refresh button
             const refresh = document.createElement('div');
             refresh.appendChild(this.svg);
+            const buttons = [addButton, refresh];
             refresh.classList.add('small-button'); 
             refresh.onClick(async e => {
               if (Boolean(refresh.getAttribute('disabled'))) return;
               createRipple(e);
-              refresh.setAttribute('disabled', 1);
+              buttons.forEach(el => el.setAttribute('disabled', 1))
               this.svg.classList.add('spinning');
               const t = new Timer('Podcasts Update');
               await pywebview.api.get_podcasts();
-              refresh.removeAttribute('disabled');
+              buttons.forEach(el => el.removeAttribute('disabled'));
               const s = t.endString();
-              console.log(s);
               new Toast(s);
             });
   
             // podcast tab header 
             const head = document.createElement('div');
-            head.appendChild(refresh);
+            buttons.forEach(el => head.appendChild(el));
             head.classList.add('head');
   
             // element to append podcasts to
@@ -2486,6 +2609,121 @@
               sheet,
               this.container
             ].forEach(el => shadow.appendChild(el));
+          }
+
+          /**
+           * opens the add podcast UI
+           */
+          async _openAddPodcastDialog() {
+            const addUI = this._addPodcastUI();
+            qs('body').appendChild(addUI);
+            await sleep(20);
+            addUI.open();
+          }
+
+          /** 
+           * creates the UI for adding podcasts to subscriptions
+           */
+          _addPodcastUI() {
+            //  loading animation
+            const icon = svgIcon(this.iconPath, true);
+            icon.style.height = '40px';
+            icon.style.width = '40px';
+            icon.classList.add('spinning');
+            
+            // container for animated loading Icon
+            const loader = document.createElement('div');
+            loader.classList.add('loading');
+            loader.appendChild(icon);
+
+            // text input label
+            const label = document.createElement('label');
+            label.classList.add('form__label');
+            label.textContent = 'Podcast URL';
+            label.setAttribute('for', 'url');
+            
+            // URL input
+            const input = document.createElement('input');
+            input.setAttribute('placeholder', 'Podcast URL')
+            input.type = 'url';
+            input.id = 'url';
+            input.classList.add('form__field');
+            
+            // input and label wrapper
+            const group = document.createElement('div');
+            group.classList.add('form__group');
+            [
+              input,
+              label
+            ].forEach(el => group.appendChild(el));
+            
+            // submit / add button
+            const button = document.createElement('audiosync-button');
+            button.textContent = 'add';
+            button.setAttribute('disabled', 1);
+
+            // X icon
+            const closeIcon = svgIcon(
+              "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+              false,
+              'red'
+            );
+            
+            // X button
+            const closeButton = document.createElement('div');
+            closeButton.appendChild(closeIcon);
+            closeButton.classList.add('small-button');
+            
+            // dialog header 
+            const closeWrapper = document.createElement('div');
+            closeWrapper.classList.add('close-wrapper');
+            closeWrapper.appendChild(closeButton);
+            
+            // animated dialog card
+            const dialog = document.createElement('audiosync-dialog');
+            dialog.setAttribute('small', 1);
+            [
+              closeWrapper,
+              group,
+              button,
+              loader
+            ].forEach(el => dialog.appendChild(el));
+            
+            input.oninput = e => {
+              if (isValidURL(input.value.lower())) {
+                button.removeAttribute('disabled');
+              } else {
+                button.setAttribute('disabled', 1);
+              }
+            };
+
+            closeButton.onClick(async e => {
+              createRipple(e);
+              await dialog.close();
+              await sleep(100);
+              dialog.remove();
+            });
+            
+            button.onClick(async e => {
+              if (Boolean(button.getAttribute('disabled'))) return;
+              createRipple(e);
+              const loading = qs('.loading');
+              loading.style.display = 'flex';
+              await fadeIn(loading);
+
+              //  add the podcast
+
+              // temp
+              new Toast('testing');
+              await sleep(10000);
+              await fadeOut(loading);
+              loading.style.display = 'none';
+              await sleep(1000);
+              await dialog.close();
+              dialog.remove();
+            });
+
+            return dialog;
           }
   
           /**
@@ -2744,7 +2982,6 @@
            * @param {Object} obj
            */
           async syncUpdate(obj) {
-            console.log(obj.text);
             const div = document.createElement('div');
             div.style.opacity = 0;
             div.textContent = obj.text;
@@ -2757,6 +2994,8 @@
             }
             if (obj.toast) {
               new Toast(obj.text);
+            } else {
+              console.log(obj.text);
             }
             await sleep(10);
             fadeIn(div, 150);
@@ -2861,9 +3100,7 @@
             createRipple(event);
             qs('audiosync-menu').close();
             await qs('sync-ui').open();
-            const st = new Timer('sync');
             await pywebview.api.run_sync();
-            console.log(st.endString());
           });
   
           // top of screen alert
