@@ -2,7 +2,7 @@ import os
 import json
 import webview
 import clipboard
-from process_files import run_sync, sync_file, save_config, create_lib_json
+from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast
 
 
@@ -18,6 +18,10 @@ window = False
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'build_sync', 'build_sync.html')
+
+def save_config():
+  with open(config_path, 'w') as file:
+    file.write(json.dumps(config, indent=2))
 
 
 def reload_config():
@@ -80,7 +84,7 @@ class Api:
     Podcast(url).subscribe(window)
 
   def unsubscribe(self, url):
-    Podcast(url).unsubscribe() 
+    Podcast(url).unsubscribe(window) 
 
   # get synscriptions from config.json
   def list_subscriptions(self):

@@ -265,6 +265,12 @@
     input[type="url"] {
       text-transform: none;
     }
+    .delete-notification-text {
+      font-size: 16px;
+      max-height: 18px;
+      margin-top: 24px;
+      margin-bottom: 24px;
+    }
   </style>
   </head>
   <body>
@@ -501,6 +507,8 @@
   
         /**
          * determine what transition event to listen for
+         * 
+         * @returns {String} transition event name
          */
         function whichTransitionEvent() {
           let t;
@@ -512,16 +520,17 @@
             'OTransition':'oTransitionEnd',
             'transition':'transitionEnd'
           };
-          for (t in transitions) {
-            if (el.style[t] !== undefined ) {
-              return transitions[t];
+          for (event in transitions) {
+            if (el.style[event] !== undefined ) {
+              return transitions[event];
             }
           }
         }
   
         // the browser transition event name
         const transitionEvent = whichTransitionEvent();
-  
+        console.log(`transition event: ${transitionEvent}`);
+
         /**
          * animate transform of transform and opacity on a HTML element
          *
@@ -675,6 +684,8 @@
          * @param {HTMLElement} el HTML element *required*
          * @param {String} height height value *required*
          * @param {Number} time duration for the animation to complete
+         * 
+         * @returns {Promise<void>}
          */
         function animateHeight(el, height, time) {
           return new Promise(resolve => {
@@ -708,7 +719,9 @@
         /**
          * returns the height of the heml element
          * 
-         * @param {Element} el - html element
+         * @param {Element} el - html 
+         * 
+         * @returns {Number} height of the given element
          */
         function elementHeight(el) {
           let elHeight = el.offsetHeight;
@@ -721,6 +734,8 @@
          * triggers a ripple effect in a element clicked on
          * 
          * @param (Event) event - click event
+         * 
+         * @returns {nothing}
          */    
         async function createRipple(event) {
           const button = event.currentTarget;
@@ -1634,8 +1649,7 @@
                 display: inline-flex;
                 min-width: 5.14em;
                 margin: 0.29em 0.29em;
-                color: var(--text-color);
-                background-color: red;
+                color: #333333;
                 text-align: center;
                 text-transform: uppercase;
                 outline-width: 0;
@@ -2525,6 +2539,9 @@
                 color:grey;
                 pointer-events: none;
               }
+              .small-button > * {
+                pointer-events: none;
+              }
               .container {
                 padding: 8px;
                 display: flex;
@@ -2540,6 +2557,7 @@
                 padding: 8px;
                 font-size: 14px;
                 font-weight: bold;
+                min-height: 40px;
               }
               .head {
                 width: 100%;
@@ -2608,9 +2626,9 @@
               this.svg.classList.add('spinning');
               const t = new Timer('Podcasts Update');
               await pywebview.api.get_podcasts();
+              new Toast(t.endString());
               buttons.forEach(el => el.removeAttribute('disabled'));
-              const s = t.endString();
-              new Toast(s);
+              await this._resetCheckMarks();
             });
   
             // podcast tab header 
@@ -2648,12 +2666,12 @@
             // text input label
             const label = document.createElement('label');
             label.classList.add('form__label');
-            label.textContent = 'Podcast URL';
+            label.textContent = 'Podcast XML URL';
             label.setAttribute('for', 'url');
             
             // URL input
             const input = document.createElement('input');
-            input.setAttribute('placeholder', 'Podcast URL');
+            input.setAttribute('placeholder', 'Podcast XML URL');
             input.type = 'url';
             input.id = 'url';
             input.classList.add('form__field');
@@ -2701,6 +2719,7 @@
             
             // input callback
             input.oninput = e => {
+              // enable button for valid url only
               if (isValidURL(input.value)) {
                 button.removeAttribute('disabled');
               } else {
@@ -2773,6 +2792,7 @@
             qsa('.wrapper', this.shadowRoot).forEach(async el => {
               await sleep(5000);
               await fadeOut(qs('svg', el));
+              this.svg.classList.remove('spinning');
             });
           }
   
@@ -2803,30 +2823,27 @@
            * @param {String} filname
            */
           async update(name, bytes, total_bytes, start_time, filename) {
-            const svg = qs('svg', this.shadowRoot.getElementById(name));
             if (filename) {
               const timepast = (new Date().getTime() - start_time) / 1000;
               const speed = this._formatDownloadSpeed(bytes / timepast);
               const bar = this.shadowRoot.getElementById(`${name}-bar`);
               const downloaded = ((bytes / total_bytes) * 100);
+              
               bar.style.removeProperty('display');
               fadeIn(bar);
               qs('#title', bar).textContent = filename;
               qs('#percent', bar).textContent = `${downloaded.toFixed(1)}% @ ${speed}`;
               bar.setAttribute('percent', downloaded);
+              
               if (downloaded == 100) {
                 await fadeOut(bar);
-                new Toast(`${filename} downloaded`);
                 bar.style.display = 'none';
+                new Toast(`${filename} downloaded`);
                 qs('#title', bar).textContent = '';
                 qs('#percent', bar).textContent = '';
               }
-            } else if (bytes == total_bytes && !filename) {
-              await fadeIn(svg);
-              this.svg.classList.remove('spinning');
-              await sleep(100);
-              this._resetCheckMarks();
             } else {
+              const svg = qs('svg', this.shadowRoot.getElementById(name));
               fadeIn(svg);
             }
           }
@@ -2842,8 +2859,8 @@
               const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
   
               // title of the podcast
-              const text = document.createElement('div');
-              text.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
+              const podcastTitle = document.createElement('div');
+              podcastTitle.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
               
               const svg = svgIcon(
                 "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z", 
@@ -2852,14 +2869,85 @@
               );
               svg.style.opacity = 0;
 
+              const removeIcon = svgIcon(
+                "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+                false,
+                'red'
+              );
+              const removeButton = document.createElement('div');
+              removeButton.appendChild(removeIcon);
+              removeButton.classList.add('small-button');
+              removeButton.style.opacity = 0;
+              removeButton.onClick(async ev => {
+                createRipple(ev)
+
+                //  loading animation
+                const icon = svgIcon(this.iconPath, true);
+                icon.style.height = '40px';
+                icon.style.width = '40px';
+                icon.classList.add('spinning');
+                
+                // container for animated loading Icon
+                const loader = document.createElement('div');
+                loader.classList.add('loading');
+                loader.appendChild(icon);
+
+                const text = document.createElement('div');
+                text.classList.add('delete-notification-text');
+                text.textContent = `Unsubscribe from "${podcastTitle.textContent}"?`;
+                
+                const dialog = document.createElement('audiosync-dialog');
+                dialog.setAttribute('small', 1);
+
+                const yes = document.createElement('audiosync-button');
+                const no = document.createElement('audiosync-button');
+                const buttons = [yes,no];
+
+                yes.textContent = 'yes';
+                yes.onClick(async e => {
+                  if (Boolean(yes.getAttribute('disabled'))) return;
+                  createRipple(e);
+                  buttons.forEach(button => button.setAttribute('disabled', 1));
+                  loader.style.display = 'flex';
+                  await fadeIn(loader);
+                  await pywebview.api.unsubscribe(url);
+                  new Toast(`${podcastTitle.textContent} unsubscribed`);
+                  await sleep(200);
+                  await dialog.close();
+                  this.listPodcasts();
+                  dialog.remove();
+                });
+
+                no.textContent = 'no';
+                no.onClick(async e => {
+                  if (Boolean(no.getAttribute('disabled'))) return;
+                  createRipple(e);
+                  buttons.forEach(button => button.setAttribute('disabled', 1));
+                  await dialog.close();
+                  dialog.remove();
+                });
+
+                [loader,text,yes,no].forEach(el => dialog.appendChild(el));
+                qs('body').appendChild(dialog);
+                await sleep(20);
+                dialog.open();
+              });
+              
               // wrapper for title and checkmark
               const wrapper = document.createElement('div');
               [
-                text,
+                podcastTitle,
                 svg
               ].forEach(el => wrapper.appendChild(el));
-              wrapper.onmouseenter = e => console.log(e.target.id);
-              wrapper.onmouseleave = e => console.log(e.target.id);
+              wrapper.onmouseenter = _ => {
+                if (this.svg.classList.contains('spinning')) return;
+                wrapper.appendChild(removeButton);
+                fadeIn(removeButton);
+              };
+              wrapper.onmouseleave = async _ => {
+                await fadeOut(removeButton);
+                removeButton.remove();
+              };
               wrapper.classList.add('wrapper');
               wrapper.id = url;
   

@@ -46,10 +46,6 @@ sync_file = os.path.join(sorted_dir, 'sync.json')
 file_manager = File_manager(changes)
 pl_manager = Playlist_manager(changes)
 
-def save_config():
-  with open(config_path, 'w') as file:
-    file.write(json.dumps(config, indent=2))
-
 def is_ignored(source_file):
   return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
 
@@ -225,6 +221,9 @@ def run_sync(window):
   global json_data
   global sync_file
   global lib_data
+
+  with open(config_path, 'r') as j:
+    config = json.load(j)
 
   sync_file = os.path.join(sorted_dir, 'sync.json')
   playlist_folder = os.path.join(sorted_dir, 'playlist_data')

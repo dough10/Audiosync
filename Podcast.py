@@ -579,9 +579,8 @@ class Podcast:
     print('Starting download. This may take a minuite.')
     self.downloadNewest(False)
 
-  def unsubscribe(self):
-    if question(f'is "{self.__title}" the right podcast? (yes/no) '):
-
+  def unsubscribe(self, window):
+    def go():
       if (self.__xmlURL in config['subscriptions']):
         config['subscriptions'] = remove_string_from_list(config['subscriptions'], self.__xmlURL)
         with open(config_path, 'w') as file:
@@ -589,6 +588,13 @@ class Podcast:
 
       os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
       print('Cronjob removed')
+
+    if window:
+      go()
+      return
+
+    if question(f'is "{self.__title}" the right podcast? (yes/no) '):
+      go()
       if question('Remove all downloaded files? (yes/no) ') and question('files can not be recovered. are you sure? (yes/no) '):
         try: 
           shutil.rmtree(self.__location)
