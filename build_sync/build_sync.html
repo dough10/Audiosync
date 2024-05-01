@@ -1649,7 +1649,8 @@
                 display: inline-flex;
                 min-width: 5.14em;
                 margin: 0.29em 0.29em;
-                color: #333333;
+                color: var(--text-color);
+                background-color: red;
                 text-align: center;
                 text-transform: uppercase;
                 outline-width: 0;
@@ -1690,6 +1691,7 @@
               }
               .button[disabled] {
                 background: rgba(84, 84, 84, 0.4);
+                color: #ffffff;
                 box-shadow: none;
                 cursor: none;
                 pointer-events: none;
@@ -1730,15 +1732,33 @@
            * @param {Number} newVal
            */
           attributeChangedCallback(name, oldVal, newVal) {
-            if (name === 'disabled') {
+            if (name === 'color') {
+
+              // capture current styles
+              const currentStyle = qs('style', this.shadowRoot).textContent;
+              
+              // create the new style 
+              let newClass = `.new-color {background-color: ${newVal};`;
+              
+              // fix text color for white backgrouns
+              if (['#ffffff', '#fff', 'white'].includes(newVal)) {
+                newClass += ` color: #333333;`;
+              }
+              //  close the class bracket
+              newClass += `}`;
+
+              // update styles
+              qs('style', this.shadowRoot).textContent = currentStyle + newClass;         
+
+              // set the new class
+              this.button.classList.add('new-color');
+            } else if (name === 'disabled') {
               if (Boolean(newVal)) {
                 this.button.setAttribute(name, Boolean(newVal));
               } else {
                 this.button.removeAttribute(name);
               }
-            } else if (name === 'color') {
-              this.button.style.backgroundColor = newVal;
-            } 
+            }
           }
         }
         customElements.define('audiosync-button', AudioSyncButton);
@@ -2919,6 +2939,7 @@
                 });
 
                 no.textContent = 'no';
+                no.setAttribute('color', '#ffffff');
                 no.onClick(async e => {
                   if (Boolean(no.getAttribute('disabled'))) return;
                   createRipple(e);
