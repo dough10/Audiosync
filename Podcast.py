@@ -339,6 +339,9 @@ def notification(podcast_title, episode_title, image):
     except Exception as e:
       print(f"Error sending osx notification: {str(e)}")
 
+def remove_string_from_list(input_list, string_to_remove):
+  return [x for x in input_list if x != string_to_remove]
+
 class Podcast:
 
   def __init__(self, url):
@@ -550,28 +553,48 @@ class Podcast:
   def episodeCount(self):
     return len(self.__list)
 
-  def subscribe(self):
-    logLocation = os.path.join(script_folder, 'output')
-    if not os.path.exists(logLocation):
-      print(f'logLocation {logLocation} does not exist')
-      sys.exit()
-
+  def subscribe(self, window):
     if self.__xmlURL in listCronjobs():
+      print(f'Already Subscribed to {self.__title}')
+      if window:
+        window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Already Subscribed to {self.__title}");')
       return
 
-    # config['subscriptions'].append(self.__xmlURL)
+    # add url to config file
+    config['subscriptions'].append(self.__xmlURL)
+    with open(config_path, 'w') as file:
+      file.write(json.dumps(config, indent=2))
+
+    if window:
+      window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Creating CRONJOB");')
+    
+    logLocation = os.path.join(script_folder, 'output')
     print('Creating cronjob')
     os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
+    
+    if window:
+      window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Subscribed!");')
+      return
+    
     print('Starting download. This may take a minuite.')
     self.downloadNewest(False)
 
   def unsubscribe(self):
     if question(f'is "{self.__title}" the right podcast? (yes/no) '):
+
+      if (self.__xmlURL in config['subscriptions']):
+        config['subscriptions'] = remove_string_from_list(config['subscriptions'], self.__xmlURL)
+        with open(config_path, 'w') as file:
+          file.write(json.dumps(config, indent=2))
+
       os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
       print('Cronjob removed')
       if question('Remove all downloaded files? (yes/no) ') and question('files can not be recovered. are you sure? (yes/no) '):
-        print(f'Deleteing directory {self.__location}')
-        shutil.rmtree(self.__location)
+        try: 
+          shutil.rmtree(self.__location)
+          print(f'Deleteing directory {self.__location}')
+        except:
+          pass
 
   def downloadNewest(self, window):
     self.__mkdir()
@@ -596,6 +619,6 @@ if __name__ == "__main__":
   except IndexError:
     try:
       for url in config['subscriptions']:
-        Podcast(url).subscribe()
+        Podcast(url).subscribe(False)
     except Exception as e:
       print(e)

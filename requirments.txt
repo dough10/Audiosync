@@ -12,3 +12,4 @@ matplotlib
 librosa
 pywebview
 shutil
+clipbaord

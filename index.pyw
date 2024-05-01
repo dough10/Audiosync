@@ -1,14 +1,29 @@
 import os
 import json
 import webview
-from process_files import run_sync, sync_file, config, save_config, create_lib_json
+import clipboard
+from process_files import run_sync, sync_file, save_config, create_lib_json
 from Podcast import Podcast
+
+
+file_path = os.path.abspath(__file__)
+script_folder = os.path.dirname(file_path)
+config_path = os.path.join(script_folder, 'config.json')
+with open(config_path, 'r') as j:
+  config = json.load(j)
+
 
 
 window = False
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'build_sync', 'build_sync.html')
+
+
+def reload_config():
+  global config
+  with open(config_path, 'r') as j:
+    config = json.load(j) 
 
 
 class Api:
@@ -57,8 +72,19 @@ class Api:
     if window:
       window.destroy()
    
-  #  get synscriptions from config.json
+  def get_clipboard(self):
+    return clipboard.paste()
+
+  # subscribe to URL
+  def subscribe(self, url):
+    Podcast(url).subscribe(window)
+
+  def unsubscribe(self, url):
+    Podcast(url).unsubscribe() 
+
+  # get synscriptions from config.json
   def list_subscriptions(self):
+    reload_config()
     return config['subscriptions']
 
   # runs podcast update and sends update info to UI
