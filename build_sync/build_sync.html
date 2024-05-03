@@ -1727,6 +1727,12 @@
             }
           }
 
+          _isHexColor(str) {
+            // Regular expression to match a hexadecimal color
+            var hexColorRegex = /^#?([0-9A-F]{3}){1,2}$/i;
+            return hexColorRegex.test(str);
+          }
+
           /**
            * returns contrasting color to input hex code (thanks ChatGPT) =D
            * 
@@ -1756,6 +1762,11 @@
            */
           attributeChangedCallback(name, oldVal, newVal) {
             if (name === 'color' && newVal !== null) {
+              // return if color isn't HEX
+              if (!this._isHexColor(newVal)) {
+                console.error(`Button color attribute requires HEX color code. ${newVal}`);  
+                return;
+              }
               
               // create the new style 
               let newClass = `.new-color {background-color:${newVal};`;
@@ -1772,7 +1783,7 @@
               // set the new class
               this.button.classList.add('new-color');
 
-            } else if (name === 'disabled' || name === 'noshadow' && newVal !== null) {
+            } else if (['disabled','noshadow'].includes(name) && newVal !== null) {
               if (Boolean(Number(newVal))) {
                 this.button.setAttribute(name, Boolean(newVal));
               } else {
