@@ -272,6 +272,9 @@
       margin-bottom: 24px;
     }
   </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
   </head>
   <body>
     <script>
@@ -1723,6 +1726,26 @@
               this.button.setAttribute('disabled', Boolean(this.getAttribute('disabled')));
             }
           }
+
+          /**
+           * returns contrasting color to input hex code (thanks ChatGPT) =D
+           * 
+           * @param {String} hexColor hex color code
+           * 
+           * @returns {String} hex color code
+           */
+          _getContrastColor(hexColor) {
+            // Convert hex color to RGB
+            let r = parseInt(hexColor.substr(1, 2), 16);
+            let g = parseInt(hexColor.substr(3, 2), 16);
+            let b = parseInt(hexColor.substr(5, 2), 16);
+
+            // Calculate the relative luminance
+            let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+            // Return contrasting color based on luminance
+            return luminance > 0.5 ? "#333333" : "#FFFFFF";
+          }
   
           /**
            * attribute has changed 
@@ -1732,28 +1755,25 @@
            * @param {Number} newVal
            */
           attributeChangedCallback(name, oldVal, newVal) {
-            if (name === 'color') {
-
-              // capture current styles
-              const currentStyle = qs('style', this.shadowRoot).textContent;
+            if (name === 'color' && newVal !== null) {
               
               // create the new style 
-              let newClass = `.new-color {background-color: ${newVal};`;
+              let newClass = `.new-color {background-color:${newVal};`;
               
-              // fix text color for white backgrouns
-              if (['#ffffff', '#fff', 'white'].includes(newVal)) {
-                newClass += ` color: #333333;`;
-              }
-              //  close the class bracket
-              newClass += `}`;
+              // fix text color
+              newClass += ` color:${this._getContrastColor(newVal)};}`;
+              
+              // capture current styles
+              const currentStyle = qs('style', this.shadowRoot).textContent;
 
               // update styles
               qs('style', this.shadowRoot).textContent = currentStyle + newClass;         
 
               // set the new class
               this.button.classList.add('new-color');
-            } else if (name === 'disabled') {
-              if (Boolean(newVal)) {
+
+            } else if (name === 'disabled' || name === 'noshadow' && newVal !== null) {
+              if (Boolean(Number(newVal))) {
                 this.button.setAttribute(name, Boolean(newVal));
               } else {
                 this.button.removeAttribute(name);
@@ -2867,7 +2887,7 @@
               fadeIn(svg);
             }
           }
-  
+
           /**
            * alot of code just to get the name of a podcast and put it in a html element
            * 
@@ -2924,6 +2944,7 @@
                 const buttons = [yes,no];
 
                 yes.textContent = 'yes';
+                yes.setAttribute('color', '#FF0000');
                 yes.onClick(async e => {
                   if (Boolean(yes.getAttribute('disabled'))) return;
                   createRipple(e);
@@ -2943,6 +2964,7 @@
                 no.onClick(async e => {
                   if (Boolean(no.getAttribute('disabled'))) return;
                   createRipple(e);
+                  buttons.forEach(button => button.setAttribute('disabled', 1));
                   await dialog.close();
                   dialog.remove();
                 });
@@ -2959,17 +2981,21 @@
                 podcastTitle,
                 svg
               ].forEach(el => wrapper.appendChild(el));
+              wrapper.classList.add('wrapper');
+              wrapper.id = url;
+
+              // show remove button on mouse over
               wrapper.onmouseenter = _ => {
                 if (this.svg.classList.contains('spinning')) return;
                 wrapper.appendChild(removeButton);
                 fadeIn(removeButton);
               };
+
+              // hide remove button when mouse leaves element
               wrapper.onmouseleave = async _ => {
                 await fadeOut(removeButton);
                 removeButton.remove();
               };
-              wrapper.classList.add('wrapper');
-              wrapper.id = url;
   
               // will be filled with podcast episode filename
               const title = document.createElement('div');
@@ -3022,7 +3048,7 @@
               }
               .summary {
                 margin-top:16px;
-                margin-bottom:16px;
+                margin-bottom:24px;
                 height: 50px;
                 font-size: 16px;
               }
