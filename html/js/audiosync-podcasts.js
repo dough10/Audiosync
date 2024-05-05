@@ -1,4 +1,4 @@
-import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL} from './helpers.js';
+import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -84,10 +84,7 @@ class AudioSyncPodcasts extends HTMLElement {
     });
 
     // refresh icon
-    this.svg = svgIcon(
-      this.iconPath,
-      true
-    );
+    this.svg = svgIcon(this.iconPath);
     
     // refresh button
     const refresh = document.createElement('audiosync-small-button');
@@ -158,15 +155,17 @@ class AudioSyncPodcasts extends HTMLElement {
     ].forEach(el => group.appendChild(el));
     
     // submit / add button
+    const buttonContents = fillButton(
+      "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z",
+      'add'
+    );
+
     const button = document.createElement('audiosync-button');
-    button.textContent = 'add';
+    button.appendChild(buttonContents);
     button.toggleAttribute('disabled');
     
     // X icon
-    const closeIcon = svgIcon(
-      "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-      false
-    );
+    const closeIcon = svgIcon("M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
     
     // X button
     const closeButton = document.createElement('audiosync-small-button');
@@ -332,15 +331,13 @@ class AudioSyncPodcasts extends HTMLElement {
       podcastTitle.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
       
       const svg = svgIcon(
-        "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z", 
-        true, 
+        "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
         'green'
       );
       svg.style.opacity = 0;
 
       const removeIcon = svgIcon(
-        "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-        false
+        "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
       );
       const removeButton = document.createElement('audiosync-small-button');
       removeButton.color('red');
@@ -348,7 +345,7 @@ class AudioSyncPodcasts extends HTMLElement {
       removeButton.style.opacity = 0;
       removeButton.onClick(async ev => {
         //  loading animation
-        const icon = svgIcon(this.iconPath, true);
+        const icon = svgIcon(this.iconPath);
         icon.style.height = '40px';
         icon.style.width = '40px';
         icon.classList.add('spinning');
@@ -369,7 +366,12 @@ class AudioSyncPodcasts extends HTMLElement {
         const no = document.createElement('audiosync-button');
         const buttons = [yes,no];
 
-        yes.textContent = 'yes';
+        const yesContents = fillButton(
+          "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
+          'yes'
+        );
+
+        yes.appendChild(yesContents);
         yes.setAttribute('color', 'red');
         yes.onClick(async e => {
           buttons.forEach(button => button.setAttribute('disabled', 1));
@@ -383,7 +385,11 @@ class AudioSyncPodcasts extends HTMLElement {
           dialog.remove();
         });
 
-        no.textContent = 'no';
+        const noContents = fillButton(
+          "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+          'no'
+        )
+        no.appendChild(noContents);
         no.setAttribute('color', '#ffffff');
         no.onClick(async e => {
           buttons.forEach(button => button.setAttribute('disabled', 1));

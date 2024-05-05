@@ -1,4 +1,4 @@
-import {qs, Toast, sleep, fadeIn} from './helpers.js'
+import {qs, Toast, sleep, fadeIn, fillButton} from './helpers.js'
 
 /**
  * sync ui 
@@ -27,7 +27,22 @@ class SyncUI extends HTMLElement {
         height: 50px;
         font-size: 16px;
       }
-    `;
+      svg {
+        height: 24px;
+        width: 24px;
+      }
+      audiosync-button > div > :first-child {
+        margin-right: 16px;
+      }
+      audiosync-button > div > :nth-child(2) {
+        display: flex;
+        align-items: center;
+        margin-right:8px;
+      }
+      audiosync-button > div {
+        display: flex;
+        flex-direction: row;
+      }`;
 
     this._closeDialog = this._closeDialog.bind(this);
 
@@ -43,8 +58,13 @@ class SyncUI extends HTMLElement {
     this.summary = document.createElement('div');
     this.summary.classList.add('summary');
     
+    const buttonContents = fillButton(
+      "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
+      "close"
+    );
+
     this.button = document.createElement('audiosync-button');
-    this.button.textContent = 'close';
+    this.button.appendChild(buttonContents);
     this.button.toggleAttribute('disabled');
     this.button.onClick(e => {
       this._closeDialog(e);

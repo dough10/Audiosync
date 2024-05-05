@@ -74,7 +74,7 @@ function sleep(ms) {
  * Overflow Toasts.
  * when more then one toast happens in a short period of time overflow will be pushed here
  */
-const toastCache = [];
+const _toastCache = [];
 
 /**
  * display a toast message
@@ -101,6 +101,7 @@ class Toast {
     this._cleanUp = this._cleanUp.bind(this);
     this._clicked = this._clicked.bind(this);
 
+    // log to console
     console.log(message);
 
     // create the toast
@@ -167,10 +168,11 @@ class Toast {
   /**
    * event handler for toast click
    */
-  _clicked() {
+  _clicked(e) {
     if (this.link) {
       window.open(this.link, "_blank");
     }
+    createRipple(e);
     this._cleanUp();
   }
 
@@ -203,11 +205,9 @@ class Toast {
   }
 }
 
-/**
- * checks overflow for messages and displays them after the last toast has expired
- */
+// checks overflow for messages and displays them after the last toast has expired
 setInterval(_ => {
-  if (!toastCache.length) {
+  if (!_toastCache.length) {
     return;
   }
   if (qs('#toast')) {
@@ -473,6 +473,14 @@ async function createRipple(event) {
   }
 }
 
+// icons that need a viewBox (really need a better solution)
+const needsViewBox = [
+  "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z",
+  "M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z",
+  "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
+  "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"
+];
+
 /**
  * creates an SVG icon 
  * 
@@ -482,9 +490,7 @@ async function createRipple(event) {
  * 
  * @returns {HTMLElement} SVG ICON
  */
-function svgIcon(d, viewbox, color) {
-  if (!viewbox) viewbox = false;
-
+function svgIcon(d, color) {
   const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
   path.setAttribute("d", d);
   if (color) {
@@ -495,7 +501,8 @@ function svgIcon(d, viewbox, color) {
   
   const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
   svg.appendChild(path);
-  if (viewbox) svg.setAttribute('viewBox', "0 -960 960 960");
+  if (needsViewBox.includes(d)) svg.setAttribute('viewBox', "0 -960 960 960");
+
   return svg;
 }
 
@@ -590,10 +597,28 @@ function generateRandomHexCode() {
   return hexCode;
 }
 
+/**
+ * creates elemets to text spacing in the button
+ * 
+ * @param {String} d
+ * @param {String} txt
+ * 
+ * @returns {HTMLElement}
+ */
+function fillButton(d, txt) {
+  const div = document.createElement('div');
+
+  const text = document.createElement('div');
+  text.textContent = txt;
+
+  [svgIcon(d),text].forEach(el => div.appendChild(el)); 
+  return div;
+}
+
+
 export {
   Timer,
   Toast,
-  toastCache,
   elementHeight,
   animateElement,
   animateHeight,
@@ -607,5 +632,6 @@ export {
   createRipple,
   convertToHex,
   hexToRgba,
-  generateRandomHexCode
+  generateRandomHexCode,
+  fillButton
 }
