@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="Cache-control" content="public">
+    <style>
+      :root {
+        --header-height: 65px;
+        --switch-rgb: 35, 58, 125;
+        --main-color: rgb(var(--switch-rgb));
+        --text-color: #ffffff;
+        --background-color: #d6d6d6;
+        --hover-color: #7994e344;
+        --font-family: 'Roboto', 'Noto', sans-serif;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        position: absolute;
+        top: 0;
+        bottom:0;
+        left:0;
+        right:0;
+        background: var(--background-color);
+        font-family: var(--font-family);
+        font-size: 13px;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        user-select: none;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding:0;
+        margin:0;
+        color: var(--text-color);
+      }
+      svg {
+        width:24px;
+        height:24px;
+      }
+      .toast {
+        background: #323232;
+        padding: 16px;
+        display: inline-block;
+        font-size: 14px;
+        text-align: left;
+        position: absolute;
+        border-radius: 3px;
+        bottom: 8px;
+        left: 8px;
+        color: #fff;
+        z-index: 10;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        min-width: 200px;
+        cursor: pointer;
+      }
+      .toast > * {
+        pointer-events: none;
+      }
+      .toast .yellow-text {
+        color: yellow;
+      }
+      .small-button {
+        padding: 8px;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        border-radius: 50%;
+      }
+      .small-button[disabled] {
+        color:grey;
+        cursor: default;
+      }
+      .small-button > * {
+        pointer-events: none;
+      }
+      .menu-button {
+        padding: 12px;
+        cursor: pointer;
+        display: flex;
+        color: #333333;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 16px;
+        border-bottom: 1px solid #3333333d;
+        position: relative;
+        overflow: hidden;
+      }
+      .menu-button > * {
+        pointer-events: none;
+      }
+      .menu-button div {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-transform: uppercase;
+      }
+      .menu-button:hover {
+        background-color: var(--hover-color);
+      }
+      .card {
+        color: #333333;
+        max-width: 675px;
+        min-width: 280px;
+        padding: 0px;
+        background: #fff;
+        position: relative;
+        margin: auto;
+        border-radius: 3px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+        text-align: center;
+        margin-bottom: 100px;
+      }
+      @keyframes ripple-animation {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+        animation: ripple-animation 0.7s linear;
+      }
+      .tab {
+        display: flex;
+        width:50%;
+        padding: 8px;
+        text-align: center;
+        justify-content: center;
+        color: #333333;
+        cursor: pointer;
+        text-transform: uppercase;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        background-color: var(--background-color);
+        overflow: hidden;
+        position: relative;
+        transition: background-color 0.45s ease;
+        box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.2);
+      }
+      .tab.selected {
+        background-color: #ffffff;
+        cursor: auto;
+        box-shadow: none;
+      }
+      .alert {
+        background: #323232;
+        padding: 16px;
+        display: flex;
+        flex-direction: row;
+        font-size: 14px;
+        text-align: left;
+        position: absolute;
+        border-radius: 3px;
+        top: 8px;
+        color: #fff;
+        z-index: 11;
+        box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
+        min-width: 200px;
+        cursor: pointer;
+        margin: 0 2em;
+        overflow: hidden;
+      }
+      .alert > * {
+        pointer-events: none;
+      }
+      .alert.hidden {
+        opacity:0;
+        transform: translateY(-120%);
+      }
+      .alert .yellow-text {
+        margin-left: 30px;
+        color: yellow;
+        min-width: 100px;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+      .loading {
+        display: none;
+        position: absolute;
+        top:0;
+        bottom:0;
+        left:0;
+        right:0;
+        opacity:0;
+        background-color: rgba(255,255,255,0.6);
+        justify-content: center;
+        align-items: center;
+      }
+      .close-wrapper {
+        position: absolute;
+        top:0;
+        right:0;
+        left:0;
+        display:flex;
+        justify-content:right;
+      }
+      .form__group {
+        position: relative;
+        padding: 15px 0 0;
+        margin-top: 10px;
+        margin-bottom: 24px;
+      }
+      .form__field {
+        font-family: inherit;
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #787878;
+        outline: 0;
+        font-size: 16px;
+        color: #333333;
+        padding: 7px 0;
+        background: transparent;
+        transition: border-color 0.2s;
+      }
+      .form__field::placeholder {
+        color: transparent;
+      }
+      .form__field:placeholder-shown ~ .form__label {
+        font-size: 16px;
+        cursor: text;
+        top: 20px;
+      }
+      label,
+      .form__field:focus ~ .form__label {
+        position: absolute;
+        top: 0;
+        display: block;
+        transition: 0.2s;
+        font-size: 12px;
+        color: #787878;
+      }
+      .form__field:focus ~ .form__label {
+        color: var(--main-color);
+      }
+      .form__field:focus {
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--main-color);
+      }
+      @keyframes spin {
+        from {
+          transform: rotate(0deg)
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinning {
+        animation: spin 1.5s linear infinite;
+      }
+      input[type="url"] {
+        text-transform: none;
+      }
+      .delete-notification-text {
+        font-size: 16px;
+        max-height: 18px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+      }
+
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <script type="module" src="./js/sync-ui.js"></script>
+    <script type="module" src="./js/audiosync-button.js"></script>
+    <script type="module" src="./js/audiosync-podcasts.js"></script>
+    <script type="module" src="./js/audiosync-pages.js"></script>
+    <script type="module" src="./js/audiosync-tabs.js"></script>
+    <script type="module" src="./js/audiosync-dialog.js"></script>
+    <script type="module" src="./js/audiosync-progress.js"></script>
+    <script type="module" src="./js/audiosync-header.js"></script>
+    <script type="module" src="./js/audiosync-loader.js"></script>
+    <script type="module" src="./js/audiosync-switch.js"></script>
+    <script type="module" src="./js/audiosync-settings.js"></script>
+    <script type="module" src="./js/music-library.js"></script>
+    <script type="module" src="./js/scroll-element.js"></script>
+    <script type="module" src="./js/audiosync-menu.js"></script>
+    <script type="module" src="./js/audiosync-small-button.js"></script>
+    <script>
+      /**
+       * HTMLElement has been clicked 
+       */
+      HTMLElement.prototype.onClick = function(cb) {
+        this.addEventListener('click', cb, false);
+      };
+    </script>
+  </head>
+  <body>
+    
+    <!-- place to display errors and issues -->
+    <div id="alert" class="alert hidden">
+      <div id="alert-text"></div>
+      <div class="yellow-text">Click to dismiss</div>
+    </div>
+    
+    <!-- hide the app while loading UI data -->
+    <audiosync-loader>
+      Loading...
+    </audiosync-loader>
+    
+    <!-- header bar -->
+    <audiosync-header>
+      <audiosync-small-button id="menu-button">
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </audiosync-small-button>
+      <audiosync-small-button id="settings">
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+        </svg>
+      </audiosync-small-button>
+    </audiosync-header>
+
+    <!-- hamburger menu -->
+    <audiosync-menu>
+      <div id="save" class="menu-button">
+        <svg xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+        </svg>
+        <div>
+          save json
+        </div>
+      </div>
+      <div id='update' class="menu-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960">
+          <path fill="currentColor"  d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z"/>
+        </svg>
+        <div>
+          Sync
+        </div>
+      </div>
+    </audiosync-menu>
+    
+    <!-- app main body -->
+    <scroll-element>
+      <div class="card">
+        <audiosync-tabs>
+          <div class="tab">Music Lib</div>
+          <div class="tab">Podcasts</div>
+        </audiosync-tabs>
+        <audiosync-pages>
+          <music-library></music-library>
+          <audiosync-podcasts style="opacity:0;"></audiosync-podcasts>
+        </audiosync-pages>
+      </div>
+    </scroll-element>
+    
+    <!-- sync dialog -->
+    <sync-ui></sync-ui>
+    
+    <!-- settings drawer -->
+    <audiosync-settings>
+      <audiosync-switch id="cues">
+        Import playlists
+      </audiosync-switch>
+      <audiosync-switch id="lyrics">
+        Import lyrics
+      </audiosync-switch>
+      <audiosync-switch id="remove-lrc" >
+        Generate new LRC files
+      </audiosync-switch>
+      <audiosync-switch id="podcast">
+        Import podcast
+      </audiosync-switch>
+    </audiosync-settings>
+
+    <script type="module" src="./js/app.js"></script>
+  </body>
+  </html>

@@ -1,6 +1,8 @@
 import os
 import json
 import webview
+import threading
+import http.server
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast
@@ -17,7 +19,13 @@ with open(config_path, 'r') as j:
 window = False
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-html_path = os.path.join(script_folder, 'build_sync', 'build_sync.html')
+html_path = os.path.join(script_folder, 'html')
+
+def run_server():
+  os.chdir(html_path) 
+  Handler = http.server.SimpleHTTPRequestHandler
+  httpd = http.server.HTTPServer(("localhost", 8000), Handler)
+  httpd.serve_forever()
 
 def save_config():
   with open(config_path, 'w') as file:
@@ -104,5 +112,11 @@ class Api:
 
 # run the application
 if __name__ == '__main__':
-  window = webview.create_window('sync.json Creator', frameless=False, html=open(html_path).read(), js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
+  # run server
+  server_thread = threading.Thread(target=run_server)
+  server_thread.daemon = True
+  server_thread.start()
+
+  # load UI
+  window = webview.create_window('sync.json Creator', frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
