@@ -16,43 +16,6 @@ class AudioSyncSettings extends HTMLElement {
     this.close = this.close.bind(this)
     const sheet = document.createElement('style');
     sheet.textContent = `
-      body {
-        position: absolute;
-        top:0;
-        bottom:0;
-        left:0;
-        right:0;
-        background: var(--background-color);
-        font-family: var(--font-family);
-        font-size: 13px;
-        -webkit-tap-highlight-color: rgba(0,0,0,0);
-        user-select: none;
-        overflow-x: hidden;
-        overflow-y: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding:0;
-        margin:0;
-        color: var(--text-color);
-      }
-      @keyframes ripple-animation {
-        to {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-      .ripple {
-        position: relative;
-        overflow: hidden;
-        transform: translate3d(0, 0, 0);
-      }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        animation: ripple-animation 0.7s linear;
-      }
       .settings {
         top: 0;
         left: 0;
@@ -119,12 +82,6 @@ class AudioSyncSettings extends HTMLElement {
         text-align: center;
         margin-bottom: 100px;
       }
-      .small-button {
-        padding: 8px;
-        cursor: pointer;
-        position: relative;
-        border-radius: 50%;
-      }
       audiosync-small-button {
         color: red;
       }
@@ -140,6 +97,7 @@ class AudioSyncSettings extends HTMLElement {
     close.onClick(e => {
       this.close();
     });
+
     const headerContent = document.createElement('div');
     headerContent.classList.add('header-content');
     headerContent.appendChild(close);
@@ -173,7 +131,8 @@ class AudioSyncSettings extends HTMLElement {
     ].forEach(el => shadow.appendChild(el));
 
     window.addEventListener('resize', _ => {
-      if (!Boolean(this.getAttribute('opened'))) this.drawer.style.transform = `translateY(${elementHeight(this.drawer)}px)`;
+      const opened = Number(this.getAttribute('opened'));
+      if (!Boolean(opened)) this.drawer.style.transform = `translateY(${elementHeight(this.drawer)}px)`;
     });
   }
 

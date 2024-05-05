@@ -25,19 +25,14 @@ class MusicLibrary extends HTMLElement {
           opacity: 0;
         }
       }
-      div:first-child {
-        border-top: none;
-      }
-      .ripple {
-        position: relative;
-        overflow: hidden;
-        transform: translate3d(0, 0, 0);
-      }
       .ripple-effect {
         position: absolute;
         border-radius: 50%;
         background: rgba(125, 125, 125, 0.4);
         animation: ripple-animation 0.7s linear;
+      }
+      div:first-child {
+        border-top: none;
       }
       .artist {
         position: relative;

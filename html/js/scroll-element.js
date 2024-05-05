@@ -20,11 +20,6 @@ class ScrollElement extends HTMLElement {
           opacity: 0;
         }
       }
-      .ripple {
-        position: relative;
-        overflow: hidden;
-        transform: translate3d(0, 0, 0);
-      }
       .ripple-effect {
         position: absolute;
         border-radius: 50%;

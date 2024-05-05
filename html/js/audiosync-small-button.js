@@ -2,7 +2,7 @@ import {qs, createRipple, hexToRgba, convertToHex} from './helpers.js';
 
 class SmallButton extends HTMLElement {
   static get observedAttributes() {
-    return ['icon','disabled'];
+    return ['disabled'];
   }
   constructor() {
     super();
@@ -52,21 +52,7 @@ class SmallButton extends HTMLElement {
    */
   connectedCallback() {
     const textColor = convertToHex(window.getComputedStyle(this.button).color); 
-
-    const styles = this._removeClass(qs('style', this.shadowRoot).textContent);
-
-    const rippleColor = hexToRgba(textColor);
-    console.log(rippleColor);
-    const css = `    
-    .ripple-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: ${rippleColor};
-      animation: ripple-animation 0.7s linear;
-    }`;
-
-    qs('style', this.shadowRoot).textContent = styles + css;
-
+    this.color(textColor);
     this.button.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
@@ -81,17 +67,46 @@ class SmallButton extends HTMLElement {
    * 
    * @returns {String} css without the class if found by given regex (not a great function)
    */
-  _removeClass(cssString) {
+  _removeClasses(cssString) {
     // Define a regular expression to match the entire block containing .new-color class and .ripple-effect class with their properties
-    var regex = /\.ripple-effect\s*{[^}]*}/g;
+    var regex = /\.new-color\s*{[^}]*}|\.ripple-effect\s*{[^}]*}/g;
     // Use replace method with the regular expression to remove the entire block
     return cssString.replace(regex, '');
   }
 
   /**
+   * set the color of the icon and ripple animation
+   * 
+   * @param {String} color 
+   */
+  async color(color) {
+    //  capture styles
+    const styles = this._removeClasses(qs('style', this.shadowRoot).textContent).trim();
+
+    // rgba color for ripple
+    const rippleColor = hexToRgba(color);
+
+    // create new css styles
+    const css = `
+    .new-color {
+      color: ${convertToHex(color)};
+    } 
+    .ripple-effect {
+      position: absolute;
+      border-radius: 50%;
+      background: ${rippleColor};
+      animation: ripple-animation 0.7s linear;
+    }`;
+
+    // apply styles
+    qs('style', this.shadowRoot).textContent = styles + css;
+    this.button.classList.add('new-color');
+  }
+
+  /**
    * element clicked
    * 
-   * @param {Function} cb 
+   * @param {Function} cb callback function
    */
   onClick(cb) {
     this.button.addEventListener('click', e => {
@@ -109,7 +124,11 @@ class SmallButton extends HTMLElement {
    */
   attributeChangedCallback(name, oldVal, newVal) {
     if (name === 'disabled') {
-      this.button.toggleAttribute(name);
+      if (this.hasAttribute(name)) {
+        this.button.setAttribute(name, '');
+      } else {
+        this.button.removeAttribute(name);
+      }
     }
   }
 }

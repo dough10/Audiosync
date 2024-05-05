@@ -1,4 +1,4 @@
-import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, createRipple, Toast, Timer, isValidURL} from './helpers.js';
+import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -14,44 +14,10 @@ class AudioSyncPodcasts extends HTMLElement {
 
     const sheet = document.createElement('style');
     sheet.textContent = `
-      @keyframes ripple-animation {
-        to {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-      .ripple {
-        position: relative;
-        overflow: hidden;
-        transform: translate3d(0, 0, 0);
-      }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.4);
-        animation: ripple-animation 0.7s linear;
-      }
       svg {
         width:24px;
         height:24px;
         display: flex;
-        pointer-events: none;
-      }
-      .small-button {
-        padding: 8px;
-        cursor: pointer;
-        overflow: hidden;
-        position: relative;
-        border-radius: 50%;
-      }
-      .small-button:hover {
-        transform: scale(1.1);
-      }
-      .small-button[disabled] {
-        color:grey;
-        pointer-events: none;
-      }
-      .small-button > * {
         pointer-events: none;
       }
       .container {
@@ -113,7 +79,6 @@ class AudioSyncPodcasts extends HTMLElement {
     // wrappper for plus icon
     const addButton = document.createElement('audiosync-small-button');
     addButton.appendChild(addIcon);
-    addButton.classList.add('small-button');
     addButton.onClick(e => {
       this._openAddPodcastDialog();
     });
@@ -128,7 +93,6 @@ class AudioSyncPodcasts extends HTMLElement {
     const refresh = document.createElement('audiosync-small-button');
     refresh.appendChild(this.svg);
     const buttons = [addButton, refresh];
-    refresh.classList.add('small-button'); 
     refresh.onClick(async e => {
       buttons.forEach(el => el.setAttribute('disabled', 1));
       this.svg.classList.add('spinning');
@@ -201,14 +165,13 @@ class AudioSyncPodcasts extends HTMLElement {
     // X icon
     const closeIcon = svgIcon(
       "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-      false,
-      'red'
+      false
     );
     
     // X button
-    const closeButton = document.createElement('div');
+    const closeButton = document.createElement('audiosync-small-button');
+    closeButton.color('red');
     closeButton.appendChild(closeIcon);
-    closeButton.classList.add('small-button');
     
     // dialog header 
     const closeWrapper = document.createElement('div');
@@ -237,7 +200,6 @@ class AudioSyncPodcasts extends HTMLElement {
 
     // closes the dialog
     closeButton.onClick(async e => {
-      createRipple(e);
       await dialog.close();
       await sleep(100);
       dialog.remove();
@@ -245,6 +207,7 @@ class AudioSyncPodcasts extends HTMLElement {
     
     // add button clicked
     button.onClick(async e => {
+      button.toggleAttribute('disabled');
       const loading = qs('.loading');
       loading.style.display = 'flex';
       pywebview.api.subscribe(input.value);
@@ -377,16 +340,13 @@ class AudioSyncPodcasts extends HTMLElement {
 
       const removeIcon = svgIcon(
         "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-        false,
-        'red'
+        false
       );
-      const removeButton = document.createElement('div');
+      const removeButton = document.createElement('audiosync-small-button');
+      removeButton.color('red');
       removeButton.appendChild(removeIcon);
-      removeButton.classList.add('small-button');
       removeButton.style.opacity = 0;
       removeButton.onClick(async ev => {
-        createRipple(ev)
-
         //  loading animation
         const icon = svgIcon(this.iconPath, true);
         icon.style.height = '40px';

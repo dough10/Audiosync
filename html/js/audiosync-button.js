@@ -219,29 +219,6 @@ class AudioSyncButton extends HTMLElement {
   }
 
   /**
-   * create a rendom color code
-   * 
-   * @returns {String} hex color code
-   */
-  generateRandomHexCode() {
-    // Generate random integer between 0 and 16777215 (2^24 - 1)
-    var randomInt = Math.floor(Math.random() * 16777215);
-    
-    // Convert integer to hexadecimal string
-    var hexCode = randomInt.toString(16);
-
-    // Pad with zeros if necessary to ensure 6 characters
-    while (hexCode.length < 6) {
-      hexCode = '0' + hexCode;
-    }
-
-    // Prepend '#' symbol
-    hexCode = '#' + hexCode;
-
-    return hexCode;
-  }
-
-  /**
    * attribute has changed 
    * 
    * @param {String} name
@@ -282,7 +259,11 @@ class AudioSyncButton extends HTMLElement {
 
     } else if (['disabled','noshadow'].includes(name)) {
       // reflect attribute changes to the button element
-      this.button.toggleAttribute(name);
+      if (this.hasAttribute(name)) {
+        this.button.setAttribute(name, '');
+      } else {
+        this.button.removeAttribute(name);
+      }
     }
   }
 }

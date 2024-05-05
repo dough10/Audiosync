@@ -8,6 +8,17 @@ import {
 
 (_ => {
   /**
+   * user alert at top of screen
+   * 
+   * @param {String} message
+   */
+  async function alertUser(message) {
+    qs('#alert-text').textContent = message;
+    await sleep(20);
+    await animateElement(qs('#alert'), 'translateY(0%)', 800, 1);
+  }
+
+  /**
    * setup listeners and fetch data
    */
   async function load_app() {
