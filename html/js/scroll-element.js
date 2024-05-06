@@ -44,48 +44,11 @@ class ScrollElement extends HTMLElement {
       .wrapper::-webkit-scrollbar {
         width: 0; /* Hide scrollbar */
       }
-      .fab {
-        overflow: hidden;
-        background: var(--main-color);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        box-sizing: border-box;
-        color: var(--text-color);
-        cursor: pointer;
-        height: 56px;
-        min-width: 0;
-        outline: none;
-        padding: 16px;
+      audiosync-fab {
         position: fixed;
         right: 20px;
         bottom: 20px;
-        width: 56px;
-        -webkit-tap-highlight-color: transparent;
-        box-shadow:0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4);
         z-index: 2;
-      }
-      .fab:after {
-        display: inline-block;
-        z-index: -1;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        border-radius: 50%;
-        transition: opacity 150ms cubic-bezier(.33,.17,.85,1.1);
-        box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
-        content:' ';
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .fab:hover:after {
-        opacity: 1;
-      }
-      .fab:hover:active:after {
-        opacity: 0;
       }
       svg {
         width:24px;
@@ -99,20 +62,12 @@ class ScrollElement extends HTMLElement {
     // scroll position memory
     let last_top = 0;
 
+    
     // floating action button
-    const svg = svgIcon(
-      "M15,20H9V12H4.16L12,4.16L19.84,12H15V20Z", 
-      false
-    );
-
-    const fab = document.createElement('div');
-    fab.appendChild(svg);
-    fab.classList.add('fab');
+    const fab = document.createElement('audiosync-fab');
+    svgIcon("up").then(svg => fab.appendChild(svg));
     fab.style.transform = 'translateY(80px)';
-    fab.onClick(e => {
-      createRipple(e);
-      this.animateScroll();
-    });
+    fab.onClick(this.animateScroll);
 
     // content body
     this.content = document.createElement('div');

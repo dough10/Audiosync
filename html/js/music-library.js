@@ -6,7 +6,8 @@ import {
   qs,
   qsa,
   sleep,
-  createRipple
+  createRipple,
+  alertUser
 } from './helpers.js';
 
 /**
@@ -211,7 +212,7 @@ class MusicLibrary extends HTMLElement {
     albumContainer.dataset.album = album;
     albumContainer.classList.add('album');
     albumContainer.textContent = album;
-    albumContainer.onClick(this._makeSelection);
+    albumContainer.addEventListener('click', this._makeSelection);
     this.content.appendChild(albumContainer);
   }
 
@@ -225,7 +226,7 @@ class MusicLibrary extends HTMLElement {
     artistContainer.dataset.artist = artist;
     artistContainer.classList.add('artist');
     artistContainer.textContent = artist;
-    artistContainer.onClick(this._makeSelection);
+    artistContainer.addEventListener('click', this._makeSelection);
     this.content.appendChild(artistContainer);
   }
 

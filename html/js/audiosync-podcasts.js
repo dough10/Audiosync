@@ -71,28 +71,22 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   _generateHead() {
     // plus sign icon
-    const addIcon = svgIcon(
-      "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z",
-      true
-    );
-
+    
     // wrappper for plus icon
     const addButton = document.createElement('audiosync-small-button');
-    addButton.appendChild(addIcon);
+    svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
     addButton.onClick(e => {
       this._openAddPodcastDialog();
     });
 
-    // refresh icon
-    this.svg = svgIcon(this.iconPath);
-    
     // refresh button
     const refresh = document.createElement('audiosync-small-button');
-    refresh.appendChild(this.svg);
+    svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
+    refresh.id ='refresh';
     refresh.onClick(async e => {
-      buttons.forEach(el => el.setAttribute('disabled', 1));
-      this.svg.classList.add('spinning');
+      buttons.forEach(el => el.toggleAttribute('disabled'));
+      qs('#refresh', this.shadowRoot).classList.add('spinning');
       const t = new Timer('Podcasts Update');
       await pywebview.api.get_podcasts();
       new Toast(t.endString());
@@ -122,7 +116,7 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   async _addPodcastUI() {
     //  loading animation
-    const icon = svgIcon(this.iconPath, true);
+    const icon = await svgIcon('refresh');
     icon.style.height = '40px';
     icon.style.width = '40px';
     icon.classList.add('spinning');
@@ -155,17 +149,14 @@ class AudioSyncPodcasts extends HTMLElement {
     ].forEach(el => group.appendChild(el));
     
     // submit / add button
-    const buttonContents = fillButton(
-      "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z",
-      'add'
-    );
+    const buttonContents = fillButton("add", 'add');
 
     const button = document.createElement('audiosync-button');
     button.appendChild(buttonContents);
     button.toggleAttribute('disabled');
     
     // X icon
-    const closeIcon = svgIcon("M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z");
+    const closeIcon = await svgIcon('close');
     
     // X button
     const closeButton = document.createElement('audiosync-small-button');
@@ -260,7 +251,7 @@ class AudioSyncPodcasts extends HTMLElement {
     qsa('.wrapper', this.shadowRoot).forEach(async el => {
       await sleep(5000);
       await fadeOut(qs('svg', el));
-      this.svg.classList.remove('spinning');
+      qs('#refresh', this.shadowRoot).classList.remove('spinning');
     });
   }
 
@@ -322,30 +313,23 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {String} url podcast url
    */
   _fetchAndParseXML(url) {
-    fetch(url).then(response => response.text()).then(xmlString => {
+    fetch(url).then(response => response.text()).then(async xmlString => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
       // title of the podcast
       const podcastTitle = document.createElement('div');
       podcastTitle.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
-      
-      const svg = svgIcon(
-        "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
-        'green'
-      );
-      svg.style.opacity = 0;
 
-      const removeIcon = svgIcon(
-        "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-      );
+      const removeIcon = await svgIcon('close');
+
       const removeButton = document.createElement('audiosync-small-button');
       removeButton.color('red');
       removeButton.appendChild(removeIcon);
       removeButton.style.opacity = 0;
       removeButton.onClick(async ev => {
         //  loading animation
-        const icon = svgIcon(this.iconPath);
+        const icon = await svgIcon('refresh');
         icon.style.height = '40px';
         icon.style.width = '40px';
         icon.classList.add('spinning');
@@ -366,10 +350,7 @@ class AudioSyncPodcasts extends HTMLElement {
         const no = document.createElement('audiosync-button');
         const buttons = [yes,no];
 
-        const yesContents = fillButton(
-          "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
-          'yes'
-        );
+        const yesContents = fillButton("check", 'yes');
 
         yes.appendChild(yesContents);
         yes.setAttribute('color', 'red');
@@ -385,10 +366,7 @@ class AudioSyncPodcasts extends HTMLElement {
           dialog.remove();
         });
 
-        const noContents = fillButton(
-          "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-          'no'
-        )
+        const noContents = fillButton('close', 'no');
         no.appendChild(noContents);
         no.setAttribute('color', '#ffffff');
         no.onClick(async e => {
@@ -403,6 +381,9 @@ class AudioSyncPodcasts extends HTMLElement {
         dialog.open();
       });
       
+      const svg = await svgIcon("check", 'green');
+      svg.style.opacity = 0;
+
       // wrapper for title and checkmark
       const wrapper = document.createElement('div');
       [
@@ -414,7 +395,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
       // show remove button on mouse over
       wrapper.onmouseenter = _ => {
-        if (this.svg.classList.contains('spinning')) return;
+        if (qs('#refresh', this.shadowRoot).classList.contains('spinning')) return;
         wrapper.appendChild(removeButton);
         fadeIn(removeButton);
       };

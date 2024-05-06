@@ -135,7 +135,7 @@ class Toast {
     toast.style.willChange = 'auto';
     toast.style.transition = 'all 300ms cubic-bezier(.33,.17,.85,1.1) 0ms';
     toast.addEventListener(transitionEvent, this._transitionEnd, true);
-    toast.onClick(this._clicked, true)
+    toast.addEventListener('click', this._clicked, true)
     return toast;
   }
 
@@ -473,26 +473,35 @@ async function createRipple(event) {
   }
 }
 
-// icons that need a viewBox (really need a better solution)
-const needsViewBox = [
-  "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z",
-  "M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z",
-  "M382-240 154-468l57-57 171 171 367-367 57 57-424 424Z",
-  "M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"
-];
+// icon cache
+let _cachedIcons = false;
+
+/**
+ * return an Object containing svg icon path data
+ * 
+ * @param {String} name 
+ * 
+ * @returns {Object} svg data object
+ */
+async function getIcon(name) {
+  const iconData = await fetch('./../../icons.json').then(res => res.json());
+  if (_cachedIcons) return _cachedIcons.find(icon => icon.name === name);
+  _cachedIcons = iconData.icons;
+  return _cachedIcons.find(icon => icon.name === name);
+}
 
 /**
  * creates an SVG icon 
  * 
- * @param {String} d
- * @param {Boolean} viewbox
+ * @param {String} name
  * @param {String} color
  * 
- * @returns {HTMLElement} SVG ICON
+ * @returns {HTMLElement} SVG element with nested path
  */
-function svgIcon(d, color) {
+async function svgIcon(name, color) {
+  const iconData = await getIcon(name);
   const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  path.setAttribute("d", d);
+  path.setAttribute("d", iconData.d);
   if (color) {
     path.setAttribute('fill', color);
   } else {
@@ -501,7 +510,7 @@ function svgIcon(d, color) {
   
   const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
   svg.appendChild(path);
-  if (needsViewBox.includes(d)) svg.setAttribute('viewBox', "0 -960 960 960");
+  svg.setAttribute('viewBox', iconData.viewBox);
 
   return svg;
 }
@@ -600,21 +609,65 @@ function generateRandomHexCode() {
 /**
  * creates elemets to text spacing in the button
  * 
- * @param {String} d
+ * @param {String} name
  * @param {String} txt
  * 
  * @returns {HTMLElement}
- */
-function fillButton(d, txt) {
-  const div = document.createElement('div');
-
+*/
+function fillButton(name, txt) {
   const text = document.createElement('div');
   text.textContent = txt;
 
-  [svgIcon(d),text].forEach(el => div.appendChild(el)); 
+  const div = document.createElement('div');
+  svgIcon(name).then(icon => [icon ,text].forEach(el => div.appendChild(el)));
   return div;
 }
 
+/**
+ * user alert at top of screen
+ * 
+ * @param {String} message
+ */
+async function alertUser(message) {
+  qs('#alert-text').textContent = message;
+  await sleep(20);
+  await animateElement(qs('#alert'), 'translateY(0%)', 800, 1);
+}
+
+/**
+ * returns value of a css variable
+ * 
+ * @param {String} variableName
+ * 
+ * @return {String}
+ */
+function getCSSVariableValue(variableName) {
+  // Get the computed style of the document root
+  var rootStyles = getComputedStyle(document.documentElement);
+  // Use getProperty() method to get the value of the variable
+  var value = rootStyles.getPropertyValue(variableName);
+  return value.trim(); // Trim the value to remove any leading or trailing whitespace
+}
+
+/**
+ * returns contrasting color to input hex code (thanks ChatGPT) =D
+ * 
+ * @param {String} hexColor hex color code
+ * 
+ * @returns {String} hex color code
+ */
+function getContrastColor(hexColor) {
+  // Convert hex color to RGB
+  let r = parseInt(hexColor.substr(1, 2), 16);
+  let g = parseInt(hexColor.substr(3, 2), 16);
+  let b = parseInt(hexColor.substr(5, 2), 16);
+
+  // Calculate the relative luminance
+  let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  // Return contrasting color based on luminance
+  return luminance > 0.5 ? "#333333" : "#FFFFFF";
+}
 
 export {
   Timer,
@@ -633,5 +686,8 @@ export {
   convertToHex,
   hexToRgba,
   generateRandomHexCode,
-  fillButton
+  fillButton,
+  alertUser,
+  getCSSVariableValue,
+  getContrastColor
 }

@@ -58,11 +58,8 @@ class SyncUI extends HTMLElement {
     this.summary = document.createElement('div');
     this.summary.classList.add('summary');
     
-    const buttonContents = fillButton(
-      "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z",
-      "close"
-    );
-
+    const buttonContents = fillButton('close', "close");
+    
     this.button = document.createElement('audiosync-button');
     this.button.appendChild(buttonContents);
     this.button.toggleAttribute('disabled');

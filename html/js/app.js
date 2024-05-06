@@ -3,20 +3,11 @@ import {
   animateElement,
   qs,
   sleep,
-  createRipple
+  createRipple,
+  alertUser
 } from './helpers.js';
 
 (_ => {
-  /**
-   * user alert at top of screen
-   * 
-   * @param {String} message
-   */
-  async function alertUser(message) {
-    qs('#alert-text').textContent = message;
-    await sleep(20);
-    await animateElement(qs('#alert'), 'translateY(0%)', 800, 1);
-  }
 
   /**
    * setup listeners and fetch data
@@ -34,7 +25,7 @@ import {
     });
 
     // menu drawer save / file icon
-    qs('#save').onClick(async event => {
+    qs('#save').addEventListener('click', async event => {
       createRipple(event);
       qs('audiosync-menu').close();
       const dataObj = qs('music-library').buildObject();
@@ -47,7 +38,7 @@ import {
     });
 
     // menu drawer refresh / update icon
-    qs('#update').onClick(async event => {
+    qs('#update').addEventListener('click', async event => {
       createRipple(event);
       qs('audiosync-menu').close();
       await qs('sync-ui').open();
@@ -55,7 +46,7 @@ import {
     });
 
     // top of screen alert
-    qs('#alert').onClick(async event => {
+    qs('#alert').addEventListener('click', async event => {
       createRipple(event);
       await sleep(200);
       await animateElement(event.target, 'translateY(-120%)', 800, 0);

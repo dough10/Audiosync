@@ -65,8 +65,8 @@ class AudioSyncTabs extends HTMLElement {
     const assignedElements = event.target.assignedElements({flatten: true}).filter(node => node.nodeType === Node.ELEMENT_NODE);
     assignedElements[Number(this.getAttribute('selected'))].classList.add('selected');
     assignedElements.forEach((el, i) => {
-      el.onClick(e => {
-        if (Boolean(this.getAttribute('disabled'))) return;
+      el.addEventListener('click', e => {
+        if (this.hasAttribute('disabled')) return;
         createRipple(e);
         assignedElements.forEach(ele => ele.classList.remove('selected'));
         this.setAttribute('selected', i);
