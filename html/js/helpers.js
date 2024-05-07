@@ -237,9 +237,9 @@ function whichTransitionEvent() {
     'OTransition':'oTransitionEnd',
     'transition':'transitionEnd'
   };
-  for (event in transitions) {
-    if (el.style[event] !== undefined ) {
-      return transitions[event];
+  for (let ev in transitions) {
+    if (el.style[ev] !== undefined ) {
+      return transitions[ev];
     }
   }
 }
@@ -484,8 +484,8 @@ let _cachedIcons = false;
  * @returns {Object} svg data object
  */
 async function getIcon(name) {
-  const iconData = await fetch('./../../icons.json').then(res => res.json());
   if (_cachedIcons) return _cachedIcons.find(icon => icon.name === name);
+  const iconData = await fetch('./../../icons.json').then(res => res.json());
   _cachedIcons = iconData.icons;
   return _cachedIcons.find(icon => icon.name === name);
 }
@@ -669,6 +669,21 @@ function getContrastColor(hexColor) {
   return luminance > 0.5 ? "#333333" : "#FFFFFF";
 }
 
+/**
+ * find and remove .new-color and .ripple-effect css classes
+ * 
+ * @param {Regex} regex
+ * @param {String} cssString
+ * 
+ * @returns {String} css without the class if found by given regex (not a great function)
+ */
+function removeClasses(cssString) {
+  // Define a regular expression to match the entire block containing .new-color class and .ripple-effect class with their properties
+  var regex = /\.new-color\s*{[^}]*}|\.ripple-effect\s*{[^}]*}/g;
+  // Use replace method with the regular expression to remove the entire block
+  return cssString.replace(regex, '');
+}
+
 export {
   Timer,
   Toast,
@@ -689,5 +704,6 @@ export {
   fillButton,
   alertUser,
   getCSSVariableValue,
-  getContrastColor
+  getContrastColor,
+  removeClasses
 }

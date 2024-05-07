@@ -69,9 +69,7 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * generate head element with close button
    */
-  _generateHead() {
-    // plus sign icon
-    
+  _generateHead() {    
     // wrappper for plus icon
     const addButton = document.createElement('audiosync-small-button');
     svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
@@ -90,8 +88,7 @@ class AudioSyncPodcasts extends HTMLElement {
       const t = new Timer('Podcasts Update');
       await pywebview.api.get_podcasts();
       new Toast(t.endString());
-      buttons.forEach(el => el.removeAttribute('disabled'));
-      this._resetCheckMarks();
+      this._resetCheckMarks(buttons);
     });
 
     // podcast tab header 
@@ -247,11 +244,12 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * resets all checkmarks 
    */
-  _resetCheckMarks() {
+  _resetCheckMarks(buttons) {
     qsa('.wrapper', this.shadowRoot).forEach(async el => {
       await sleep(5000);
       await fadeOut(qs('svg', el));
       qs('#refresh', this.shadowRoot).classList.remove('spinning');
+      buttons.forEach(el => el.removeAttribute('disabled'));
     });
   }
 
@@ -354,6 +352,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
         yes.appendChild(yesContents);
         yes.setAttribute('color', 'red');
+        yes.toggleAttribute('noshadow');
         yes.onClick(async e => {
           buttons.forEach(button => button.setAttribute('disabled', 1));
           loader.style.display = 'flex';
@@ -369,6 +368,7 @@ class AudioSyncPodcasts extends HTMLElement {
         const noContents = fillButton('close', 'no');
         no.appendChild(noContents);
         no.setAttribute('color', '#ffffff');
+        no.toggleAttribute('noshadow');
         no.onClick(async e => {
           buttons.forEach(button => button.setAttribute('disabled', 1));
           await dialog.close();

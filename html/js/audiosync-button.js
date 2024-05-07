@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, convertToHex, getCSSVariableValue, getContrastColor} from './helpers.js';
+import {qs, createRipple, hexToRgba, removeClasses, convertToHex, getCSSVariableValue, getContrastColor} from './helpers.js';
 
 class AudioSyncButton extends HTMLElement {
   static get observedAttributes() {
@@ -169,21 +169,6 @@ class AudioSyncButton extends HTMLElement {
   }
 
   /**
-   * find and remove .new-color and .ripple-effect css classes
-   * 
-   * @param {Regex} regex
-   * @param {String} cssString
-   * 
-   * @returns {String} css without the class if found by given regex (not a great function)
-   */
-  _removeClasses(cssString) {
-     // Define a regular expression to match the entire block containing .new-color class and .ripple-effect class with their properties
-    var regex = /\.new-color\s*{[^}]*}|\.ripple-effect\s*{[^}]*}/g;
-    // Use replace method with the regular expression to remove the entire block
-    return cssString.replace(regex, '');
-  }
-
-  /**
    * attribute has changed 
    * 
    * @param {String} name
@@ -195,7 +180,7 @@ class AudioSyncButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = this._removeClasses(qs('style', this.shadowRoot).textContent).trim();
+      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).trim();
       
       // background-color in hex format
       const color = convertToHex(newVal);

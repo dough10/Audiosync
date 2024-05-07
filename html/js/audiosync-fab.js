@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, getCSSVariableValue, convertToHex, getContrastColor} from './helpers.js';
+import {qs, createRipple, hexToRgba, removeClasses, getCSSVariableValue, convertToHex, getContrastColor} from './helpers.js';
 
 /**
  * pages
@@ -57,7 +57,9 @@ class FloatingActionButton extends HTMLElement {
         box-shadow:0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4);
         z-index: 2;
         position:relative;
+        transition: background-color 0.45s ease;
         transform: translate3d(0, 0, 0);
+        margin:8px;
       }
       .fab > * {
         pointer-events: none;
@@ -129,13 +131,6 @@ class FloatingActionButton extends HTMLElement {
   }
 
   /**
-   * element connected to DOM
-   */
-  connectedCallback() {
-
-  }
-
-  /**
    * attribute has changed
    * 
    * @param {String} name
@@ -154,7 +149,7 @@ class FloatingActionButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = this._removeClasses(qs('style', this.shadowRoot).textContent).trim();
+      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).trim();
       
       // background-color in hex format
       const color = convertToHex(newVal);
@@ -195,19 +190,5 @@ class FloatingActionButton extends HTMLElement {
     });
   }
 
-  /**
-   * find and remove .new-color and .ripple-effect css classes
-   * 
-   * @param {Regex} regex
-   * @param {String} cssString
-   * 
-   * @returns {String} css without the class if found by given regex (not a great function)
-   */
-  _removeClasses(cssString) {
-    // Define a regular expression to match the entire block containing .new-color class and .ripple-effect class with their properties
-   var regex = /\.new-color\s*{[^}]*}|\.ripple-effect\s*{[^}]*}/g;
-   // Use replace method with the regular expression to remove the entire block
-   return cssString.replace(regex, '');
- }
 }
 customElements.define('audiosync-fab', FloatingActionButton);

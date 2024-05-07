@@ -41,6 +41,7 @@ class AudioSyncMenu extends HTMLElement {
         padding: 0px;
         -webkit-overflow-scrolling: touch;
         text-align: center;
+        height: 595px;
       }
       header {
         position: absolute;

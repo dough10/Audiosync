@@ -66,7 +66,7 @@ class ScrollElement extends HTMLElement {
     // floating action button
     const fab = document.createElement('audiosync-fab');
     svgIcon("up").then(svg => fab.appendChild(svg));
-    fab.style.transform = 'translateY(80px)';
+    fab.style.transform = 'translateY(88px)';
     fab.onClick(this.animateScroll);
 
     // content body
@@ -84,11 +84,11 @@ class ScrollElement extends HTMLElement {
       // control action button
       const scrollTop = this.container.scrollTop;
       if (scrollTop < last_top) {
-        animateElement(fab, "translateY(80px)", animateTime);
+        animateElement(fab, "translateY(88px)", animateTime);
       } else if (scrollTop != 0) {
         animateElement(fab, "translateY(0px)", animateTime);
       } else {
-        animateElement(fab, "translateY(80px)", animateTime);
+        animateElement(fab, "translateY(88px)", animateTime);
       }
       last_top = scrollTop;
     };
