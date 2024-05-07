@@ -3,6 +3,8 @@ import json
 import webview
 import threading
 import http.server
+import requests
+import xmltodict
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast
@@ -21,11 +23,13 @@ file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'html')
 
+
 def run_server():
   os.chdir(html_path) 
   Handler = http.server.SimpleHTTPRequestHandler
   httpd = http.server.HTTPServer(("localhost", 8000), Handler)
   httpd.serve_forever()
+
 
 def save_config():
   with open(config_path, 'w') as file:
@@ -109,6 +113,17 @@ class Api:
   # creates lib_data.json by scanning file library
   def create_json(self):
     create_lib_json(window)
+
+  # frontend xml proxy
+  def xmlProxy(self, url):
+    res = requests.get(url)
+    if res.status_code != 200:
+      print(f'Error getting XML data. Error code {res.status_code}')
+      return
+    try:
+      return xmltodict.parse(res.content)
+    except Exception as e:
+      print(f'Error parsing XML {e}')
 
 # run the application
 if __name__ == '__main__':

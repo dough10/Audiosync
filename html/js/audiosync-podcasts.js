@@ -311,13 +311,14 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {String} url podcast url
    */
   _fetchAndParseXML(url) {
-    fetch(url).then(response => response.text()).then(async xmlString => {
+    pywebview.api.xmlProxy(url).then(async xmlString => {
+
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
       // title of the podcast
       const podcastTitle = document.createElement('div');
-      podcastTitle.textContent = xmlDoc.querySelector('channel').querySelector('title').textContent
+      podcastTitle.textContent = xmlString.rss.channel.title;
 
       const removeIcon = await svgIcon('close');
 
@@ -366,6 +367,7 @@ class AudioSyncPodcasts extends HTMLElement {
         });
 
         const noContents = fillButton('close', 'no');
+        
         no.appendChild(noContents);
         no.setAttribute('color', '#ffffff');
         no.toggleAttribute('noshadow');
