@@ -17,25 +17,24 @@ with open(config_path, 'r') as j:
   config = json.load(j)
 
 
-
 window = False
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'html')
 
-
+# run http server
 def run_server():
   os.chdir(html_path) 
   Handler = http.server.SimpleHTTPRequestHandler
   httpd = http.server.HTTPServer(("localhost", 8000), Handler)
   httpd.serve_forever()
 
-
+# save config file
 def save_config():
   with open(config_path, 'w') as file:
     file.write(json.dumps(config, indent=2))
 
-
+# reload config file
 def reload_config():
   global config
   with open(config_path, 'r') as j:
@@ -88,6 +87,7 @@ class Api:
     if window:
       window.destroy()
    
+  # get data copied to clipboard
   def get_clipboard(self):
     return clipboard.paste()
 
@@ -95,6 +95,7 @@ class Api:
   def subscribe(self, url):
     Podcast(url).subscribe(window)
 
+  #  unsub podcast url
   def unsubscribe(self, url):
     Podcast(url).unsubscribe(window) 
 
