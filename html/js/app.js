@@ -15,17 +15,17 @@ import {
   async function load_app() {
 
     // header hamburger icon
-    qs('#menu-button').onClick(event => {
+    qs('#menu-button').onClick(_ => {
       qs('audiosync-menu').open();
     });
 
     // header gear icon
-    qs('#settings').onClick(event => {
+    qs('#settings').onClick(_ => {
       qs('audiosync-settings').open()
     });
 
     // menu drawer save / file icon
-    qs('#save').onClick(async _ => {
+    qs('#save').onClick(_ => {
       qs('audiosync-menu').close();
       const dataObj = qs('music-library').buildObject();
       if (Object.keys(dataObj).length === 0) {
