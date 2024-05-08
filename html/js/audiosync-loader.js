@@ -9,6 +9,8 @@ import {
 class AudioSyncLoader extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
+    
     this.loader = document.createElement('div');
     this.loader.classList.add('load')
     this.loader.appendChild(document.createElement('slot'))
@@ -33,11 +35,10 @@ class AudioSyncLoader extends HTMLElement {
         color: #333333;
       }
     `;
-    const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
       this.loader
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   async reveal() {
