@@ -65,31 +65,6 @@
       .toast .yellow-text {
         color: yellow;
       }
-      .menu-button {
-        padding: 12px;
-        cursor: pointer;
-        display: flex;
-        color: #333333;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 16px;
-        border-bottom: 1px solid #3333333d;
-        position: relative;
-        overflow: hidden;
-      }
-      .menu-button > * {
-        pointer-events: none;
-      }
-      .menu-button div {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-transform: uppercase;
-      }
-      .menu-button:hover {
-        background-color: var(--hover-color);
-      }
       .card {
         color: #333333;
         max-width: 675px;
@@ -254,6 +229,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <script type="module" src="./js/audiosync-menu-button.js"></script>
     <script type="module" src="./js/audiosync-fab.js"></script>
     <script type="module" src="./js/audiosync-button.js"></script>
     <script type="module" src="./js/audiosync-small-button.js"></script>
@@ -300,22 +276,22 @@
 
     <!-- hamburger menu -->
     <audiosync-menu>
-      <div id="save" class="menu-button">
+      <audiosync-menu-button id="save">
         <svg>
           <path fill="currentColor" d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
         </svg>
         <div>
           save json
         </div>
-      </div>
-      <div id='update' class="menu-button">
+      </audiosync-menu-button>
+      <audiosync-menu-button id='update'>
         <svg viewBox="0 -960 960 960">
           <path fill="currentColor"  d="M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z"/>
         </svg>
         <div>
           Sync
         </div>
-      </div>
+      </audiosync-menu-button>
     </audiosync-menu>
     
     <!-- app main body -->
