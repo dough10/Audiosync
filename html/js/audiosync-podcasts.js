@@ -81,14 +81,16 @@ class AudioSyncPodcasts extends HTMLElement {
     const refresh = document.createElement('audiosync-small-button');
     svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
+    const menuButtons = [qs('#save'),qs('#update')];
     refresh.id ='refresh';
     refresh.onClick(async e => {
+      menuButtons.forEach(el => el.toggleAttribute('disabled'));
       buttons.forEach(el => el.toggleAttribute('disabled'));
       qs('#refresh', this.shadowRoot).classList.add('spinning');
       const t = new Timer('Podcasts Update');
       await pywebview.api.get_podcasts();
       new Toast(t.endString());
-      this._resetCheckMarks(buttons);
+      this._resetCheckMarks(buttons, menuButtons);
     });
 
     // podcast tab header 
@@ -244,12 +246,13 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * resets all checkmarks 
    */
-  _resetCheckMarks(buttons) {
+  _resetCheckMarks(buttons, menuButtons) {
     qsa('.wrapper', this.shadowRoot).forEach(async el => {
       await sleep(5000);
       await fadeOut(qs('svg', el));
       qs('#refresh', this.shadowRoot).classList.remove('spinning');
       buttons.forEach(el => el.removeAttribute('disabled'));
+      menuButtons.forEach(el => el.removeAttribute('disabled'));
     });
   }
 
