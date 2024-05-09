@@ -23,7 +23,6 @@ with open(config_path, 'r') as j:
 sorted_dir = select_folder()
 working_dir = config['source']
 ignore_folders = config['lrc_ignore_folders'] # folders whos files we will be ignored when attempting tog et lyrics
-art_size = config['art_size']
 remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
@@ -222,8 +221,6 @@ def run_sync(window):
   global sync_file
   global lib_data
 
-  with open(config_path, 'r') as j:
-    config = json.load(j)
 
   sync_file = os.path.join(sorted_dir, 'sync.json')
   playlist_folder = os.path.join(sorted_dir, 'playlist_data')
@@ -235,6 +232,9 @@ def run_sync(window):
     except Exception as e:
       print(f'Error importing {sync_file}: {e}')
       sys.exit()
+
+  with open(config_path, 'r') as j:
+    config = json.load(j)
 
   import_cues = config['import_cues']
   import_lyrics = config['import_lyrics']
@@ -268,7 +268,7 @@ def run_sync(window):
 
   #rename images to cover.jpg
   notify({
-    "text": 'Checking image names.',
+    "text": 'Checking image names and sizes.',
     "summary" : False,
     "toast" : False
   }, window)

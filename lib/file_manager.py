@@ -2,6 +2,7 @@ import os
 import time
 import shutil
 import string
+from PIL import Image
 from lib.lyrics import get_lyrics
 from lib.log import log
 from concurrent.futures import ThreadPoolExecutor
@@ -81,13 +82,32 @@ class File_manager:
   def rename_images(self, directory_path):
 
     def rename_image(filename):
-      if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg"):
+      # resize
+      try:
+        img = Image.open(filename)
+        width, height = img.size 
+        if width > 1000 or height > 1000:
+          img.thumbnail((1000, 1000), Image.LANCZOS)
+        img.convert('RGB')
+        try:
+          img.save(filename, 'JPEG')
+        except FileExistsError:
+          os.remove(filename)
+          img.save(filename, 'JPEG')
+        except OSError:
+          img.save(filename, 'PNG')
+      except:
+        pass
+
+      # rename
+      if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg") or filename.endswith('Cover.jpg'):
         old_path = os.path.join(root, filename)
         new_filename = "cover.jpg"
         new_path = os.path.join(root, new_filename)
         if not os.path.exists(new_path):
           os.rename(old_path, new_path)
           self.changes["images_renamed"] += 1
+
 
     with ThreadPoolExecutor(max_workers=5) as executor:  # Adjust max_workers as needed
       for root, dirs, files in os.walk(directory_path):

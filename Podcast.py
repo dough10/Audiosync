@@ -43,7 +43,6 @@ with open(config_path, 'r') as j:
   config = json.load(j)
 
 folder = config['podcast_folder']
-art_size = config['art_size']
 
 def is_connected():
   return is_live_url("https://google.com")
@@ -528,8 +527,8 @@ class Podcast:
         return
       print(f'Image format: {img.format}, Mode: {img.mode}, Size: {img.size}')
       width, height = img.size 
-      if width > art_size or height > art_size:
-        img.thumbnail((art_size, art_size), Image.LANCZOS)
+      if width > 1000 or height > 1000:
+        img.thumbnail((1000, 1000), Image.LANCZOS)
       img.convert('RGB')
       try:
         img.save(self.__coverJPG, 'JPEG')
