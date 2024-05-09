@@ -248,7 +248,7 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   _resetCheckMarks(buttons, menuButtons) {
     qsa('.wrapper', this.shadowRoot).forEach(async el => {
-      await sleep(5000);
+      await sleep(1000);
       await fadeOut(qs('svg', el));
       qs('#refresh', this.shadowRoot).classList.remove('spinning');
       buttons.forEach(el => el.removeAttribute('disabled'));
