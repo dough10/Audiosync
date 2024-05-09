@@ -25,7 +25,8 @@ import {
     });
 
     // menu drawer save / file icon
-    qs('#save').onClick(_ => {
+    qs('#save').onClick(async _ => {
+      await sleep(200);
       qs('audiosync-menu').close();
       const dataObj = qs('music-library').buildObject();
       if (Object.keys(dataObj).length === 0) {
@@ -38,6 +39,7 @@ import {
 
     // menu drawer refresh / update icon
     qs('#update').onClick(async _ => {
+      await sleep(200);
       qs('audiosync-menu').close();
       await qs('sync-ui').open();
       await pywebview.api.run_sync();
