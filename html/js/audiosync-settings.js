@@ -2,7 +2,7 @@ import {
   elementHeight,
   animateElement,
   svgIcon,
-  createRipple
+  sleep
 } from './helpers.js';
 
 /**
@@ -89,7 +89,8 @@ class AudioSyncSettings extends HTMLElement {
 
     const close = document.createElement('audiosync-small-button');
     svgIcon('close').then(svg => close.appendChild(svg));
-    close.onClick(e => {
+    close.onClick(async _ => {
+      await sleep(200);
       this.close();
     });
 
