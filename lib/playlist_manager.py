@@ -11,11 +11,9 @@ from lib.log import need_attention, log
 from lib.file_manager import File_manager
 from lib.new_files import list_of_new_files
 
-art_size = 500
-
-def strip_album_name(album):
-  filtered_text = [re.split(r"[\(\[\{].*?[\)\]\}]", album)[0].strip()]
-  return ''.join(filtered_text)
+# def strip_album_name(album):
+#   filtered_text = [re.split(r"[\(\[\{].*?[\)\]\}]", album)[0].strip()]
+#   return ''.join(filtered_text)
 
 def scale_image(img, file):
   """
@@ -29,8 +27,8 @@ def scale_image(img, file):
   None
   """
   width, height = img.size 
-  if width > art_size or height > art_size:
-    img.thumbnail((art_size, art_size), Image.LANCZOS)
+  if width > 1000 or height > 1000:
+    img.thumbnail((1000, 1000), Image.LANCZOS)
   img.convert('RGB')
   try:
     img.save(file, 'JPEG')
@@ -267,7 +265,7 @@ class Playlist_manager:
     except KeyError:
       title = os.path.splitext(file)[0]
 
-    return {'artist': artist.strip(), 'album': strip_album_name(album).strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+    return {'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
 
   def get_mp3_info(self, source_file, file, jpg):
     id3 = MP3.load_file(source_file)
@@ -308,7 +306,7 @@ class Playlist_manager:
       except Exception as e:
         pass
     
-    return {'artist': artist.strip(), 'album': strip_album_name(album).strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+    return {'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
   
   def create_cue_files(self, folder, window):
     """
