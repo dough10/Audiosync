@@ -73,7 +73,8 @@ class AudioSyncPodcasts extends HTMLElement {
     // wrappper for plus icon
     const addButton = document.createElement('audiosync-small-button');
     svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
-    addButton.onClick(e => {
+    addButton.onClick(async _ => {
+      await sleep(200);
       this._openAddPodcastDialog();
     });
 
@@ -197,6 +198,7 @@ class AudioSyncPodcasts extends HTMLElement {
     
     // add button clicked
     button.onClick(async e => {
+      await sleep(200);
       button.toggleAttribute('disabled');
       const loading = qs('.loading');
       loading.style.display = 'flex';
@@ -359,6 +361,7 @@ class AudioSyncPodcasts extends HTMLElement {
         yes.setAttribute('color', 'red');
         yes.toggleAttribute('noshadow');
         yes.onClick(async e => {
+          await sleep(200);
           buttons.forEach(button => button.setAttribute('disabled', 1));
           loader.style.display = 'flex';
           await fadeIn(loader);
@@ -376,6 +379,7 @@ class AudioSyncPodcasts extends HTMLElement {
         no.setAttribute('color', '#ffffff');
         no.toggleAttribute('noshadow');
         no.onClick(async e => {
+          await sleep(200);
           buttons.forEach(button => button.setAttribute('disabled', 1));
           await dialog.close();
           dialog.remove();
