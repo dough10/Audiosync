@@ -146,7 +146,7 @@ class AudioSyncButton extends HTMLElement {
     audiosync-button > div > :nth-child(2) {
       display: flex;
       align-items: center;
-      margin-right:8px;
+      margin-right:16px;
     }
     audiosync-button > div {
       display: flex;
