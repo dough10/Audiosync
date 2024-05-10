@@ -37,7 +37,7 @@ class SyncUI extends HTMLElement {
       audiosync-button > div > :nth-child(2) {
         display: flex;
         align-items: center;
-        margin-right:8px;
+        margin-right:16px;
       }
       audiosync-button > div {
         display: flex;
@@ -63,8 +63,9 @@ class SyncUI extends HTMLElement {
     this.button = document.createElement('audiosync-button');
     this.button.appendChild(buttonContents);
     this.button.toggleAttribute('disabled');
-    this.button.onClick(e => {
-      this._closeDialog(e);
+    this.button.onClick(async _ => {
+      await sleep(200); // maybe give time for ripple animation
+      this._closeDialog();
     });
     
     this.dialog = document.createElement('audiosync-dialog');
