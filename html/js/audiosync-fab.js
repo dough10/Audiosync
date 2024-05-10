@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, removeClasses, getCSSVariableValue, convertToHex, getContrastColor} from './helpers.js';
+import {qs, animateElement, createRipple, hexToRgba, removeClasses, getCSSVariableValue, convertToHex, getContrastColor} from './helpers.js';
 
 /**
  * pages
@@ -9,6 +9,7 @@ class FloatingActionButton extends HTMLElement {
   }
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
     // color higherarchy 
     // color attribute > css '--main-color' variable > white
     const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--main-color') || '#ffffff');
@@ -18,25 +19,6 @@ class FloatingActionButton extends HTMLElement {
 
     const styles = document.createElement('style');
     styles.textContent = `
-      body {
-        position: absolute;
-        top:0;
-        bottom:0;
-        left:0;
-        right:0;
-        background: var(--background-color);
-        font-family: var(--font-family);
-        font-size: 13px;
-        -webkit-tap-highlight-color: rgba(0,0,0,0);
-        user-select: none;
-        overflow-x: hidden;
-        overflow-y: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding:0;
-        margin:0;
-      }
       .fab {
         overflow: hidden;
         color: ${contrast};
@@ -55,8 +37,10 @@ class FloatingActionButton extends HTMLElement {
         width: 56px;
         -webkit-tap-highlight-color: transparent;
         box-shadow:0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4);
+        position:fixed;
         z-index: 2;
-        position:relative;
+        bottom:20px;
+        right:20px;
         transition: background-color 0.45s ease;
         transform: translate3d(0, 0, 0);
         margin:8px;
@@ -114,20 +98,28 @@ class FloatingActionButton extends HTMLElement {
         animation: ripple-animation 0.7s linear;
       }
     `;
-
+    
     this.fab = document.createElement('div');
     this.fab.classList.add('fab');
+    this.fab.style.transform = "translateY(88px)";
     this.fab.appendChild(document.createElement('slot'));
     this.fab.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
     });
-
-    this.attachShadow({mode: "open"});
+    
     [
       styles,
       this.fab
     ].forEach(el => this.shadowRoot.appendChild(el));
+  }
+  
+  async onScreen() {
+    await animateElement(this.fab, "translateY(0px)", 200);
+  }
+  
+  async offScreen() {
+    await animateElement(this.fab, "translateY(88px)", 200);
   }
 
   /**
