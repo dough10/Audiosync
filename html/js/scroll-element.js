@@ -2,7 +2,7 @@ import {
   animateElement,
   qs,
   svgIcon,
-  createRipple
+  sleep
 } from './helpers.js';
 
 /**
@@ -45,32 +45,18 @@ class ScrollElement extends HTMLElement {
       .wrapper::-webkit-scrollbar {
         width: 0; /* Hide scrollbar */
       }
-      audiosync-fab {
-        position: fixed;
-        right: 20px;
-        bottom: 20px;
-        z-index: 2;
-      }
       svg {
         width:24px;
         height:24px;
         display: flex;
       }
     `;
-    // action button animation time
-    const animateTime = 200;
-
     // scroll position memory
     let last_top = 0;
-
-    // fab positions
-    const onScreen = "translateY(0px)";
-    const offScreen = "translateY(88px)";
 
     // floating action button
     const fab = document.createElement('audiosync-fab');
     svgIcon("up").then(svg => fab.appendChild(svg));
-    fab.style.transform = offScreen;
     fab.onClick(this.animateScroll);
 
     // content body
@@ -88,19 +74,19 @@ class ScrollElement extends HTMLElement {
       // control action button
       const scrollTop = this.container.scrollTop;
       if (scrollTop < last_top) {
-        animateElement(fab, offScreen, animateTime);
+        fab.offScreen();
       } else if (scrollTop != 0) {
-        animateElement(fab, onScreen, animateTime);
+        fab.onScreen();
       } else {
-        animateElement(fab, offScreen, animateTime);
+        fab.offScreen();
       }
       last_top = scrollTop;
     };
 
     // fill container
     [
-      this.content,
-      fab
+      fab,
+      this.content
     ].forEach(el => this.container.appendChild(el));
 
     // fill shadow dom
@@ -133,6 +119,7 @@ class ScrollElement extends HTMLElement {
    */
   animateScroll() {
     return new Promise(async resolve => {
+      await sleep(200);
       const maxScrollTop = Math.max(
         this.container.scrollHeight - this.container.clientHeight,
         0
