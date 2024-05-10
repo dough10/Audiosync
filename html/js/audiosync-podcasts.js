@@ -82,6 +82,7 @@ class AudioSyncPodcasts extends HTMLElement {
     svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
     const menuButtons = [qs('#save'),qs('#update')];
+    qsa('.tab').forEach(el => menuButtons.push(el));
     refresh.id ='refresh';
     refresh.onClick(async e => {
       menuButtons.forEach(el => el.toggleAttribute('disabled'));
