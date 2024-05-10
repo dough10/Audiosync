@@ -11,6 +11,7 @@ import {
 class ScrollElement extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
     this.animateScroll = this.animateScroll.bind(this)
     const sheet = document.createElement('style');
     sheet.textContent = `
@@ -62,11 +63,14 @@ class ScrollElement extends HTMLElement {
     // scroll position memory
     let last_top = 0;
 
-    
+    // fab positions
+    const onScreen = "translateY(0px)";
+    const offScreen = "translateY(88px)";
+
     // floating action button
     const fab = document.createElement('audiosync-fab');
     svgIcon("up").then(svg => fab.appendChild(svg));
-    fab.style.transform = 'translateY(88px)';
+    fab.style.transform = offScreen;
     fab.onClick(this.animateScroll);
 
     // content body
@@ -76,7 +80,7 @@ class ScrollElement extends HTMLElement {
     // scrollable content container
     this.container = document.createElement('div');
     this.container.classList.add('wrapper');
-    this.container.onscroll = e => {
+    this.container.onscroll = _ => {
       // no action button on podcasts (animation bug)
       const currentPage = qs('audiosync-pages').getAttribute('selected');
       if (currentPage > 0 ) return;
@@ -84,23 +88,26 @@ class ScrollElement extends HTMLElement {
       // control action button
       const scrollTop = this.container.scrollTop;
       if (scrollTop < last_top) {
-        animateElement(fab, "translateY(88px)", animateTime);
+        animateElement(fab, offScreen, animateTime);
       } else if (scrollTop != 0) {
-        animateElement(fab, "translateY(0px)", animateTime);
+        animateElement(fab, onScreen, animateTime);
       } else {
-        animateElement(fab, "translateY(88px)", animateTime);
+        animateElement(fab, offScreen, animateTime);
       }
       last_top = scrollTop;
     };
+
+    // fill container
     [
       this.content,
       fab
     ].forEach(el => this.container.appendChild(el));
-    const shadow = this.attachShadow({mode: "open"});
+
+    // fill shadow dom
     [
       sheet,
       this.container
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   /**
