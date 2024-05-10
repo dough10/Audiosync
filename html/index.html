@@ -4,8 +4,273 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta http-equiv="Cache-control" content="public">
-    <style></style>
-    <link rel="stylesheet" href="app.css">
+    <style>
+      /* variables */
+      :root {
+        --header-height: 65px;
+        --switch-rgb: 35, 58, 125;
+        --main-color: rgb(var(--switch-rgb));
+        --background-color: #d6d6d6;
+        --hover-color: #7994e344;
+        --font-family: 'Roboto', 'Noto', sans-serif;
+      }
+
+      /* <html> */
+      html {
+        scroll-behavior: smooth;
+      }
+
+      /* <body> */
+      body {
+        position: absolute;
+        top: 0;
+        bottom:0;
+        left:0;
+        right:0;
+        background: var(--background-color);
+        font-family: var(--font-family);
+        font-size: 13px;
+        -webkit-tap-highlight-color: rgba(0,0,0,0);
+        user-select: none;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding:0;
+        margin:0;
+        color:#ffffff;
+      }
+
+      /* svg -.- */
+      svg {
+        width:24px;
+        height:24px;
+      }
+
+      /* butter and jam on Toast()? */
+      .toast {
+        background: #323232;
+        padding: 16px;
+        display: inline-block;
+        font-size: 14px;
+        text-align: left;
+        position: absolute;
+        border-radius: 3px;
+        bottom: 8px;
+        left: 8px;
+        color: #fff;
+        z-index: 10;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+        min-width: 200px;
+        cursor: pointer;
+        overflow: hidden;
+        transform: translate3d(0, 0, 0);
+      }
+      .toast > * {
+        pointer-events: none;
+      }
+      .toast .yellow-text {
+        color: yellow;
+      }
+
+      /* white background */
+      .card {
+        color: #333333;
+        max-width: 675px;
+        min-width: 280px;
+        padding: 0px;
+        background: #fff;
+        position: relative;
+        margin: auto;
+        border-radius: 3px;
+        margin-bottom: 8px;
+        box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+        text-align: center;
+        margin-bottom: 100px;
+      }
+
+      /* podcast update ison spin animation */
+      @keyframes spin {
+        from {
+          transform: rotate(0deg)
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .spinning {
+        animation: spin 1.5s linear infinite;
+      }
+
+      /* ripples!! */
+      @keyframes ripple-animation {
+        to {
+          transform: scale(4);
+          opacity: 0;
+        }
+      }
+      .ripple-effect {
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(51, 51, 51, 0.4);
+        animation: ripple-animation 0.7s linear;
+      }
+
+      /* page tabs */
+      .tab {
+        display: flex;
+        flex-direction: row;
+        width:50%;
+        padding: 8px;
+        text-align: center;
+        justify-content: center;
+        color: #333333;
+        cursor: pointer;
+        text-transform: uppercase;
+        border-top-left-radius: 5px;
+        border-top-right-radius: 5px;
+        background-color: var(--background-color);
+        overflow: hidden;
+        position: relative;
+        transition: background-color 0.45s ease;
+        box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.2);
+      }
+      .tab[disabled] {
+        background: rgba(113, 113, 113, 0.4);
+        color: #dbdbdb;
+        cursor: none;
+        pointer-events: none;
+      }
+      .tab[disabled]:active, .tab[disabled]:hover, .tab[disabled]:active:hover {
+        box-shadow: none;
+        background-color: rgba(0, 0, 0, 0.178)
+      }
+      .tab.selected {
+        background-color: #ffffff;
+        cursor: auto;
+        box-shadow: none;
+      }
+      .tab[disabled].selected {
+        color: grey;
+      }
+      .tab > :first-child {
+        margin-right: 16px;
+      }
+      .tab > :nth-child(2) {
+        display: flex;
+        align-items: center;
+      }
+
+      /* alert / notification */
+      .alert {
+        background: #323232;
+        padding: 16px;
+        display: flex;
+        flex-direction: row;
+        font-size: 14px;
+        text-align: left;
+        position: absolute;
+        border-radius: 3px;
+        top: 8px;
+        color: #fff;
+        z-index: 11;
+        box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
+        min-width: 200px;
+        cursor: pointer;
+        margin: 0 2em;
+        overflow: hidden;
+      }
+      .alert > * {
+        pointer-events: none;
+      }
+      .alert.hidden {
+        opacity:0;
+        transform: translateY(-120%);
+      }
+      .alert .yellow-text {
+        margin-left: 30px;
+        color: yellow;
+        min-width: 100px;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+      }
+
+      /*  */
+      .loading {
+        display: none;
+        position: absolute;
+        top:0;
+        bottom:0;
+        left:0;
+        right:0;
+        opacity:0;
+        background-color: rgba(255,255,255,0.6);
+        justify-content: center;
+        align-items: center;
+      }
+
+      /* add podcast dialog */
+      .close-wrapper {
+        position: absolute;
+        top:0;
+        right:0;
+        left:0;
+        display:flex;
+        justify-content:right;
+      }
+      .form__group {
+        position: relative;
+        padding: 15px 0 0;
+        margin-top: 10px;
+        margin-bottom: 24px;
+      }
+      .form__field {
+        font-family: inherit;
+        width: 100%;
+        border: 0;
+        border-bottom: 1px solid #787878;
+        outline: 0;
+        font-size: 16px;
+        color: #333333;
+        padding: 7px 0;
+        background: transparent;
+        transition: border-color 0.2s;
+      }
+      .form__field::placeholder {
+        color: transparent;
+      }
+      .form__field:placeholder-shown ~ .form__label {
+        font-size: 16px;
+        cursor: text;
+        top: 20px;
+      }
+      label,
+      .form__field:focus ~ .form__label {
+        position: absolute;
+        top: 0;
+        display: block;
+        transition: 0.2s;
+        font-size: 12px;
+        color: #787878;
+      }
+      .form__field:focus ~ .form__label {
+        color: var(--main-color);
+      }
+      .form__field:focus {
+        padding-bottom: 6px;
+        border-bottom: 2px solid var(--main-color);
+      }
+
+      /* delete podcast confirmation dialog */
+      .delete-notification-text {
+        font-size: 16px;
+        max-height: 18px;
+        margin-top: 24px;
+        margin-bottom: 24px;
+      }      
+    </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
