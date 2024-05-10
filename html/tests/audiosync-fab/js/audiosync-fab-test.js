@@ -15,9 +15,14 @@ data.icons.forEach(icon => {
     new Toast(`${icon.name} fab has a shadow`,1);
   });
   qs('body').appendChild(fab);
+  
   setInterval(_ => {
     fab.toggleAttribute('noshadow');
   },5000);
+
+  setInterval(_ => {
+    fab.setAttribute('color', generateRandomHexCode());
+  }, 65000);
 });
 
 
