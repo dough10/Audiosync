@@ -90,6 +90,7 @@ import {
     await qs('audiosync-podcasts').listPodcasts();
 
     // load screen animation
+    await sleep(500);
     qs('audiosync-loader').reveal();
   }
 
