@@ -109,10 +109,23 @@
         transition: background-color 0.45s ease;
         box-shadow: inset 0 -10px 10px -10px rgba(0, 0, 0, 0.2);
       }
+      .tab[disabled] {
+        background: rgba(113, 113, 113, 0.4);
+        color: #dbdbdb;
+        cursor: none;
+        pointer-events: none;
+      }
+      .tab[disabled]:active, .tab[disabled]:hover, .tab[disabled]:active:hover {
+        box-shadow: none;
+        background-color: rgba(0, 0, 0, 0.178)
+      }
       .tab.selected {
         background-color: #ffffff;
         cursor: auto;
         box-shadow: none;
+      }
+      .tab[disabled].selected {
+        color: grey;
       }
       .tab > :first-child {
         margin-right: 16px;
