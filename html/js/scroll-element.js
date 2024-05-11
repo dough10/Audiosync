@@ -119,7 +119,7 @@ class ScrollElement extends HTMLElement {
    */
   animateScroll() {
     return new Promise(async resolve => {
-      await sleep(200);
+      await sleep(100);
       const maxScrollTop = Math.max(
         this.container.scrollHeight - this.container.clientHeight,
         0
