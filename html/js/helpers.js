@@ -274,12 +274,7 @@ function animateElement(el, transform, time, opacity, delay) {
       resolve();
       return;
     }
-    var t = 0;
     const animationEnd = _ => {
-      if (t) {
-        clearTimeout(t);
-        t = 0;
-      }
       el.removeEventListener(transitionEvent, animationEnd);
       el.style.removeProperty('will-change');
       el.style.removeProperty('transition');
@@ -299,7 +294,6 @@ function animateElement(el, transform, time, opacity, delay) {
       if (opacity !== undefined) {
         el.style.opacity = opacity;
       }
-      t = setTimeout(animationEnd, time + 10);
     });
   });
 }
