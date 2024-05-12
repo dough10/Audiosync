@@ -41,6 +41,7 @@ class AudioSyncPodcasts extends HTMLElement {
         width: 100%;
         display: flex;
         justify-content: space-between;
+        align-items: center;
       }
       @keyframes spin {
         from {
@@ -86,6 +87,7 @@ class AudioSyncPodcasts extends HTMLElement {
     qsa('.tab').forEach(el => menuButtons.push(el));
     refresh.id ='refresh';
     refresh.onClick(async e => {
+      await sleep(200);
       menuButtons.forEach(el => el.toggleAttribute('disabled'));
       buttons.forEach(el => el.toggleAttribute('disabled'));
       qs('#refresh', this.shadowRoot).classList.add('spinning');
@@ -97,8 +99,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
     // podcast tab header 
     const head = document.createElement('div');
-    buttons.forEach(el => head.appendChild(el));
     head.classList.add('head');
+    buttons.forEach(el => head.appendChild(el));
     return head;
   }
 
