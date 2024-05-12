@@ -2,7 +2,6 @@ import {qs, qsa, svgIcon, generateRandomHexCode, Toast} from '../../../js/helper
 
 const data = await fetch('./../../icons.json').then(res => res.json());
 
-
 data.icons.forEach(icon => {
   const fab = document.createElement('audiosync-fab');
   fab.id = icon.name;
@@ -16,16 +15,6 @@ data.icons.forEach(icon => {
     new Toast(`${icon.name} fab has a shadow`,1);
   });
   qs('body').appendChild(fab);
-  
-  setInterval(_ => {
-    if (document.hidden) return;
-    fab.toggleAttribute('noshadow');
-  },5000);
-
-  setInterval(_ => {
-    if (document.hidden) return;
-    fab.setAttribute('color', generateRandomHexCode());
-  }, 65000);
 });
 
 // testing disabled attribute
@@ -33,34 +22,33 @@ function randomLowerThan(maxValue) {
   return Math.floor(Math.random() * maxValue);
 }
 
-let last;
-setInterval(_ =>  {
-  if (document.hidden) return;
-  const fabs = qsa('audiosync-fab');
-  const ndx = randomLowerThan(data.icons.length);
-  if (fabs[last]) {
-    fabs[last].removeAttribute('disabled');
-  }
-  fabs[ndx].toggleAttribute('disabled');
-  last = ndx;
-}, 5000);
-
 // cycle through showing / hiding each fab
 function iterateAndReset(maxValue) {
   let number = 0;
   let increment = 1;
+  let last;
   
   const fabs = qsa('audiosync-fab');
-  fabs[0].onScreen();
+  fabs[number].onScreen();
 
   async function iterate() {
     if (document.hidden) return;
 
     await fabs[number].offScreen();
 
+    const ndx = randomLowerThan(data.icons.length);
+    if (fabs[last]) {
+      fabs[last].removeAttribute('disabled');
+    }
+    fabs[ndx].toggleAttribute('disabled');
+    last = ndx;
+
+    fabs.forEach(fab => fab.toggleAttribute('noshadow'));
+
     number += increment;
     if (number >= maxValue) {
       number = 0;
+      fabs.forEach(fab => fab.setAttribute('color', generateRandomHexCode()));
     }
 
     await fabs[number].onScreen();
