@@ -17,11 +17,6 @@ data.icons.forEach(icon => {
   qs('body').appendChild(fab);
 });
 
-// testing disabled attribute
-function randomLowerThan(maxValue) {
-  return Math.floor(Math.random() * maxValue);
-}
-
 // cycle through showing / hiding each fab
 function iterateAndReset(maxValue) {
   let number = 0;
@@ -36,7 +31,7 @@ function iterateAndReset(maxValue) {
 
     await fabs[number].offScreen();
 
-    const ndx = randomLowerThan(data.icons.length);
+    const ndx = Math.floor(Math.random() * maxValue);
     if (fabs[last]) {
       fabs[last].removeAttribute('disabled');
     }
