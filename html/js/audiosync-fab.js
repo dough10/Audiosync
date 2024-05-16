@@ -116,7 +116,7 @@ class FloatingActionButton extends HTMLElement {
 
   async onScreen() {
     await animateElement(this.fab, "translateY(0px)", 200);
-    this.toggleAttribute('onScreen');
+    if (!this.hasAttribute('onscreen')) this.toggleAttribute('onScreen');
   }
   
   async offScreen() {
