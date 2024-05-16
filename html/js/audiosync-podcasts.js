@@ -42,6 +42,7 @@ class AudioSyncPodcasts extends HTMLElement {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: relative;
       }
       @keyframes spin {
         from {
@@ -60,11 +61,11 @@ class AudioSyncPodcasts extends HTMLElement {
     this.container = document.createElement('div');
     this.container.classList.add('container');
 
-    const shadow = this.attachShadow({mode: "open"});
+    this.attachShadow({mode: "open"});
     [
       sheet,
       this.container
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   /**
@@ -74,10 +75,7 @@ class AudioSyncPodcasts extends HTMLElement {
     // wrappper for plus icon
     const addButton = document.createElement('audiosync-small-button');
     svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
-    addButton.onClick(async _ => {
-      await sleep(200);
-      this._openAddPodcastDialog();
-    });
+    addButton.onClick(_ => this._openAddPodcastDialog());
 
     // refresh button
     const refresh = document.createElement('audiosync-small-button');
@@ -87,7 +85,7 @@ class AudioSyncPodcasts extends HTMLElement {
     qsa('.tab').forEach(el => menuButtons.push(el));
     refresh.id ='refresh';
     refresh.onClick(async e => {
-      await sleep(200);
+      await sleep(100);
       menuButtons.forEach(el => el.toggleAttribute('disabled'));
       buttons.forEach(el => el.toggleAttribute('disabled'));
       qs('#refresh', this.shadowRoot).classList.add('spinning');
@@ -110,7 +108,7 @@ class AudioSyncPodcasts extends HTMLElement {
   async _openAddPodcastDialog() {
     const addUI = await this._addPodcastUI();
     qs('body').appendChild(addUI);
-    await sleep(20);
+    await sleep(100);
     addUI.open();
   }
 
