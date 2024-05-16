@@ -1,9 +1,4 @@
-import {
-  elementHeight,
-  animateElement,
-  svgIcon,
-  sleep
-} from './helpers.js';
+import {elementHeight, animateElement, svgIcon, sleep} from './helpers.js';
 
 /**
  * application settings drawer
@@ -11,6 +6,7 @@ import {
 class AudioSyncSettings extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
     this.state = false;
     this.open = this.open.bind(this)
     this.close = this.close.bind(this)
@@ -120,11 +116,10 @@ class AudioSyncSettings extends HTMLElement {
       wrapper
     ].forEach(el => this.drawer.appendChild(el));
 
-    const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
       this.drawer
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
 
     window.addEventListener('resize', _ => {
       const opened = Number(this.getAttribute('opened'));
