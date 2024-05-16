@@ -114,11 +114,17 @@ class FloatingActionButton extends HTMLElement {
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
+  /**
+   * animate action button visable on screen
+   */
   async onScreen() {
     await animateElement(this.fab, "translateY(0px)", 200);
     if (!this.hasAttribute('onscreen')) this.toggleAttribute('onScreen');
   }
   
+  /**
+   * animate action button off screen
+   */
   async offScreen() {
     await animateElement(this.fab, "translateY(88px)", 200);
     this.removeAttribute('onScreen');
