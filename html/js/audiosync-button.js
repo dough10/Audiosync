@@ -118,7 +118,7 @@ class AudioSyncButton extends HTMLElement {
       createRipple(e) 
     });
     // css hax
-    const styles = qs('style').textContent.trim();
+    const styles = qs('style').textContent.replace(/\s+/g, ' ').trim();
     // fix to correct spacing for nested icon / text buttons
     const buttonFix = `    
     audiosync-button > div > :first-child {
@@ -132,7 +132,7 @@ class AudioSyncButton extends HTMLElement {
     audiosync-button > div {
       display: flex;
       flex-direction: row;
-    }`;
+    }`.replace(/\s+/g, ' ');
     if (styles.includes(buttonFix)) return;
     qs('style').textContent = styles + buttonFix;
   }
@@ -161,7 +161,7 @@ class AudioSyncButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).trim();
+      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).replace(/\s+/g, ' ').trim();
       
       // background-color in hex format
       const color = convertToHex(newVal);
@@ -180,7 +180,7 @@ class AudioSyncButton extends HTMLElement {
         border-radius: 50%; 
         background: ${hexToRgba(contrast)}; 
         animation: ripple-animation 0.7s linear;
-      }`;
+      }`.replace(/\s+/g, ' ');
       
       // update styles
       qs('style', this.shadowRoot).textContent = currentStyle + newClasses;         
