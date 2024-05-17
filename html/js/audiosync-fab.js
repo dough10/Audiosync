@@ -1,4 +1,4 @@
-import {qs, animateElement, createRipple, hexToRgba, removeClasses, getCSSVariableValue, convertToHex, getContrastColor} from './helpers.js';
+import {qs, animateElement, createRipple, hexToRgba, getCSSVariableValue, convertToHex, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
 
 /**
  * pages
@@ -149,7 +149,7 @@ class FloatingActionButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).trim();
+      const currentStyle = parseCSS(qs('style', this.shadowRoot).textContent);
       
       // background-color in hex format
       const color = convertToHex(newVal);
@@ -158,20 +158,25 @@ class FloatingActionButton extends HTMLElement {
       const contrast = getContrastColor(color);
       
       // create the new style 
-      const newClasses = `
-      .new-color {
-        background-color:${color}; 
-        color:${contrast};
-      }
-      .ripple-effect {
-        position: absolute; 
-        border-radius: 50%; 
-        background: ${hexToRgba(contrast)}; 
-        animation: ripple-animation 0.7s linear;
-      }`;
+      currentStyle['.new-color'] = {
+        'background-color': color, 
+        'color': contrast
+      };
+      currentStyle['.ripple-effect'] = {
+        'position': 'absolute', 
+        'border-radius': '50%;',
+        'background': hexToRgba(contrast),
+        'animation': 'ripple-animation 0.7s linear'
+      };
+      currentStyle['@keyframes ripple-animation'] = {
+        'to': {
+          'transform': 'scale(4)',
+          'opacity': 0
+        }
+      };
       
       // update styles
-      qs('style', this.shadowRoot).textContent = currentStyle + newClasses;         
+      qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
       
       // set the new class
       this.fab.classList.add('new-color');
