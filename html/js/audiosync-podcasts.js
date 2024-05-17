@@ -33,7 +33,7 @@ class AudioSyncPodcasts extends HTMLElement {
         padding: 8px;
         font-size: 14px;
         font-weight: bold;
-        min-height: 40px;
+        min-height: 44px;
       }
       .head {
         width: 100%;
