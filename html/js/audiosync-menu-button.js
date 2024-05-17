@@ -115,10 +115,10 @@ class MenuButton extends HTMLElement {
 
     // create / update styles
     css[`#${this.id} > svg`] = {
-      'color': `${color}`
+      'color': color
     };
     css[`#${this.id}[disabled] > svg`] = {
-      'color': `${this.disabledColor}`
+      'color': this.disabledColor
     };
     
     // apply new styles
@@ -132,7 +132,7 @@ class MenuButton extends HTMLElement {
     shadowCss['.ripple-effect'] = {
       'position': 'absolute',
       'border-radius': '50%',
-      'background': `${hexToRgba(color)}`,
+      'background': hexToRgba(color),
       'animation': 'ripple-animation 0.7s linear'
     };
 
