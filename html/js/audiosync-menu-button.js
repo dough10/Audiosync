@@ -96,11 +96,15 @@ class MenuButton extends HTMLElement {
    */
   iconColor(color) {
     if (!this.id) return;
+
+    // <body> change the icon color
     const colorID = new RegExp(`#${this.id} > svg\\s*\\{[^}]*\\}`);
     const disabledColorID = new RegExp(`#${this.id}\\[disabled\\] > svg\\s*\\{[^}]*\\}`);
 
-    // <body> icon color
+    // capture styles
     const styles = qs('style').textContent.replace(/\s+/g, ' ').replace(colorID, '').replace(disabledColorID, '').trim();
+    
+    // create new styles 
     const css = `
     #${this.id} > svg {
       color: ${color};
@@ -109,13 +113,16 @@ class MenuButton extends HTMLElement {
       color: ${this.disabledColor};
     }`.replace(/\s+/g, ' ');
     
+    // apply new styles
     qs('style').textContent = styles + css;
 
-    // <custom-element> click ripple color
+    // <custom-element> change the click ripple color
     const rippleColor = new RegExp(`.ripple-effect\\s*\\{[^}]*\\}`);
 
+    //  capture styles
     const elStyles = qs('style', this.shadowRoot).textContent.replace(/\s+/g, ' ').trim();
 
+    // create new styles
     const ripple = `
     .ripple-effect {
       position: absolute;
@@ -124,6 +131,7 @@ class MenuButton extends HTMLElement {
       animation: ripple-animation 0.7s linear;
     }`.replace(/\s+/g, ' ');
 
+    //  apply new styles
     qs('style', this.shadowRoot).textContent = elStyles.replace(rippleColor, '') + ripple;
   }
 
