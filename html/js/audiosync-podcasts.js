@@ -17,8 +17,6 @@ class AudioSyncPodcasts extends HTMLElement {
       svg {
         width:24px;
         height:24px;
-        display: flex;
-        pointer-events: none;
       }
       .container {
         padding: 8px;
@@ -46,7 +44,7 @@ class AudioSyncPodcasts extends HTMLElement {
       }
       @keyframes spin {
         from {
-          transform: rotate(0deg)
+          transform: rotate(0deg);
         }
         to {
           transform: rotate(360deg);
