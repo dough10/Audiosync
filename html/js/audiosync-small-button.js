@@ -68,24 +68,15 @@ class SmallButton extends HTMLElement {
     //  capture styles
     const styles = parseCSS(qs('style', this.shadowRoot).textContent);
 
-    // rgba color for ripple
-    const rippleColor = hexToRgba(color);
-
-    // create new css styles
+    // create / update css styles
     styles['.new-color'] = {
       'color': convertToHex(color)
     };
     styles['.ripple-effect'] = {
       'position': 'absolute',
       'border-radius': '50%',
-      'background': rippleColor,
+      'background': hexToRgba(color),
       'animation': 'ripple-animation 0.7s linear'
-    };
-    styles['@keyframes ripple-animation'] = {
-      'to': {
-        'transform': 'scale(4)',
-        'opacity': 0
-      }
     };
 
     // apply styles

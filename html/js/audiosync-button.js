@@ -93,7 +93,8 @@ class AudioSyncButton extends HTMLElement {
       border-radius: 50%;
       background: ${hexToRgba(contrast)};
       animation: ripple-animation 0.7s linear;
-    }`;
+    }
+    `;
 
     const shadow = this.attachShadow({mode: "open"});
     [
@@ -117,9 +118,23 @@ class AudioSyncButton extends HTMLElement {
       if (this.button.hasAttribute('disabled')) return;
       createRipple(e) 
     });
-    // css hax
-    const styles = parseCSS(qs('style').textContent);
-    // fix to correct spacing for nested icon / text buttons  
+    console.log(this.parentNode.parentNode)
+
+    /**
+     * attach styles for the button's nested elements
+     */
+
+    // defaults to 'document'
+    let styleNode = qs('style');
+    // for <sync-ui> 
+    if (qs('style', this.parentNode.parentNode)) {
+      styleNode = qs('style', this.parentNode.parentNode);
+    }
+
+    // capture styles
+    const styles = parseCSS(styleNode.textContent);
+
+    // css properties
     styles['audiosync-button > div > :first-child'] = {
       'margin-right': '16px'
     };
@@ -133,24 +148,8 @@ class AudioSyncButton extends HTMLElement {
       'flex-direction': 'row'
     };
     
-    // i need to fix the parseCSS() function to correctly parse these nested styles
-    styles['@keyframes ripple-animation'] = {
-      'to': {
-        'transform': 'scale(4)',
-        'opacity': 0
-      }
-    };
-    styles['@keyframes spin'] = {
-      'from': {
-        'transform': 'rotate(0deg)'
-      },
-      'to': {
-        'transform': 'rotate(360deg)'
-      }
-    }
-    // artifact of bad nested parse
-    delete styles['to']; 
-    qs('style').textContent = objectToCSS(styles);
+    //  apply new css
+    styleNode.textContent = objectToCSS(styles);
   }
 
   /**
@@ -195,12 +194,6 @@ class AudioSyncButton extends HTMLElement {
         'border-radius': '50%',
         'background': hexToRgba(contrast),
         'animation': 'ripple-animation 0.7s linear'
-      };
-      currentStyle['@keyframes ripple-animation'] = {
-        'to': {
-          'transform': 'scale(4)',
-          'opacity': 0
-        }
       };
       
       // update styles

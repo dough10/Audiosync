@@ -87,7 +87,7 @@ class MenuButton extends HTMLElement {
     // return if properties exist
     if ('audiosync-menu-button div' in css) return;
 
-    css['audiosync-menu-button div'] = {
+    css['audiosync-menu-button > div'] = {
       'width': '100%',
       'display': 'flex',
       'justify-content': 'center',
@@ -112,7 +112,7 @@ class MenuButton extends HTMLElement {
     // <body> change the icon color
     // parse string to object
     const css = parseCSS(qs('style').textContent);
-
+    
     // create / update styles
     css[`#${this.id} > svg`] = {
       'color': color
@@ -123,7 +123,7 @@ class MenuButton extends HTMLElement {
     
     // apply new styles
     qs('style').textContent = objectToCSS(css);
-
+    
     // <custom-element> change the click ripple color
     //  capture styles
     const shadowCss = parseCSS(qs('style', this.shadowRoot).textContent);
@@ -134,14 +134,6 @@ class MenuButton extends HTMLElement {
       'border-radius': '50%',
       'background': hexToRgba(color),
       'animation': 'ripple-animation 0.7s linear'
-    };
-
-    // couldn't parse keyframes correctly so i have to correct here
-    shadowCss['@keyframes ripple-animation'] = {
-      'to': {
-        'transform': 'scale(4)',
-        'opacity': 0
-      }
     };
 
     // apply new styles. 

@@ -168,12 +168,6 @@ class FloatingActionButton extends HTMLElement {
         'background': hexToRgba(contrast),
         'animation': 'ripple-animation 0.7s linear'
       };
-      currentStyle['@keyframes ripple-animation'] = {
-        'to': {
-          'transform': 'scale(4)',
-          'opacity': 0
-        }
-      };
       
       // update styles
       qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
