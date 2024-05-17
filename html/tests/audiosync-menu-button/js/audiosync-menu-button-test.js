@@ -28,7 +28,7 @@ setInterval(_ => {
   const ndx = Math.floor(Math.random() * data.icons.length);
 
   buttons[ndx].toggleAttribute('disabled');
-  if (last !== undefined) {
+  if (buttons[last]) {
     buttons[last].removeAttribute('disabled');
   }
   last = ndx;
