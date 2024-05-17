@@ -690,6 +690,51 @@ function generateRandomString(length = 8) {
 }
 
 /**
+ * parse keyframe string into an object
+ * 
+ * @param {String} keyframesString 
+ * 
+ * @returns {Object}
+ */
+function parseKeyframes(keyframesString) {
+  const keyframes = {};
+  
+  // Remove unnecessary whitespace
+  keyframesString = keyframesString.trim();
+  
+  // Split the string by line breaks
+  const lines = keyframesString.split('\n');
+  
+  // Remove the last line (containing "}")
+  lines.pop();
+  
+  let currentKeyframe = null;
+  
+  // Iterate over each line
+  for (const line of lines) {
+      // Check if the line contains a keyframe name
+      if (line.includes('{')) {
+          // Extract the keyframe name
+          const keyframeName = line.trim().replace('{', '').trim();
+          // Initialize an object for this keyframe
+          keyframes[keyframeName] = {};
+          // Set currentKeyframe for the following properties
+          currentKeyframe = keyframeName;
+      } else if (line.includes('}')) {
+          // If line contains '}', reset currentKeyframe to null
+          currentKeyframe = null;
+      } else {
+          // Split the property by ':'
+          const [key, value] = line.split(':').map(str => str.trim());
+          // Add the property to the appropriate keyframe object
+          keyframes[currentKeyframe][key] = value.replace(';','');
+      }
+  }
+  
+  return keyframes;
+}
+
+/**
  * parse css into an object
  * 
  * @param {String} cssString css string to be parsed
@@ -698,56 +743,56 @@ function generateRandomString(length = 8) {
  */
 function parseCSS(cssString) {
   const cssObject = {};
-  const rules = cssString.match(/[^}]+{[^}]*}/g);
+  let currentSelector = null;
+  let braceCount = 0;
+  let buffer = '';
 
-  if (rules) {
-    rules.forEach(rule => {
-      const [selector, properties] = rule.split(/{/);
-      const cleanSelector = selector.trim();
+  for (let i = 0; i < cssString.length; i++) {
+    const char = cssString[i];
+    buffer += char;
 
-      if (cleanSelector.startsWith('@keyframes')) {
-        const keyframesName = cleanSelector;
-        const keyframesObject = {};
-        const keyframesRules = properties.match(/[^}]+{[^}]*}/g);
-
-        if (keyframesRules) {
-          keyframesRules.forEach(keyframeRule => {
-            const [keyframeSelector, keyframeProperties] = keyframeRule.split(/{/);
-            const cleanKeyframeSelector = keyframeSelector.trim();
-            const keyframePropertiesObject = keyframeProperties
-              .replace('}', '')
-              .trim()
-              .split(';')
-              .filter(prop => prop.trim())
-              .reduce((acc, prop) => {
-                const [key, value] = prop.split(':');
-                if (value !== undefined) acc[key.trim()] = value.trim();
-                return acc;
-              }, {});
-
-            keyframesObject[cleanKeyframeSelector] = keyframePropertiesObject;
-          });
-        }
-
-        cssObject[keyframesName] = keyframesObject;
-      } else {
-        const propertiesObject = properties
-          .replace('}', '')
-          .trim()
-          .split(';')
-          .filter(prop => prop.trim())
-          .reduce((acc, prop) => {
-            const [key, value] = prop.split(':');
-            if (value !== undefined) acc[key.trim()] = value.trim();
-            return acc;
-          }, {});
-
-        cssObject[cleanSelector] = propertiesObject;
+    if (char === '{') {
+      braceCount++;
+      if (braceCount === 1) {
+        currentSelector = buffer.trim().slice(0, -1).trim(); // Remove the trailing '{'
+        buffer = '';
       }
-    });
+    } else if (char === '}') {
+      braceCount--;
+      if (braceCount === 0) {
+        if (currentSelector.startsWith('@keyframes')) {
+          cssObject[currentSelector] = parseKeyframes(buffer);
+        } else {
+          cssObject[currentSelector] = parseProperties(buffer);
+        }
+        currentSelector = null;
+        buffer = '';
+      }
+    }
   }
 
   return cssObject;
+}
+
+/**
+ * parse string of css properties into an Object
+ * 
+ * @param {String} propertiesString 
+ * 
+ * @returns {Object}
+ */
+function parseProperties(propertiesString) {
+  const propertiesObject = {};
+  propertiesString = propertiesString.replace('}','');
+  propertiesString
+    .split(';')
+    .filter(prop => prop.trim())
+    .forEach(prop => {
+      const [key, value] = prop.split(':').map(str => str.trim());
+      propertiesObject[key] = value;
+    });
+
+  return propertiesObject;
 }
 
 /**
