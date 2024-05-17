@@ -9,7 +9,7 @@ data.icons.forEach(async (icon, i) => {
   buttonGuts.textContent = icon.name
 
   const button = document.createElement('audiosync-menu-button');
-  button.id = icon.name;
+  // button.id = icon.name;
   button.iconColor(color);
   button.onClick(_ => {
     new Toast(`${icon.name} menu button clicked`,1);
@@ -36,7 +36,5 @@ setInterval(_ => {
 }, 5000)
 
 setInterval(_ => {
-  const buttons = qsa('audiosync-menu-button');
-  buttons.forEach(button => button.iconColor(generateRandomHexCode()));
-
+  qsa('audiosync-menu-button').forEach(button => button.iconColor(generateRandomHexCode()));
 }, 15000)
