@@ -30,18 +30,6 @@ class SyncUI extends HTMLElement {
       svg {
         height: 24px;
         width: 24px;
-      }
-      audiosync-button > div > :first-child {
-        margin-right: 16px;
-      }
-      audiosync-button > div > :nth-child(2) {
-        display: flex;
-        align-items: center;
-        margin-right:16px;
-      }
-      audiosync-button > div {
-        display: flex;
-        flex-direction: row;
       }`;
 
     this._closeDialog = this._closeDialog.bind(this);
