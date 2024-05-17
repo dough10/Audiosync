@@ -704,6 +704,116 @@ function generateRandomString(length = 8) {
   return result;
 }
 
+/**
+ * parse css into an object
+ * 
+ * @param {String} cssString css string to be parsed
+ * 
+ * @returns {Object}
+ */
+function parseCSS(cssString) {
+  const cssObject = {};
+  const rules = cssString.match(/[^}]+{[^}]*}/g);
+
+  if (rules) {
+    rules.forEach(rule => {
+      const [selector, properties] = rule.split(/{/);
+      const cleanSelector = selector.trim();
+
+      if (cleanSelector.startsWith('@keyframes')) {
+        const keyframesName = cleanSelector;
+        const keyframesObject = {};
+        const keyframesRules = properties.match(/[^}]+{[^}]*}/g);
+
+        if (keyframesRules) {
+          keyframesRules.forEach(keyframeRule => {
+            const [keyframeSelector, keyframeProperties] = keyframeRule.split(/{/);
+            const cleanKeyframeSelector = keyframeSelector.trim();
+            const keyframePropertiesObject = keyframeProperties
+              .replace('}', '')
+              .trim()
+              .split(';')
+              .filter(prop => prop.trim())
+              .reduce((acc, prop) => {
+                const [key, value] = prop.split(':');
+                if (value !== undefined) acc[key.trim()] = value.trim();
+                return acc;
+              }, {});
+
+            keyframesObject[cleanKeyframeSelector] = keyframePropertiesObject;
+          });
+        }
+
+        cssObject[keyframesName] = keyframesObject;
+      } else {
+        const propertiesObject = properties
+          .replace('}', '')
+          .trim()
+          .split(';')
+          .filter(prop => prop.trim())
+          .reduce((acc, prop) => {
+            const [key, value] = prop.split(':');
+            if (value !== undefined) acc[key.trim()] = value.trim();
+            return acc;
+          }, {});
+
+        cssObject[cleanSelector] = propertiesObject;
+      }
+    });
+  }
+
+  return cssObject;
+}
+
+/**
+ * smash an object into a string of css
+ * 
+ * @param {Object} cssObject object to be stringified
+ * 
+ * @returns {String}
+ */
+function objectToCSS(cssObject) {
+  let cssString = '';
+
+  for (const selector in cssObject) {
+    if (cssObject.hasOwnProperty(selector)) {
+      if (selector.startsWith('@keyframes')) {
+        cssString += `${selector} {\n`;
+        const keyframes = cssObject[selector];
+
+        for (const key in keyframes) {
+          if (keyframes.hasOwnProperty(key)) {
+            cssString += `  ${key} {\n`;
+            const properties = keyframes[key];
+
+            for (const property in properties) {
+              if (properties.hasOwnProperty(property)) {
+                cssString += `    ${property}: ${properties[property]};\n`;
+              }
+            }
+
+            cssString += `  }\n`;
+          }
+        }
+
+        cssString += `}\n`;
+      } else {
+        cssString += `${selector} {\n`;
+        const properties = cssObject[selector];
+
+        for (const property in properties) {
+          if (properties.hasOwnProperty(property)) {
+            cssString += `  ${property}: ${properties[property]};\n`;
+          }
+        }
+
+        cssString += `}\n`;
+      }
+    }
+  }
+
+  return cssString.trim();
+}
 
 export {
   Timer,
@@ -727,5 +837,7 @@ export {
   getCSSVariableValue,
   getContrastColor,
   removeClasses,
-  generateRandomString
+  generateRandomString,
+  parseCSS,
+  objectToCSS
 }
