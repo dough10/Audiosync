@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, convertToHex} from './helpers.js';
+import {qs, createRipple, hexToRgba, convertToHex, parseCSS, objectToCSS} from './helpers.js';
 
 class SmallButton extends HTMLElement {
   static get observedAttributes() {
@@ -19,7 +19,7 @@ class SmallButton extends HTMLElement {
       transform: translate3d(0, 0, 0);
     }
     .small-button[disabled] {
-      color:grey;
+      color:var(--disabled-color);
       cursor: default;
     }
     .small-button > * {
@@ -60,46 +60,36 @@ class SmallButton extends HTMLElement {
   }
 
   /**
-   * find and remove .new-color and .ripple-effect css classes
-   * 
-   * @param {Regex} regex
-   * @param {String} cssString
-   * 
-   * @returns {String} css without the class if found by given regex (not a great function)
-   */
-  _removeClasses(cssString) {
-    // Define a regular expression to match the entire block containing .new-color class and .ripple-effect class with their properties
-    var regex = /\.new-color\s*{[^}]*}|\.ripple-effect\s*{[^}]*}/g;
-    // Use replace method with the regular expression to remove the entire block
-    return cssString.replace(regex, '');
-  }
-
-  /**
    * set the color of the icon and ripple animation
    * 
    * @param {String} color 
    */
   async color(color) {
     //  capture styles
-    const styles = this._removeClasses(qs('style', this.shadowRoot).textContent).trim();
+    const styles = parseCSS(qs('style', this.shadowRoot).textContent);
 
     // rgba color for ripple
     const rippleColor = hexToRgba(color);
 
     // create new css styles
-    const css = `
-    .new-color {
-      color: ${convertToHex(color)};
-    } 
-    .ripple-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: ${rippleColor};
-      animation: ripple-animation 0.7s linear;
-    }`;
+    styles['.new-color'] = {
+      'color': convertToHex(color)
+    };
+    styles['.ripple-effect'] = {
+      'position': 'absolute',
+      'border-radius': '50%',
+      'background': rippleColor,
+      'animation': 'ripple-animation 0.7s linear'
+    };
+    styles['@keyframes ripple-animation'] = {
+      'to': {
+        'transform': 'scale(4)',
+        'opacity': 0
+      }
+    };
 
     // apply styles
-    qs('style', this.shadowRoot).textContent = styles + css;
+    qs('style', this.shadowRoot).textContent = objectToCSS(styles);
     this.button.classList.add('new-color');
   }
 
