@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, removeClasses, convertToHex, getCSSVariableValue, getContrastColor} from './helpers.js';
+import {qs, createRipple, hexToRgba, convertToHex, getCSSVariableValue, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
 
 class AudioSyncButton extends HTMLElement {
   static get observedAttributes() {
@@ -118,23 +118,39 @@ class AudioSyncButton extends HTMLElement {
       createRipple(e) 
     });
     // css hax
-    const styles = qs('style').textContent.replace(/\s+/g, ' ').trim();
-    // fix to correct spacing for nested icon / text buttons
-    const buttonFix = `    
-    audiosync-button > div > :first-child {
-      margin-right: 16px;
+    const styles = parseCSS(qs('style').textContent);
+    // fix to correct spacing for nested icon / text buttons  
+    styles['audiosync-button > div > :first-child'] = {
+      'margin-right': '16px'
+    };
+    styles['audiosync-button > div > :nth-child(2)'] = {
+      'display': 'flex',
+      'align-items': 'center',
+      'margin-right':'16px'
+    };
+    styles['audiosync-button > div'] = {
+      'display': 'flex',
+      'flex-direction': 'row'
+    };
+    
+    // i need to fix the parseCSS() function to correctly parse these nested styles
+    styles['@keyframes ripple-animation'] = {
+      'to': {
+        'transform': 'scale(4)',
+        'opacity': 0
+      }
+    };
+    styles['@keyframes spin'] = {
+      'from': {
+        'transform': 'rotate(0deg)'
+      },
+      'to': {
+        'transform': 'rotate(360deg)'
+      }
     }
-    audiosync-button > div > :nth-child(2) {
-      display: flex;
-      align-items: center;
-      margin-right:16px;
-    }
-    audiosync-button > div {
-      display: flex;
-      flex-direction: row;
-    }`.replace(/\s+/g, ' ');
-    if (styles.includes(buttonFix)) return;
-    qs('style').textContent = styles + buttonFix;
+    // artifact of bad nested parse
+    delete styles['to']; 
+    qs('style').textContent = objectToCSS(styles);
   }
 
   /**
@@ -161,7 +177,7 @@ class AudioSyncButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = removeClasses(qs('style', this.shadowRoot).textContent).replace(/\s+/g, ' ').trim();
+      const currentStyle = parseCSS(qs('style', this.shadowRoot).textContent);
       
       // background-color in hex format
       const color = convertToHex(newVal);
@@ -170,20 +186,25 @@ class AudioSyncButton extends HTMLElement {
       const contrast = getContrastColor(color);
       
       // create the new style 
-      const newClasses = `
-      .new-color {
-        background-color:${color}; 
-        color:${contrast};
-      }
-      .ripple-effect {
-        position: absolute; 
-        border-radius: 50%; 
-        background: ${hexToRgba(contrast)}; 
-        animation: ripple-animation 0.7s linear;
-      }`.replace(/\s+/g, ' ');
+      currentStyle['.new-color'] = {
+        'background-color': color,
+        'color': contrast
+      };
+      currentStyle['.ripple-effect'] = {
+        'position': 'absolute',
+        'border-radius': '50%',
+        'background': hexToRgba(contrast),
+        'animation': 'ripple-animation 0.7s linear'
+      };
+      currentStyle['@keyframes ripple-animation'] = {
+        'to': {
+          'transform': 'scale(4)',
+          'opacity': 0
+        }
+      };
       
       // update styles
-      qs('style', this.shadowRoot).textContent = currentStyle + newClasses;         
+      qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
       
       // set the new class
       this.button.classList.add('new-color');
