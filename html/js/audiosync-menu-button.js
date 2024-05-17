@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba} from './helpers.js';
+import {qs, createRipple, hexToRgba, generateRandomString} from './helpers.js';
 
 
 class MenuButton extends HTMLElement {
@@ -74,6 +74,8 @@ class MenuButton extends HTMLElement {
 
   /**
    * element connected to DOM
+   * 
+   * modifys document css to fix style nested in the custom element
    */
   connectedCallback() {
     const styles = qs('style').textContent.replace(/\s+/g, ' ').trim();
@@ -91,11 +93,14 @@ class MenuButton extends HTMLElement {
 
   /**
    * set the color of the button icon
+   * modifys styles for document and shadowRoot to fix ripple animation and icon color
    * 
    * @param {String} color 
    */
   iconColor(color) {
-    if (!this.id) return;
+    if (!this.id) {
+      this.id = generateRandomString();
+    }
 
     // <body> change the icon color
     const colorID = new RegExp(`#${this.id} > svg\\s*\\{[^}]*\\}`);
