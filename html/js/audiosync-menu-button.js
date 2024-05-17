@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, generateRandomString} from './helpers.js';
+import {qs, createRipple, hexToRgba, generateRandomString, getCSSVariableValue} from './helpers.js';
 
 
 class MenuButton extends HTMLElement {
@@ -8,7 +8,7 @@ class MenuButton extends HTMLElement {
   constructor() {
     super();
 
-    this.disabledColor = '#5f5e5e';
+    this.disabledColor = getCSSVariableValue('--disabled-color');
 
     this.attachShadow({mode: "open"});
     const style = document.createElement('style');
