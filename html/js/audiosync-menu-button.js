@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, generateRandomString, getCSSVariableValue} from './helpers.js';
+import {qs, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS} from './helpers.js';
 
 
 class MenuButton extends HTMLElement {
@@ -78,17 +78,24 @@ class MenuButton extends HTMLElement {
    * modifys document css to fix style nested in the custom element
    */
   connectedCallback() {
-    const styles = qs('style').textContent.replace(/\s+/g, ' ').trim();
-    const buttonFix = `
-    audiosync-menu-button div {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      text-transform: uppercase;
-    }`.replace(/\s+/g, ' ');
-    if (styles.includes(buttonFix)) return;
-    qs('style').textContent = styles + buttonFix;
+    // capture document styles
+    const styles = qs('style').textContent;
+
+    // convert css string to an object
+    const css = parseCSS(styles);
+
+    // return if properties exist
+    if ('audiosync-menu-button div' in css) return;
+
+    css['audiosync-menu-button div'] = {
+      'width': '100%',
+      'display': 'flex',
+      'justify-content': 'center',
+      'align-items': 'center',
+      'text-transform': 'uppercase'
+    }
+
+    qs('style').textContent = objectToCSS(css);
   }
 
   /**
@@ -103,41 +110,42 @@ class MenuButton extends HTMLElement {
     }
 
     // <body> change the icon color
-    const colorID = new RegExp(`#${this.id} > svg\\s*\\{[^}]*\\}`);
-    const disabledColorID = new RegExp(`#${this.id}\\[disabled\\] > svg\\s*\\{[^}]*\\}`);
+    // parse string to object
+    const css = parseCSS(qs('style').textContent);
 
-    // capture styles
-    const styles = qs('style').textContent.replace(/\s+/g, ' ').replace(colorID, '').replace(disabledColorID, '').trim();
-    
-    // create new styles 
-    const css = `
-    #${this.id} > svg {
-      color: ${color};
-    }
-    #${this.id}[disabled] > svg {
-      color: ${this.disabledColor};
-    }`.replace(/\s+/g, ' ');
+    // create / update styles
+    css[`#${this.id} > svg`] = {
+      'color': `${color}`
+    };
+    css[`#${this.id}[disabled] > svg`] = {
+      'color': `${this.disabledColor}`
+    };
     
     // apply new styles
-    qs('style').textContent = styles + css;
+    qs('style').textContent = objectToCSS(css);
 
     // <custom-element> change the click ripple color
-    const rippleColor = new RegExp(`.ripple-effect\\s*\\{[^}]*\\}`);
-
     //  capture styles
-    const elStyles = qs('style', this.shadowRoot).textContent.replace(/\s+/g, ' ').trim();
+    const shadowCss = parseCSS(qs('style', this.shadowRoot).textContent);
 
-    // create new styles
-    const ripple = `
-    .ripple-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: ${hexToRgba(color)};
-      animation: ripple-animation 0.7s linear;
-    }`.replace(/\s+/g, ' ');
+    // create / update styles
+    shadowCss['.ripple-effect'] = {
+      'position': 'absolute',
+      'border-radius': '50%',
+      'background': `${hexToRgba(color)}`,
+      'animation': 'ripple-animation 0.7s linear'
+    };
 
-    //  apply new styles
-    qs('style', this.shadowRoot).textContent = elStyles.replace(rippleColor, '') + ripple;
+    // couldn't parse keyframes correctly so i have to correct here
+    shadowCss['@keyframes ripple-animation'] = {
+      'to': {
+        'transform': 'scale(4)',
+        'opacity': 0
+      }
+    };
+
+    // apply new styles. 
+    qs('style', this.shadowRoot).textContent = objectToCSS(shadowCss);
   }
 
   /**
