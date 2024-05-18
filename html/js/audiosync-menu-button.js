@@ -84,9 +84,6 @@ class MenuButton extends HTMLElement {
     // convert css string to an object
     const css = parseCSS(styles);
 
-    // return if properties exist
-    if ('audiosync-menu-button div' in css) return;
-
     css['audiosync-menu-button > div'] = {
       'width': '100%',
       'display': 'flex',
