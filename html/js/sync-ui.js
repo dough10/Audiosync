@@ -1,4 +1,4 @@
-import {qs, Toast, sleep, fadeIn, fillButton} from './helpers.js'
+import {qs, Toast, sleep, fadeIn, fillButton, objectToCSS} from './helpers.js'
 
 /**
  * sync ui 
@@ -7,30 +7,33 @@ class SyncUI extends HTMLElement {
   constructor() {
     super();
 
+    const cssObj = {
+      ".console-output": {
+        "height": "150px",
+        "font-size": "15px",
+        "display": "flex",
+        "flex-direction": "column",
+        "justify-content": "flex-end",
+        "margin-top": "8px",
+        "margin-bottom": "8px"
+      },
+      ".console-output div": {
+        "margin-bottom": "4px"
+      },
+      ".summary": {
+        "margin-top": "16px",
+        "margin-bottom": "24px",
+        "height": "50px",
+        "font-size": "16px"
+      },
+      "svg": {
+        "height": "24px",
+        "width": "24px"
+      }
+    };
+
     const sheet = document.createElement('style');
-    sheet.textContent = `
-      .console-output {
-        height: 150px;
-        font-size: 15px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
-        margin-top: 8px;
-        margin-bottom: 8px;
-      }
-      .console-output div {
-        margin-bottom: 4px;
-      }
-      .summary {
-        margin-top:16px;
-        margin-bottom:24px;
-        height: 50px;
-        font-size: 16px;
-      }
-      svg {
-        height: 24px;
-        width: 24px;
-      }`;
+    sheet.textContent = objectToCSS(cssObj);
 
     this._closeDialog = this._closeDialog.bind(this);
 

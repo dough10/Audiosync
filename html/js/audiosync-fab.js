@@ -17,87 +17,89 @@ class FloatingActionButton extends HTMLElement {
     // contrasting text color 
     const contrast = getContrastColor(color);
 
-    const styles = document.createElement('style');
-    styles.textContent = `
-      .fab {
-        overflow: hidden;
-        color: ${contrast};
-        background: ${color};
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        border-radius: 50%;
-        box-sizing: border-box;
-        cursor: pointer;
-        height: 56px;
-        min-width: 0;
-        outline: none;
-        padding: 16px;
-        width: 56px;
-        -webkit-tap-highlight-color: transparent;
-        box-shadow:0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4);
-        position:fixed;
-        z-index: 2;
-        bottom:20px;
-        right:20px;
-        transition: background-color 0.45s ease;
-        transform: translate3d(0, 0, 0);
-        margin:8px;
-      }
-      .fab > * {
-        pointer-events: none;
-      }
-      .fab:after {
-        display: inline-block;
-        z-index: -1;
-        width: 100%;
-        height: 100%;
-        opacity: 0;
-        border-radius: 50%;
-        transition: opacity 150ms cubic-bezier(.33,.17,.85,1.1);
-        box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
-        content:' ';
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .fab:hover:after {
-        opacity: 1;
-      }
-      .fab:hover:active:after {
-        opacity: 0;
-      }
-      .fab[disabled] {
-        background: rgba(84, 84, 84, 0.4);
-        color: #ffffff;
-        box-shadow: none;
-        cursor: none;
-        pointer-events: none;
-      }
-      .fab[disabled]:active, .fab[disabled]:hover, .fab[disabled]:active:hover {
-        box-shadow: none;
-        background-color: rgba(0, 0, 0, 0.178)
-      }
-      .fab[noshadow], .fab[noshadow]:hover, .fab[noshadow]:hover:after, .fab[noshadow]:after {
-        box-shadow: none;
-      }
-      .fab[noshadow]:active {
-        box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
-      }
-      @keyframes ripple-animation {
-        to {
-          transform: scale(4);
-          opacity: 0;
+    const cssObj = {
+      ".fab": {
+        "overflow": "hidden",
+        "color": contrast,
+        "background": color,
+        "display": "flex",
+        "flex-direction": "column",
+        "align-items": "center",
+        "justify-content": "center",
+        "border-radius": "50%",
+        "box-sizing": "border-box",
+        "cursor": "pointer",
+        "height": "56px",
+        "min-width": 0,
+        "outline": "none",
+        "padding": "16px",
+        "width": "56px",
+        "-webkit-tap-highlight-color": "transparent",
+        "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
+        "position": "fixed",
+        "z-index": 2,
+        "bottom": "20px",
+        "right": "20px",
+        "transition": "background-color 0.45s ease",
+        "transform": "translate3d(0, 0, 0)",
+        "margin": "8px"
+      },
+      ".fab > *": {
+        "pointer-events": "none"
+      },
+      ".fab:after": {
+        "display": "inline-block",
+        "z-index": -1,
+        "width": "100%",
+        "height": "100%",
+        "opacity": 0,
+        "border-radius": "50%",
+        "transition": "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
+        "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
+        "content": " ",
+        "position": "absolute",
+        "top": 0,
+        "left": 0
+      },
+      ".fab:hover:after": {
+        "opacity": 1
+      },
+      ".fab:hover:active:after": {
+        "opacity": 0
+      },
+      ".fab[disabled]": {
+        "background": "rgba(84, 84, 84, 0.4)",
+        "color": "#ffffff",
+        "box-shadow": "none",
+        "cursor": "none",
+        "pointer-events": "none"
+      },
+      ".fab[disabled]:active, .fab[disabled]:hover, .fab[disabled]:active:hover": {
+        "box-shadow": "none",
+        "background-color": "rgba(0, 0, 0, 0.178)"
+      },
+      ".fab[noshadow], .fab[noshadow]:hover, .fab[noshadow]:hover:after, .fab[noshadow]:after": {
+        "box-shadow": "none"
+      },
+      ".fab[noshadow]:active": {
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
+      },
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(4)",
+          "opacity": 0
         }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": hexToRgba(contrast),
+        "animation": "ripple-animation 0.7s linear"
       }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: ${hexToRgba(contrast)};
-        animation: ripple-animation 0.7s linear;
-      }
-    `;
+    };
+
+    const styles = document.createElement('style');
+    styles.textContent = objectToCSS(cssObj);
     
     this.fab = document.createElement('div');
     this.fab.classList.add('fab');

@@ -1,6 +1,7 @@
 import {
   elementHeight,
-  animateElement
+  animateElement,
+  objectToCSS
 } from './helpers.js';
 
 /**
@@ -11,30 +12,32 @@ class AudioSyncLoader extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
     
+    const cssObj = {
+      ".load": {
+        "position": "absolute",
+        "top": 0,
+        "left": 0,
+        "right": 0,
+        "bottom": 0,
+        "background": "rgb(182, 182, 182)",
+        "justify-content": "center",
+        "display": "flex",
+        "align-items": "center",
+        "z-index": 8,
+        "text-transform": "uppercase",
+        "pointer-events": "all",
+        "overflow": "hidden",
+        "font-size": "1.5em",
+        "color": "#333333"
+      }
+    }
+    const sheet = document.createElement('style');
+    sheet.textContent = objectToCSS(cssObj);
+
     this.loader = document.createElement('div');
     this.loader.classList.add('load')
-    this.loader.appendChild(document.createElement('slot'))
-    const sheet = document.createElement('style');
-    sheet.textContent = `
-      .load {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgb(182, 182, 182);
-        justify-content: center;
-        display: flex;
-        align-items: center;
-        z-index:3;
-        text-transform: uppercase;
-        pointer-events: all;
-        overflow: hidden;
-        font-size: 1.5em;
-        z-index: 8;
-        color: #333333;
-      }
-    `;
+    this.loader.appendChild(document.createElement('slot'));
+    
     [
       sheet,
       this.loader

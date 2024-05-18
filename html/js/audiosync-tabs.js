@@ -1,4 +1,4 @@
-import {qs, createRipple} from './helpers.js';
+import {qs, createRipple, parseCSS, objectToCSS} from './helpers.js';
 
 /**
  * tabs
@@ -9,15 +9,18 @@ class AudioSyncTabs extends HTMLElement {
   }
   constructor() {
     super();
-    const sheet = document.createElement('style');
-    sheet.textContent = `
-      slot {
-        display: flex;
-        flex-direction: row;
-        position: relative;
-        background-color: var(--background-color);
+
+    const cssObj = {
+      "slot": {
+        "display": "flex",
+        "flex-direction": "row",
+        "position": "relative",
+        "background-color": "var(--background-color)"
       }
-    `;
+    };
+
+    const sheet = document.createElement('style');
+    sheet.textContent = objectToCSS(cssObj);
     const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
@@ -32,15 +35,13 @@ class AudioSyncTabs extends HTMLElement {
   connectedCallback() {
     this.setAttribute('selected', 0);
 
-    const styles = qs('style').textContent;
+    const styles = parseCSS(qs('style').textContent);
 
-    const css = `
-    audiosync-tabs[disabled] .tab {
-      cursor: auto;
-    }`;
+    styles['audiosync-tabs[disabled] .tab'] = {
+      cursor: 'auto'
+    };
 
-    if (styles.includes(css)) return;
-    qs('style').textContent = styles + css;
+    qs('style').textContent = objectToCSS(styles);
   }
 
   /**

@@ -61,6 +61,7 @@ class MenuButton extends HTMLElement {
 
     const style = document.createElement('style');
     style.textContent = objectToCSS(cssJSON);
+
     const button = document.createElement('div');
     button.classList.add('menu-button');
     button.appendChild(document.createElement('slot'));
@@ -68,6 +69,7 @@ class MenuButton extends HTMLElement {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
     });
+    
     [
       style,
       button

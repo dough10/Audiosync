@@ -1,3 +1,4 @@
+import {objectToCSS} from './helpers.js';
 
 /**
  * progress bar
@@ -8,36 +9,40 @@ class AudioSyncProgress extends HTMLElement {
   }
   constructor() {
     super();
+
     this.lastRan = 0;
+
+    const cssObj = {
+      ".label": {
+        "display": "flex",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "max-width": "600px"
+      },
+      ".wrapper": {
+        "position": "relative",
+        "height": "12px",
+        "width": "100%",
+        "background-color": "var(--background-color)",
+        "margin-top": "4px",
+        "margin-bottom": "4px",
+        "border": "1px solid rgb(51 51 51 / 10%)",
+        "overflow": "hidden",
+        "max-width": "600px"
+      },
+      ".bar": {
+        "position": "absolute",
+        "top": 0,
+        "bottom": 0,
+        "left": 0,
+        "right": 0,
+        "background-color": "var(--main-color)",
+        "transform": "translateX(-100%)"
+      }
+    };
+
     const sheet = document.createElement('style');
-    sheet.textContent = `
-      .label {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        max-width: 600px;
-      }
-      .wrapper {
-        position: relative;
-        height: 12px;
-        width: 100%;
-        background-color: var(--background-color);
-        margin-top: 4px;
-        margin-bottom: 4px;
-        border: 1px solid rgb(51 51 51 / 10%);
-        overflow: hidden;
-        max-width: 600px;
-      }
-      .bar {
-        position: absolute;
-        top:0;
-        bottom:0;
-        left:0;
-        right:0;
-        background-color: var(--main-color);
-        transform: translateX(-100%);
-      }
-    `;
+    sheet.textContent = objectToCSS(cssObj);
 
     const label = document.createElement('div');
     label.classList.add('label');

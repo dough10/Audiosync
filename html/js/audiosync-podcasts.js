@@ -1,4 +1,4 @@
-import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton} from './helpers.js';
+import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -6,54 +6,54 @@ import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fill
 class AudioSyncPodcasts extends HTMLElement {
   constructor() {
     super();
-    // refresh icon path (will be used to loading icon later)
-    this.iconPath = "M480-160q-134 0-227-93t-93-227q0-134 93-227t227-93q69 0 132 28.5T720-690v-110h80v280H520v-80h168q-32-56-87.5-88T480-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h84q-28 106-114 173t-196 67Z";
+
+    const cssObj = {
+      "svg": {
+        "width": "24px",
+        "height": "24px"
+      },
+      ".container": {
+        "padding": "8px",
+        "display": "flex",
+        "flex-direction": "column",
+        "jusify-content": "space-between"
+      },
+      ".wrapper": {
+        "display": "flex",
+        "flex-direction": "row",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "border-top": "1px solid #3333333d",
+        "padding": "8px",
+        "font-size": "14px",
+        "font-weight": "bold",
+        "min-height": "44px"
+      },
+      ".head": {
+        "width": "100%",
+        "display": "flex",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "position": "relative"
+      },
+      "@keyframes spin": {
+        "from": {
+          "transform": "rotate(0deg)"
+        },
+        "to": {
+          "transform": "rotate(360deg)"
+        }
+      },
+      ".spinning": {
+        "animation": "spin 1.5s linear infinite"
+      }
+    };
 
     // bind this
     this._resetCheckMarks = this._resetCheckMarks.bind(this);
 
     const sheet = document.createElement('style');
-    sheet.textContent = `
-      svg {
-        width:24px;
-        height:24px;
-      }
-      .container {
-        padding: 8px;
-        display: flex;
-        flex-direction: column;
-        jusify-content: space-between;
-      }
-      .wrapper {
-        display: flex;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #3333333d;
-        padding: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        min-height: 44px;
-      }
-      .head {
-        width: 100%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-      }
-      @keyframes spin {
-        from {
-          transform: rotate(0deg);
-        }
-        to {
-          transform: rotate(360deg);
-        }
-      }
-      .spinning {
-        animation: spin 1.5s linear infinite;
-      }
-    `;
+    sheet.textContent = objectToCSS(cssObj);
         
     // element to append podcasts to
     this.container = document.createElement('div');

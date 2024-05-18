@@ -8,35 +8,38 @@ class SmallButton extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    const style = document.createElement('style');
-    style.textContent = `     
-    .small-button {
-      padding: 8px;
-      cursor: pointer;
-      overflow: hidden;
-      position: relative;
-      border-radius: 50%;
-      transform: translate3d(0, 0, 0);
-    }
-    .small-button[disabled] {
-      color:var(--disabled-color);
-      cursor: default;
-    }
-    .small-button > * {
-      pointer-events: none;
-    }
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
+    const cssObj = {
+      ".small-button": {
+        "padding": "8px",
+        "cursor": "pointer",
+        "overflow": "hidden",
+        "position": "relative",
+        "border-radius": "50%",
+        "transform": "translate3d(0, 0, 0)"
+      },
+      ".small-button[disabled]": {
+        "color": "var(--disabled-color)",
+        "cursor": "default"
+      },
+      ".small-button > *": {
+        "pointer-events": "none"
+      },
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(4)",
+          "opacity": 0
+        }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": "rgba(51,51,51,0.4)",
+        "animation": "ripple-animation 0.7s linear"
       }
-    }
-    .ripple-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: rgba(51,51,51,0.4);
-      animation: ripple-animation 0.7s linear;
-    }`;
+    };
+
+    const style = document.createElement('style');
+    style.textContent = objectToCSS(cssObj);
 
     this.button = document.createElement('div');
     this.button.classList.add('small-button');
@@ -72,12 +75,7 @@ class SmallButton extends HTMLElement {
     styles['.new-color'] = {
       'color': convertToHex(color)
     };
-    styles['.ripple-effect'] = {
-      'position': 'absolute',
-      'border-radius': '50%',
-      'background': hexToRgba(color),
-      'animation': 'ripple-animation 0.7s linear'
-    };
+    styles['.ripple-effect'].background = hexToRgba(color);
 
     // apply styles
     qs('style', this.shadowRoot).textContent = objectToCSS(styles);

@@ -1,4 +1,4 @@
-import {elementHeight, animateElement, svgIcon, sleep} from './helpers.js';
+import {elementHeight, animateElement, svgIcon, sleep, objectToCSS} from './helpers.js';
 
 /**
  * application settings drawer
@@ -7,81 +7,83 @@ class AudioSyncSettings extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
-    this.state = false;
-    this.open = this.open.bind(this)
-    this.close = this.close.bind(this)
+
+    this.open = this.open.bind(this);
+    this.close = this.close.bind(this);
+
+    const cssObj = {
+      ".settings": {
+        "top": 0,
+        "left": 0,
+        "right": 0,
+        "bottom": 0,
+        "overflow": "auto",
+        "overflow-x": "hidden",
+        "position": "fixed",
+        "will-change": "auto",
+        "z-index": 10,
+        "background-color": "var(--background-color)"
+      },
+      "header": {
+        "height": "65px",
+        "background-color": "#ffffff"
+      },
+      ".header-content": {
+        "padding": "12px",
+        "display": "flex",
+        "justify-content": "right",
+        "align-items": "center"
+      },
+      ".header-shadow": {
+        "height": "6px",
+        "box-shadow": "inset 0px 5px 6px -3px rgba(0,0,0,0.4)",
+        "position": "absolute",
+        "will-change": "auto",
+        "top": "var(--header-height)",
+        "left": 0,
+        "right": 0,
+        "pointer-events": "none",
+        "z-index": 1
+      },
+      "svg": {
+        "width": "24px",
+        "height": "24px",
+        "display": "flex"
+      },
+      ".wrapper": {
+        "position": "fixed",
+        "will-change": "auto",
+        "top": "var(--header-height)",
+        "left": 0,
+        "right": 0,
+        "bottom": 0,
+        "overflow": "auto",
+        "overflow-x": "hidden",
+        "padding": "8px",
+        "-webkit-overflow-scrolling": "touch",
+        "text-align": "center",
+        "background": "var(--background-color)"
+      },
+      ".card": {
+        "color": "#333333",
+        "max-width": "675px",
+        "min-width": "280px",
+        "padding": "8px",
+        "background": "#fff",
+        "position": "relative",
+        "margin": "auto",
+        "border-radius": "3px",
+        "margin-bottom": "100px",
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)",
+        "text-align": "center"
+      },
+      "audiosync-small-button": {
+        "color": "red"
+      }
+    };
+
     const sheet = document.createElement('style');
-    sheet.textContent = `
-      .settings {
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: auto;
-        overflow-x: hidden;
-        position: fixed;
-        will-change: auto;
-        z-index: 10;
-        background-color: var(--background-color);
-      }
-      header {
-        height: 65px;
-        background-color: #ffffff;
-      }
-      .header-content {
-        padding: 12px;
-        display: flex;
-        justify-content: right;
-        align-items: center;
-      }
-      .header-shadow {
-        height: 6px;
-        box-shadow: inset 0px 5px 6px -3px rgba(0,0,0,0.4);
-        position: absolute;
-        will-change: auto;
-        top: var(--header-height);
-        left: 0;
-        right: 0;
-        pointer-events: none;
-        z-index: 1;
-      }
-      svg {
-        width:24px;
-        height:24px;
-        display: flex;
-      }
-      .wrapper {
-        position: fixed;
-        will-change: auto;
-        top: var(--header-height);
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: auto;
-        overflow-x: hidden;
-        padding:8px;
-        -webkit-overflow-scrolling: touch;
-        text-align: center;
-        background: var(--background-color);
-      }
-      .card {
-        color: #333333;
-        max-width: 675px;
-        min-width: 280px;
-        padding: 8px;
-        background: #fff;
-        position: relative;
-        margin: auto;
-        border-radius: 3px;
-        margin-bottom: 8px;
-        box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
-        text-align: center;
-        margin-bottom: 100px;
-      }
-      audiosync-small-button {
-        color: red;
-      }
-    `;
+    sheet.textContent = objectToCSS(cssObj);
 
     const close = document.createElement('audiosync-small-button');
     svgIcon('close').then(svg => close.appendChild(svg));

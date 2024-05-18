@@ -2,7 +2,8 @@ import {
   animateElement,
   qs,
   svgIcon,
-  sleep
+  sleep,
+  objectToCSS
 } from './helpers.js';
 
 /**
@@ -12,47 +13,52 @@ class ScrollElement extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
-    this.animateScroll = this.animateScroll.bind(this)
-    const sheet = document.createElement('style');
-    sheet.textContent = `
-      @keyframes ripple-animation {
-        to {
-          transform: scale(2);
-          opacity: 0;
-        }
-      }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(255, 255, 255, 0.4);
-        animation: ripple-animation 0.7s linear;
-      }
-      .wrapper {
-        position: fixed;
-        will-change: auto;
-        top: var(--header-height);
-        left: 0;
-        right: 0;
-        bottom: 0;
-        overflow: auto;
-        overflow-x: hidden;
-        padding:8px;
-        -webkit-overflow-scrolling: touch;
-        text-align: center;
-        background: var(--background-color);
-        scroll-behavior: smooth;
-      }
-      .wrapper::-webkit-scrollbar {
-        width: 0; /* Hide scrollbar */
-      }
-      svg {
-        width:24px;
-        height:24px;
-        display: flex;
-      }
-    `;
+
     // scroll position memory
     let last_top = 0;
+
+    this.animateScroll = this.animateScroll.bind(this);
+
+    const cssObj = {
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(2)",
+          "opacity": 0
+        }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": "rgba(255, 255, 255, 0.4)",
+        "animation": "ripple-animation 0.7s linear"
+      },
+      ".wrapper": {
+        "position": "fixed",
+        "will-change": "auto",
+        "top": "var(--header-height)",
+        "left": 0,
+        "right": 0,
+        "bottom": 0,
+        "overflow": "auto",
+        "overflow-x": "hidden",
+        "padding": "8px",
+        "-webkit-overflow-scrolling": "touch",
+        "text-align": "center",
+        "background": "var(--background-color)",
+        "scroll-behavior": "smooth"
+      },
+      ".wrapper::-webkit-scrollbar": {
+        "width": 0
+      },
+      "svg": {
+        "width": "24px",
+        "height": "24px",
+        "display": "flex"
+      }
+    };
+
+    const sheet = document.createElement('style');
+    sheet.textContent = objectToCSS(cssObj);
 
     // floating action button
     const fab = document.createElement('audiosync-fab');

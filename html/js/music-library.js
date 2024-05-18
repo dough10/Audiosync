@@ -7,7 +7,8 @@ import {
   qsa,
   sleep,
   createRipple,
-  alertUser
+  alertUser,
+  objectToCSS
 } from './helpers.js';
 
 /**
@@ -16,61 +17,65 @@ import {
 class MusicLibrary extends HTMLElement {
   constructor() {
     super();
+
     this._makeSelection = this._makeSelection.bind(this);
     this._displayArtist = this._displayArtist.bind(this);
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes ripple-animation {
-        to {
-          transform: scale(2);
-          opacity: 0;
+
+    const cssObj = {
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(2)",
+          "opacity": 0
         }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": "rgba(125, 125, 125, 0.4)",
+        "animation": "ripple-animation 0.7s linear"
+      },
+      "div:first-child": {
+        "border-top": "none"
+      },
+      ".artist": {
+        "position": "relative",
+        "border-top": "1px solid #3333333d",
+        "cursor": "pointer",
+        "padding": "8px",
+        "font-size": "17px",
+        "font-weight": "bold",
+        "overflow": "hidden"
+      },
+      ".artist:hover": {
+        "background-color": "var(--hover-color)"
+      },
+      ".album": {
+        "position": "relative",
+        "border-top": "1px solid #3333333d",
+        "cursor": "pointer",
+        "padding": "4px",
+        "font-size": "13px",
+        "overflow": "hidden"
+      },
+      ".album:hover": {
+        "background-color": "var(--hover-color)"
+      },
+      ".album.selected": {
+        "background-color": "rgba(100, 100, 100, 0.582)"
+      },
+      ".album.selected:hover": {
+        "background-color": "#00000044"
+      },
+      ".blank": {
+        "height": "550px",
+        "display": "flex",
+        "align-items": "center",
+        "justify-content": "center"
       }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(125, 125, 125, 0.4);
-        animation: ripple-animation 0.7s linear;
-      }
-      div:first-child {
-        border-top: none;
-      }
-      .artist {
-        position: relative;
-        border-top: 1px solid #3333333d;
-        cursor: pointer;
-        padding: 8px;
-        font-size: 17px;
-        font-weight: bold;
-        overflow: hidden;
-      }
-      .artist:hover {
-        background-color: var(--hover-color);
-      }
-      .album {
-        position: relative;
-        border-top: 1px solid #3333333d;
-        cursor: pointer;
-        padding: 4px;
-        font-size: 13px;
-        overflow: hidden;
-      }
-      .album:hover {
-        background-color: var(--hover-color);
-      }
-      .album.selected {
-        background-color: rgba(100, 100, 100, 0.582);
-      }
-      .album.selected:hover {
-        background-color: #00000044;
-      }
-      .blank {
-        height: 550px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      } 
-    `;
+    };
+
+    const style = document.createElement('style');
+    style.textContent = objectToCSS(cssObj);
     this.content = document.createElement('div');
     this.shadow = this.attachShadow({mode: "open"});
     [
