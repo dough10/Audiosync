@@ -6,6 +6,8 @@ class AudioSyncButton extends HTMLElement {
   }
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
+
     // color higherarchy 
     // color attribute > css '--main-color' variable > white
     const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--main-color') || '#ffffff');
@@ -13,94 +15,95 @@ class AudioSyncButton extends HTMLElement {
     // contrasting text color 
     const contrast = getContrastColor(color);
 
+    const cssObj = {
+      ".button": {
+        "display": "inline-flex",
+        "min-width": "5.14em",
+        "margin": "0.29em 0.29em",
+        "color": contrast,
+        "background-color": color,
+        "text-align": "center",
+        "text-transform": "uppercase",
+        "outline-width": "0",
+        "border-radius": "3px",
+        "padding": "0.7em 0.57em",
+        "cursor": "pointer",
+        "position": "relative",
+        "box-sizing": "border-box",
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)",
+        "-webkit-user-select": "none",
+        "user-select": "none",
+        "pointer-events": "all",
+        "justify-content": "center",
+        "align-items": "center",
+        "transition": "background-color 0.45s ease",
+        "overflow": "hidden",
+        "transform": "translate3d(0, 0, 0)"
+      },
+      ".button > *": {
+        "pointer-events": "none"
+      },
+      ".button:after": {
+        "display": "inline-block",
+        "width": "100%",
+        "height": "100%",
+        "border-radius": "3px",
+        "opacity": "0",
+        "transition": "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
+        "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
+        "content": "' '",
+        "position": "absolute",
+        "top": "0",
+        "left": "0"
+      },
+      ".button:hover:after": {
+        "opacity": "1"
+      },
+      ".button:hover:active:after": {
+        "opacity": "0"
+      },
+      ".button[disabled]": {
+        "background": "rgba(84, 84, 84, 0.4)",
+        "color": "#ffffff",
+        "box-shadow": "none",
+        "cursor": "none",
+        "pointer-events": "none"
+      },
+      ".button[disabled]:active, .button[disabled]:hover, .button[disabled]:active:hover": {
+        "box-shadow": "none",
+        "background-color": "rgba(0, 0, 0, 0.178)"
+      },
+      ".button[noshadow], .button[noshadow]:hover, .button[noshadow]:hover:after, .button[noshadow]:after": {
+        "box-shadow": "none"
+      },
+      ".button[noshadow]:active": {
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
+      },
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(4)",
+          "opacity": "0"
+        }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": hexToRgba(contrast),
+        "animation": "ripple-animation 0.7s linear"
+      }
+    };
+
+    const sheet = document.createElement('style');
+    sheet.textContent = objectToCSS(cssObj);
+
     this.button = document.createElement('div');
     this.button.classList.add('button');
     this.button.appendChild(document.createElement('slot'));
     
-    const sheet = document.createElement('style');
-    sheet.textContent = `
-    .button {
-      display: inline-flex;
-      min-width: 5.14em;
-      margin: 0.29em 0.29em;
-      color: ${contrast};
-      background-color: ${color};
-      text-align: center;
-      text-transform: uppercase;
-      outline-width: 0;
-      border-radius: 3px;
-      padding: 0.7em 0.57em;
-      cursor: pointer;
-      position: relative;
-      box-sizing:border-box;
-      box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
-      -webkit-user-select: none;
-      user-select: none;
-      pointer-events: all;
-      justify-content: center;
-      align-items: center;
-      transition: background-color 0.45s ease;
-      overflow: hidden;
-      transform: translate3d(0, 0, 0);
-    }
-    .button > * {
-      pointer-events: none;
-    }
-    .button:after {
-      display: inline-block;
-      width: 100%;
-      height: 100%;
-      border-radius: 3px;
-      opacity: 0;
-      transition: opacity 150ms cubic-bezier(.33,.17,.85,1.1);
-      box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
-      content:' ';
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
-    .button:hover:after {
-      opacity: 1;
-    }
-    .button:hover:active:after {
-      opacity: 0;
-    }
-    .button[disabled] {
-      background: rgba(84, 84, 84, 0.4);
-      color: #ffffff;
-      box-shadow: none;
-      cursor: none;
-      pointer-events: none;
-    }
-    .button[disabled]:active, .button[disabled]:hover, .button[disabled]:active:hover {
-      box-shadow: none;
-      background-color: rgba(0, 0, 0, 0.178)
-    }
-    .button[noshadow], .button[noshadow]:hover, .button[noshadow]:hover:after, .button[noshadow]:after {
-      box-shadow: none;
-    }
-    .button[noshadow]:active {
-      box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
-    }
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
-      }
-    }
-    .ripple-effect {
-      position: absolute;
-      border-radius: 50%;
-      background: ${hexToRgba(contrast)};
-      animation: ripple-animation 0.7s linear;
-    }
-    `;
-
-    const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
       this.button
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   /**
@@ -188,12 +191,7 @@ class AudioSyncButton extends HTMLElement {
         'background-color': color,
         'color': contrast
       };
-      currentStyle['.ripple-effect'] = {
-        'position': 'absolute',
-        'border-radius': '50%',
-        'background': hexToRgba(contrast),
-        'animation': 'ripple-animation 0.7s linear'
-      };
+      currentStyle['.ripple-effect'].background = hexToRgba(contrast);
       
       // update styles
       qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         

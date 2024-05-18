@@ -1,64 +1,66 @@
 import {qs, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS, convertToHex} from './helpers.js';
 
-
 class MenuButton extends HTMLElement {
   static get observedAttributes() {
     return ['disabled'];
   }
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
 
     this.disabledColor = getCSSVariableValue('--disabled-color');
 
-    this.attachShadow({mode: "open"});
-    const style = document.createElement('style');
-    style.textContent = `
-      .menu-button {
-        padding: 12px;
-        cursor: pointer;
-        display: flex;
-        color: #333333;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 16px;
-        border-bottom: 1px solid #3333333d;
-        position: relative;
-        overflow: hidden;
-      }
-      .menu-button > * {
-        pointer-events: none;
-      }
-      .menu-button div {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-transform: uppercase;
-      }
-      .menu-button:hover {
-        background-color: var(--hover-color);
-      }
-      .menu-button[disabled] {
-        background: rgba(218, 218, 218, 0.4);
-        color: ${this.disabledColor};
-        cursor: none;
-        pointer-events: none;
-      }
-      .menu-button[disabled]:active, .menu-button[disabled]:hover, .menu-button[disabled]:active:hover {
-        background-color: rgba(0, 0, 0, 0.178)
-      }
-      @keyframes ripple-animation {
-        to {
-          transform: scale(4);
-          opacity: 0;
+    const cssJSON = {
+      ".menu-button": {
+        "padding": "12px",
+        "cursor": "pointer",
+        "display": "flex",
+        "color": "#333333",
+        "justify-content": "space-between",
+        "align-items": "center",
+        "font-size": "16px",
+        "border-bottom": "1px solid #3333333d",
+        "position": "relative",
+        "overflow": "hidden"
+      },
+      ".menu-button > *": {
+        "pointer-events": "none"
+      },
+      ".menu-button div": {
+        "width": "100%",
+        "display": "flex",
+        "justify-content": "center",
+        "align-items": "center",
+        "text-transform": "uppercase"
+      },
+      ".menu-button:hover": {
+        "background-color": "var(--hover-color)"
+      },
+      ".menu-button[disabled]": {
+        "background": "rgba(218, 218, 218, 0.4)",
+        "color": "undefined",
+        "cursor": "none",
+        "pointer-events": "none"
+      },
+      ".menu-button[disabled]:active, .menu-button[disabled]:hover, .menu-button[disabled]:active:hover": {
+        "background-color": "rgba(0, 0, 0, 0.178)"
+      },
+      "@keyframes ripple-animation": {
+        "to": {
+          "transform": "scale(4)",
+          "opacity": "0"
         }
+      },
+      ".ripple-effect": {
+        "position": "absolute",
+        "border-radius": "50%",
+        "background": "rgba(51, 51, 51, 0.4)",
+        "animation": "ripple-animation 0.7s linear"
       }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: rgba(51, 51, 51, 0.4);
-        animation: ripple-animation 0.7s linear;
-      }`;
+    };
+
+    const style = document.createElement('style');
+    style.textContent = objectToCSS(cssJSON);
     const button = document.createElement('div');
     button.classList.add('menu-button');
     button.appendChild(document.createElement('slot'));
@@ -128,15 +130,10 @@ class MenuButton extends HTMLElement {
     //  capture styles
     const shadowCss = parseCSS(qs('style', this.shadowRoot).textContent);
 
-    // create / update styles
-    shadowCss['.ripple-effect'] = {
-      'position': 'absolute',
-      'border-radius': '50%',
-      'background': hexToRgba(color),
-      'animation': 'ripple-animation 0.7s linear'
-    };
+    // update ripple styles
+    shadowCss['.ripple-effect'].background = hexToRgba(color);
 
-    // apply new styles. 
+    // apply updated styles. 
     qs('style', this.shadowRoot).textContent = objectToCSS(shadowCss);
   }
 
