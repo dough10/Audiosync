@@ -118,7 +118,6 @@ class AudioSyncButton extends HTMLElement {
       if (this.button.hasAttribute('disabled')) return;
       createRipple(e) 
     });
-    console.log(this.parentNode.parentNode)
 
     /**
      * attach styles for the button's nested elements
