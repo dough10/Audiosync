@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS} from './helpers.js';
+import {qs, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS, convertToHex} from './helpers.js';
 
 
 class MenuButton extends HTMLElement {
@@ -108,6 +108,9 @@ class MenuButton extends HTMLElement {
     if (!this.id) {
       this.id = generateRandomString();
     }
+
+    // ensure the color is hex code
+    color = convertToHex(color);
 
     // <body> change the icon color
     // parse string to object
