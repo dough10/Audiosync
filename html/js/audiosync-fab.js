@@ -164,12 +164,7 @@ class FloatingActionButton extends HTMLElement {
         'background-color': color, 
         'color': contrast
       };
-      currentStyle['.ripple-effect'] = {
-        'position': 'absolute', 
-        'border-radius': '50%;',
-        'background': hexToRgba(contrast),
-        'animation': 'ripple-animation 0.7s linear'
-      };
+      currentStyle['.ripple-effect'].background = hexToRgba(contrast);
       
       // update styles
       qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
