@@ -48,7 +48,7 @@ class MenuButton extends HTMLElement {
       "@keyframes ripple-animation": {
         "to": {
           "transform": "scale(4)",
-          "opacity": "0"
+          "opacity": 0
         }
       },
       ".ripple-effect": {

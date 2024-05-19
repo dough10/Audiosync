@@ -137,7 +137,6 @@ class AudioSyncPodcasts extends HTMLElement {
     input.type = 'url';
     input.id = 'url';
     input.classList.add('form__field');
-
     
     // input and label wrapper
     const group = document.createElement('div');
