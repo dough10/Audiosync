@@ -38,7 +38,7 @@ class MenuButton extends HTMLElement {
       },
       ".menu-button[disabled]": {
         "background": "rgba(218, 218, 218, 0.4)",
-        "color": "undefined",
+        "color": this.disabledColor,
         "cursor": "none",
         "pointer-events": "none"
       },
@@ -79,7 +79,7 @@ class MenuButton extends HTMLElement {
   /**
    * element connected to DOM
    * 
-   * modifys document css to fix style nested in the custom element
+   * modifys document css to fix style of elements nested in the custom element
    */
   connectedCallback() {
     // capture document styles
@@ -94,7 +94,7 @@ class MenuButton extends HTMLElement {
       'justify-content': 'center',
       'align-items': 'center',
       'text-transform': 'uppercase'
-    }
+    };
 
     qs('style').textContent = objectToCSS(css);
   }
