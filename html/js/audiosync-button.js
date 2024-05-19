@@ -24,7 +24,7 @@ class AudioSyncButton extends HTMLElement {
         "background-color": color,
         "text-align": "center",
         "text-transform": "uppercase",
-        "outline-width": "0",
+        "outline-width": 0,
         "border-radius": "3px",
         "padding": "0.7em 0.57em",
         "cursor": "pointer",
@@ -48,7 +48,7 @@ class AudioSyncButton extends HTMLElement {
         "width": "100%",
         "height": "100%",
         "border-radius": "3px",
-        "opacity": "0",
+        "opacity": 0,
         "transition": "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
         "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
         "content": "' '",
@@ -57,10 +57,10 @@ class AudioSyncButton extends HTMLElement {
         "left": "0"
       },
       ".button:hover:after": {
-        "opacity": "1"
+        "opacity": 1
       },
       ".button:hover:active:after": {
-        "opacity": "0"
+        "opacity": 0
       },
       ".button[disabled]": {
         "background": "rgba(84, 84, 84, 0.4)",
@@ -82,7 +82,7 @@ class AudioSyncButton extends HTMLElement {
       "@keyframes ripple-animation": {
         "to": {
           "transform": "scale(4)",
-          "opacity": "0"
+          "opacity": 0
         }
       },
       ".ripple-effect": {
@@ -137,6 +137,10 @@ class AudioSyncButton extends HTMLElement {
     const styles = parseCSS(styleNode.textContent);
 
     // css properties
+    styles['audiosync-button > div'] = {
+      'display': 'flex',
+      'flex-direction': 'row'
+    };
     styles['audiosync-button > div > :first-child'] = {
       'margin-right': '16px'
     };
@@ -144,10 +148,6 @@ class AudioSyncButton extends HTMLElement {
       'display': 'flex',
       'align-items': 'center',
       'margin-right':'16px'
-    };
-    styles['audiosync-button > div'] = {
-      'display': 'flex',
-      'flex-direction': 'row'
     };
     
     //  apply new css
