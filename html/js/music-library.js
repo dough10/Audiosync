@@ -13,10 +13,11 @@ import {
 
 /**
  * displays the music library in a selectable form
- */
+*/
 class MusicLibrary extends HTMLElement {
   constructor() {
     super();
+    this.attachShadow({mode: "open"});
 
     this._makeSelection = this._makeSelection.bind(this);
     this._displayArtist = this._displayArtist.bind(this);
@@ -76,12 +77,12 @@ class MusicLibrary extends HTMLElement {
 
     const style = document.createElement('style');
     style.textContent = objectToCSS(cssObj);
+
     this.content = document.createElement('div');
-    this.shadow = this.attachShadow({mode: "open"});
     [
       style, 
       this.content
-    ].forEach(el => this.shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   /**
@@ -248,10 +249,10 @@ class MusicLibrary extends HTMLElement {
       return;
     }
     for (const artist in data) {
-      const m = qsa(`[data-artist="${artist}"].artist`, this.shadow);
+      const m = qsa(`[data-artist="${artist}"].artist`, this.shadowRoot);
       m.forEach(el => el.classList.add('selected'));
       for (let i=0; i < data[artist].length; i++) {
-        const s = qsa(`[data-album="${data[artist][i]}"]`, this.shadow);
+        const s = qsa(`[data-album="${data[artist][i]}"]`, this.shadowRoot);
         s.forEach(el => el.classList.add('selected'));
       }
     }
@@ -263,7 +264,7 @@ class MusicLibrary extends HTMLElement {
   buildObject() {
     const artistAlbums = {};
     // Select all elements with the data-artist attribute
-    const artistElements = qsa('.selected', this.shadow);
+    const artistElements = qsa('.selected', this.shadowRoot);
     // Iterate over each artist element
     artistElements.forEach(artistElement => {
       const artistName = artistElement.dataset.artist;
@@ -289,7 +290,7 @@ class MusicLibrary extends HTMLElement {
     const target = e.target;
     target.classList.toggle('selected');
     if (target.classList.contains('artist')) {
-      const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"]`, this.shadow);
+      const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"]`, this.shadowRoot);
       matchingArtist.forEach(el => {
         if (target.classList.contains('selected')) {
           el.classList.add('selected');
@@ -299,7 +300,7 @@ class MusicLibrary extends HTMLElement {
       });
     }
     if (target.classList.contains('album')) {
-      const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"].artist`, this.shadow);
+      const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"].artist`, this.shadowRoot);
       matchingArtist.forEach(el => {
         if (target.classList.contains('selected')) {
           el.classList.add('selected');
