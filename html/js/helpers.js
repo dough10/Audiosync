@@ -60,6 +60,15 @@ function qsa(selector, scope) {
 }
 
 /**
+ * createElement shorthand
+ * 
+ * @returns {HTMLElement}
+ */
+function ce(el) {
+  return document.createElement(el);
+}
+
+/**
  * wait an ammout of time
  * 
  * @param {ms} milliseconds
@@ -854,6 +863,7 @@ export {
   fadeIn,
   fadeOut,
   isValidURL,
+  ce,
   qs,
   qsa,
   sleep,
