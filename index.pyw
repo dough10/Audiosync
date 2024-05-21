@@ -3,6 +3,7 @@ import json
 import webview
 import threading
 import http.server
+import socketserver
 import requests
 import xmltodict
 import clipboard
@@ -22,13 +23,26 @@ file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'html')
 
-# run http server
-def run_server():
-  os.chdir(html_path) 
-  Handler = http.server.SimpleHTTPRequestHandler
-  httpd = http.server.HTTPServer(("localhost", 8000), Handler)
-  httpd.serve_forever()
+class HTMLHandler(http.server.SimpleHTTPRequestHandler):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, directory=html_path, **kwargs)
 
+class MusicHandler(http.server.SimpleHTTPRequestHandler):
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, directory=config['source'], **kwargs)
+
+# run http server
+
+def run_server():
+  with socketserver.TCPServer(("localhost", 8000), HTMLHandler) as httpd:
+    print("Serving HTML at port 8000")
+    httpd.serve_forever()
+
+def music_server():
+  with socketserver.TCPServer(("localhost", 8080), MusicHandler) as httpd:
+    print("Serving Music at port 8080")
+    httpd.serve_forever()
+  
 # save config file
 def save_config():
   with open(config_path, 'w') as file:
@@ -128,10 +142,18 @@ class Api:
 
 # run the application
 if __name__ == '__main__':
-  # run server
+  # run UI server
   server_thread = threading.Thread(target=run_server)
   server_thread.daemon = True
   server_thread.start()
+  
+  # run music server
+  music_server_thread = threading.Thread(target=music_server)
+  music_server_thread.daemon = True
+  music_server_thread.start()
+
+  import time
+  time.sleep(2)  
 
   # load UI
   window = webview.create_window('sync.json Creator', frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
