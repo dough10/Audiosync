@@ -48,11 +48,21 @@ pl_manager = Playlist_manager(changes)
 def is_ignored(source_file):
   return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
 
-def add_to_lib(artist_folder, album_folder):
-  if artist_folder not in lib_data:
-    lib_data[artist_folder] = []
-  if album_folder not in lib_data[artist_folder]:
-    lib_data[artist_folder].append(album_folder)
+def add_to_lib(artist, album, location, file):
+  if artist not in lib_data:
+    lib_data[artist] = []
+
+  # Find the album in the artist's list of albums
+  album_exists = False
+  for alb in lib_data[artist]:
+    if alb['title'] == album:
+      alb['tracks'].append(file)
+      album_exists = True
+      break
+
+  # If the album does not exist, create a new entry
+  if not album_exists:
+      lib_data[artist].append({'title': album, 'folder': location, 'tracks': [file]})
 
 def move_file(root, file, ext):
   """
@@ -102,7 +112,7 @@ def move_file(root, file, ext):
   song_title = info['title']
 
   # build data dictonary of artists and albums
-  add_to_lib(artist_folder, album_folder)
+  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file)
 
   # early return if artist or album isn't listed in sync file
   if use_sync_file:
@@ -363,7 +373,7 @@ def build_lib(root, file, ext):
     return
   if not os.path.exists(jpg):
     return
-  add_to_lib(info['artist'], info['album'])
+  add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file)
 
 def create_lib_json(window):
   global lib_data

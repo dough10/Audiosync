@@ -24,39 +24,39 @@ class MusicLibrary extends HTMLElement {
 
     const cssObj = {
       "@keyframes ripple-animation": {
-        "to": {
-          "transform": "scale(2)",
-          "opacity": 0
+        to: {
+          transform: "scale(2)",
+          opacity: 0
         }
       },
       ".ripple-effect": {
-        "position": "absolute",
+        position: "absolute",
         "border-radius": "50%",
-        "background": "rgba(125, 125, 125, 0.4)",
-        "animation": "ripple-animation 0.7s linear"
+        background: "rgba(125, 125, 125, 0.4)",
+        animation: "ripple-animation 0.7s linear"
       },
       "div:first-child": {
         "border-top": "none"
       },
       ".artist": {
-        "position": "relative",
+        position: "relative",
         "border-top": "1px solid #3333333d",
-        "cursor": "pointer",
-        "padding": "8px",
+        cursor: "pointer",
+        padding: "8px",
         "font-size": "17px",
         "font-weight": "bold",
-        "overflow": "hidden"
+        overflow: "hidden"
       },
       ".artist:hover": {
         "background-color": "var(--hover-color)"
       },
       ".album": {
-        "position": "relative",
+        position: "relative",
         "border-top": "1px solid #3333333d",
-        "cursor": "pointer",
-        "padding": "4px",
+        cursor: "pointer",
+        padding: "4px",
         "font-size": "13px",
-        "overflow": "hidden"
+        overflow: "hidden"
       },
       ".album:hover": {
         "background-color": "var(--hover-color)"
@@ -68,8 +68,8 @@ class MusicLibrary extends HTMLElement {
         "background-color": "#00000044"
       },
       ".blank": {
-        "height": "550px",
-        "display": "flex",
+        height: "550px",
+        display: "flex",
         "align-items": "center",
         "justify-content": "center"
       }
@@ -113,7 +113,7 @@ class MusicLibrary extends HTMLElement {
     for (const artist in data) {
       this._displayArtist(artist);
       for (let i = 0; i < data[artist].length; i++) {
-        this._displayAlbum(artist, data[artist][i]);
+        this._displayAlbum(artist, data[artist][i]['title']);
       }
     }
   }
