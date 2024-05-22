@@ -404,7 +404,8 @@ class AudioPlayer extends HTMLElement {
    */
   addPlaylist(playlist) {
     // art url
-    this.art = `music${playlist.folder}/cover.jpg`;
+    const folder = playlist.folder.replace(/\\/g, '/');
+    this.art = `music${folder}/cover.jpg`;
     // cache image & color;
     const img = ce('img');
     img.src = this.art;
@@ -420,7 +421,7 @@ class AudioPlayer extends HTMLElement {
     // clear playlist and add given tracks
     this.playlist = [];
     for (let i = 0; i < playlist.tracks.length; i++) {
-      this.playlist.push(`music${playlist.folder}/${playlist.tracks[i]}`);
+      this.playlist.push(`music${folder}/${playlist.tracks[i]}`);
     }
     // reset index
     this.playing = 0;
