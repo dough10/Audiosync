@@ -133,6 +133,19 @@ class FloatingActionButton extends HTMLElement {
   }
 
   /**
+   * sets the position of the fab
+   * 
+   * @param {Object} pos CSS Object
+   */
+  position(pos) {
+    const styles = parseCSS(qs('style', this.shadowRoot).textContent);
+    for (const property in pos) {
+      styles['.fab'][property] = pos[property];
+    }
+    qs('style', this.shadowRoot).textContent = objectToCSS(styles);
+  }
+
+  /**
    * attribute has changed
    * 
    * @param {String} name
