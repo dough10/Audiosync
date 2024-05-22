@@ -21,39 +21,39 @@ class ScrollElement extends HTMLElement {
 
     const cssObj = {
       "@keyframes ripple-animation": {
-        "to": {
-          "transform": "scale(2)",
-          "opacity": 0
+        to: {
+          transform: "scale(2)",
+          opacity: 0
         }
       },
       ".ripple-effect": {
-        "position": "absolute",
+        position: "absolute",
         "border-radius": "50%",
-        "background": "rgba(255, 255, 255, 0.4)",
-        "animation": "ripple-animation 0.7s linear"
+        background: "rgba(255, 255, 255, 0.4)",
+        animation: "ripple-animation 0.7s linear"
       },
       ".wrapper": {
-        "position": "fixed",
+        position: "fixed",
         "will-change": "auto",
-        "top": "var(--header-height)",
-        "left": 0,
-        "right": 0,
-        "bottom": 0,
-        "overflow": "auto",
+        top: "var(--header-height)",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: "auto",
         "overflow-x": "hidden",
-        "padding": "8px",
+        padding: "8px",
         "-webkit-overflow-scrolling": "touch",
         "text-align": "center",
-        "background": "var(--background-color)",
+        background: "var(--background-color)",
         "scroll-behavior": "smooth"
       },
       ".wrapper::-webkit-scrollbar": {
-        "width": 0
+        width: 0
       },
-      "svg": {
-        "width": "24px",
-        "height": "24px",
-        "display": "flex"
+      svg: {
+        width: "24px",
+        height: "24px",
+        display: "flex"
       }
     };
 
