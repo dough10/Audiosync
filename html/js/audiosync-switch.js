@@ -138,51 +138,22 @@ class AudioSyncSwitch extends HTMLElement {
       span
     ].forEach(el => label.appendChild(el));
     
-    const shadow = this.attachShadow({mode: "open"});
+    this.attachShadow({mode: "open"});
     [
       sheet,
       label
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
 
     this.input.onchange = async _ => {
 
-      this.setAttribute('state', Number(this.input.checked));
+      this.setAttribute(this.input.checked, Number(this.input.checked));
 
-      // state of the settings switches
-      const states = { 
-        import_cues: qs('#cues').state(),
-        import_lyrics: qs('#lyrics').state(),
-        remove_lrc_wd: qs('#remove-lrc').state(),
-        podcast: qs('#podcast').state()
-      };
+      const ev = new CustomEvent('statechange', {
+        detail:{id: this.id, state: Number(this.input.checked)}
+      });
+      this.dispatchEvent(ev);
 
-      //  save to config.json
-      pywebview.api.update_config(states);
-
-      // podcasts transfer bar
-      if (!states.podcast) {
-        qs('sync-ui').hideBar('#podcasts-bar');
-      } else {
-        qs('sync-ui').showBar('#podcasts-bar');
-      }
-      
-      //  playlist transfer bar
-      if (!states.import_cues) {
-        qs('sync-ui').hideBar('#playlists-bar');
-      } else {
-        qs('sync-ui').showBar('#playlists-bar');
-      }
-
-      // reset lyric files switch
-      const el = qs('#remove-lrc');
-      if (!states.import_lyrics) {
-        await fadeOut(el);
-        el.style.display = 'none';
-      } else {
-        el.style.removeProperty('display');
-        fadeIn(el);
-      }
-    }
+    };
   }
 
   /**
@@ -192,7 +163,7 @@ class AudioSyncSwitch extends HTMLElement {
    */
   setState(newState) {
     this.input.checked = Boolean(newState);
-    this.setAttribute('state', Number(this.input.checked));
+    this.setAttribute('state', Number(newState));
   }
 
   /**
