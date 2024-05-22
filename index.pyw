@@ -9,6 +9,7 @@ import xmltodict
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast
+import urllib.parse
 
 
 file_path = os.path.abspath(__file__)
@@ -23,25 +24,28 @@ file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'html')
 
-class HTMLHandler(http.server.SimpleHTTPRequestHandler):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, directory=html_path, **kwargs)
+class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
+  def translate_path(self, path):
+    path = urllib.parse.unquote(path)
+    # Define your routing rules here
+    if path.startswith('/music/'):
+      # Strip off the '/music' part
+      path = path[len('/music/'):]
+      directory = config['source']
+    else:
+      directory = html_path
+    return os.path.join(directory, path.lstrip('/'))
 
-class MusicHandler(http.server.SimpleHTTPRequestHandler):
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, directory=config['source'], **kwargs)
+  def end_headers(self):
+    self.send_header('Access-Control-Allow-Origin', '*')
+    self.send_header('Access-Control-Allow-Methods', 'GET')
+    self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+    return super().end_headers()
 
-# run http server
-
-def run_server():
-  with socketserver.TCPServer(("localhost", 8000), HTMLHandler) as httpd:
-    print("Serving HTML at port 8000")
-    httpd.serve_forever()
-
-def music_server():
-  with socketserver.TCPServer(("localhost", 8080), MusicHandler) as httpd:
-    print("Serving Music at port 8080")
-    httpd.serve_forever()
+def run_combined_server():
+  handler = CustomRequestHandler
+  httpd = socketserver.TCPServer(("localhost", 8000), handler)
+  httpd.serve_forever()
   
 # save config file
 def save_config():
@@ -143,17 +147,9 @@ class Api:
 # run the application
 if __name__ == '__main__':
   # run UI server
-  server_thread = threading.Thread(target=run_server)
+  server_thread = threading.Thread(target=run_combined_server)
   server_thread.daemon = True
   server_thread.start()
-  
-  # run music server
-  music_server_thread = threading.Thread(target=music_server)
-  music_server_thread.daemon = True
-  music_server_thread.start()
-
-  import time
-  time.sleep(2)  
 
   # load UI
   window = webview.create_window('sync.json Creator', frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
