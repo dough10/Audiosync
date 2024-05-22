@@ -27,11 +27,15 @@ html_path = os.path.join(script_folder, 'html')
 class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
   def translate_path(self, path):
     path = urllib.parse.unquote(path)
-    # Define your routing rules here
+    # Define routing rules
     if path.startswith('/music/'):
-      # Strip off the '/music' part
+      
       path = path[len('/music/'):]
       directory = config['source']
+    elif path.startswith('/podcasts/'):
+      
+      path = path[len('/podcasts/'):]
+      directory = config['podcast_folder']
     else:
       directory = html_path
     return os.path.join(directory, path.lstrip('/'))
