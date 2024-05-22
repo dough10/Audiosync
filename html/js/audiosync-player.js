@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, getIcon, fadeOut, fadeIn, parseCSS} from './helpers.js';
+import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, getIcon} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -24,6 +24,26 @@ class AudioPlayer extends HTMLElement {
         'background-color': '#ffffff',
         color: '#333333',
         'z-index': 1
+      },
+      '#fbg': {
+        position: 'fixed',
+        display: 'flex',
+        'flex-direction': 'row',
+        'justify-content': 'center',
+        'align-items': "center",
+        bottom: 0,
+        left: 0,
+        right: 0,
+        top: '65px',
+        transform: 'translateY(100%)',
+        'background-color': 'rgba(255,255,255,0.9)',
+        color: '#333333'
+      },
+      '#fbg > img': {
+        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',        
+        border: "4px solid rgba(51,51,51,0.2)",
+        background: 'rgba(51,51,51,0.2)',
+        transform: 'translateY(-30px)'
       },
       '.button-wrapper': {
         position: 'fixed',
@@ -101,9 +121,7 @@ class AudioPlayer extends HTMLElement {
       '#expand': {
         position: 'fixed',
         left: '20px',
-      },
-      img: {
-        border: "1px solid rgba(51,51,51,0.2)"
+        bottom: '20px'
       }
     };
 
@@ -111,7 +129,7 @@ class AudioPlayer extends HTMLElement {
     // hide ui if paused for period of time
     this._pauseTimer = 0;
 
-    this._nowPlaying = {};
+    this.nowPlaying = {};
 
     // cache svg icon data strings
     getIcon('play').then(svg => this.playIcon = svg.d);
@@ -162,8 +180,6 @@ class AudioPlayer extends HTMLElement {
         bufferBar.style.transform = `translateX(-100%)`;
       }
     }, 17);
-
-    // setInterval(_ => console.log(this._nowPlaying),5000)
 
     [
       styles,
@@ -327,37 +343,42 @@ class AudioPlayer extends HTMLElement {
    */
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
-    // new background 
+
+    // if scoll animation fab is onscrool remove it
+    const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
+    if (fab.hasAttribute('onscreen')) {
+      fab.offScreen();
+    }
+
+    // art
+    const img = ce('img');
+    img.src = this.art;
+    img.width = 500;
+    img.height = 500;
+
+    // background 
     const bg = ce('div');
     bg.id = 'fbg';
+    bg.style.backgroundColor = this.palette[1];
+
+    const listButton = ce('audiosync-fab');
+    listButton.appendChild(await svgIcon('list'));
+    listButton.position({bottom: '100px', right: '10px'});
+    listButton.onClick(_ => console.log(this.playlist));
+    listButton.setAttribute('color', this.palette[0]);
+
     // push to dom
+    [
+      img,
+      listButton
+    ].forEach(el => bg.appendChild(el));
     this.shadowRoot.appendChild(bg);
-    //  clone styles from mini player .background class
-    const bgstyles = parseCSS(qs('style', this.shadowRoot).textContent)['.background'];
-    // unneeded height property
-    delete bgstyles.height;
-    delete bgstyles['z-index'];
-    // apply closned styles
-    for (const property in bgstyles) {
-      bg.style[property] = bgstyles[property];
-    }
-    // shorter then header
-    bg.style.top = '65px';
-    if (this.art) {
-      const img = ce('img');
-      img.src = this.art;
-      img.width = 500;
-      img.height = 500;
-      img.onload = _ => {
-        const thief = new ColorThief();
-        const c = thief.getColor(img);
-        bg.style.backgroundColor = `rgba(${c[0]},${c[1]},${c[2]},0.8)`;
-      };
-      bg.appendChild(img);
-    }
+    
+    // animate onscreen
     await sleep(100);
     await animateElement(bg, 'translateY(0%)', 300);
     this.toggleAttribute('fullscreen');
+    listButton.onScreen();
   }
 
   /**
@@ -368,6 +389,8 @@ class AudioPlayer extends HTMLElement {
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
+    const fab = qs('audiosync-fab', qs('#fbg', this.shadowRoot));
+    await fab.offScreen();
     await animateElement(bg, 'translateY(100%)', 300);
     await sleep(100);
     bg.remove();
@@ -380,12 +403,29 @@ class AudioPlayer extends HTMLElement {
    * @param {Array} playlist 
    */
   addPlaylist(playlist) {
+    // art url
     this.art = `music${playlist.folder}/cover.jpg`;
+    // cache image & color;
+    const img = ce('img');
+    img.src = this.art;
+    img.onload = _ => {
+      const thief = new ColorThief();
+      const c = thief.getPalette(img);
+      this.palette = [
+        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab color
+        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // background color
+      ];
+      img.remove();
+    };
+    // clear playlist and add given tracks
     this.playlist = [];
     for (let i = 0; i < playlist.tracks.length; i++) {
       this.playlist.push(`music${playlist.folder}/${playlist.tracks[i]}`);
-    } 
+    }
+    // reset index
     this.playing = 0;
+    if (!this.playlist.length) return;
+    // load URL
     this.player.src = this.playlist[this.playing];
     this.player.play();
   }
@@ -523,6 +563,7 @@ class AudioPlayer extends HTMLElement {
     await animateElement(bg, 'translateY(100%)', 150);
     bg.remove();
     this.removeAttribute('playing');
+    this.nowPlaying = {};
     this.player.src = '';
     this.playlist = [];
     this.playing = 0;
