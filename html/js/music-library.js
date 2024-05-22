@@ -8,7 +8,8 @@ import {
   sleep,
   createRipple,
   alertUser,
-  objectToCSS
+  objectToCSS,
+  ce
 } from './helpers.js';
 
 /**
@@ -75,10 +76,10 @@ class MusicLibrary extends HTMLElement {
       }
     };
 
-    const style = document.createElement('style');
+    const style = ce('style');
     style.textContent = objectToCSS(cssObj);
 
-    this.content = document.createElement('div');
+    this.content = ce('div');
     [
       style, 
       this.content
@@ -134,11 +135,11 @@ class MusicLibrary extends HTMLElement {
     buttons.forEach(id => qs(id).setAttribute('disabled', 1));
       
     // scan library button
-    const button = document.createElement('audiosync-button');
+    const button = ce('audiosync-button');
     button.textContent = 'Scan Music';
     
     // wrapper to place content
-    const wrapper = document.createElement('div');
+    const wrapper = ce('div');
     wrapper.classList.add('blank');
     wrapper.appendChild(button);
 
@@ -152,15 +153,15 @@ class MusicLibrary extends HTMLElement {
       wrapper.innerHTML = '';
 
       // progress bar label
-      const label = document.createElement('div');
+      const label = ce('div');
       label.textContent = 'Building Library';
 
       //  progress percentage text
-      const percent = document.createElement('div');
+      const percent = ce('div');
       percent.textContent = '0%';
 
       // create progress bar
-      this.bar = document.createElement('audiosync-progress');
+      this.bar = ce('audiosync-progress');
       this.bar.style.opacity = 0;
       this.bar.style.width = '90%';
       [
@@ -213,7 +214,7 @@ class MusicLibrary extends HTMLElement {
    * @param {String} album
    */
   _displayAlbum(artist, album) {
-    let albumContainer = document.createElement('div');
+    let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
     albumContainer.dataset.album = album['title'];
     albumContainer.classList.add('album');
@@ -232,7 +233,7 @@ class MusicLibrary extends HTMLElement {
    * @param {String} artist
    */
   _displayArtist(artist) {
-    let artistContainer = document.createElement('div');
+    let artistContainer = ce('div');
     artistContainer.dataset.artist = artist;
     artistContainer.classList.add('artist');
     artistContainer.textContent = artist;

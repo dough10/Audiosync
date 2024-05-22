@@ -1,4 +1,4 @@
-import {objectToCSS} from './helpers.js';
+import {objectToCSS, ce} from './helpers.js';
 
 /**
  * progress bar
@@ -41,17 +41,17 @@ class AudioSyncProgress extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    const label = document.createElement('div');
+    const label = ce('div');
     label.classList.add('label');
-    label.appendChild(document.createElement('slot'));
+    label.appendChild(ce('slot'));
 
-    this.bar = document.createElement('div');
+    this.bar = ce('div');
     this.bar.classList.add('bar');
 
-    const wrapper = document.createElement('div');
+    const wrapper = ce('div');
     wrapper.classList.add('wrapper');
     wrapper.appendChild(this.bar);
 

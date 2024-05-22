@@ -1,4 +1,4 @@
-import {qs, sleep, fadeIn, fadeOut, elementHeight, animateHeight} from './helpers.js';
+import {qs, ce, sleep, fadeIn, fadeOut, elementHeight, animateHeight} from './helpers.js';
 
 /**
  * pages
@@ -11,7 +11,7 @@ class AudioSyncPages extends HTMLElement {
     super();
     this.animationTime = 200;
     const shadow = this.attachShadow({mode: "open"});
-    shadow.appendChild(document.createElement('slot'));
+    shadow.appendChild(ce('slot'));
   }
 
   /**

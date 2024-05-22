@@ -3,7 +3,8 @@ import {
   qs,
   svgIcon,
   sleep,
-  objectToCSS
+  objectToCSS,
+  ce
 } from './helpers.js';
 
 /**
@@ -57,20 +58,20 @@ class ScrollElement extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
     // floating action button
-    const fab = document.createElement('audiosync-fab');
+    const fab = ce('audiosync-fab');
     svgIcon("up").then(svg => fab.appendChild(svg));
     fab.onClick(this.animateScroll);
 
     // content body
-    this.content = document.createElement('div');
-    this.content.appendChild(document.createElement('slot'));
+    this.content = ce('div');
+    this.content.appendChild(ce('slot'));
 
     // scrollable content container
-    this.container = document.createElement('div');
+    this.container = ce('div');
     this.container.classList.add('wrapper');
     this.container.onscroll = _ => {
       // no action button on podcasts (animation bug)

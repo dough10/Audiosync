@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, convertToHex, parseCSS, objectToCSS} from './helpers.js';
+import {ce, qs, createRipple, hexToRgba, convertToHex, parseCSS, objectToCSS} from './helpers.js';
 
 class SmallButton extends HTMLElement {
   static get observedAttributes() {
@@ -38,12 +38,12 @@ class SmallButton extends HTMLElement {
       }
     };
 
-    const style = document.createElement('style');
+    const style = ce('style');
     style.textContent = objectToCSS(cssObj);
 
-    this.button = document.createElement('div');
+    this.button = ce('div');
     this.button.classList.add('small-button');
-    this.button.appendChild(document.createElement('slot'));
+    this.button.appendChild(ce('slot'));
     [
       style,
       this.button

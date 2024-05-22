@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, convertToHex, getCSSVariableValue, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
+import {qs, ce, createRipple, hexToRgba, convertToHex, getCSSVariableValue, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
 
 class AudioSyncButton extends HTMLElement {
   static get observedAttributes() {
@@ -10,7 +10,7 @@ class AudioSyncButton extends HTMLElement {
 
     // color higherarchy 
     // color attribute > css '--main-color' variable > white
-    const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--main-color') || '#ffffff');
+    const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--pop-color') || '#ffffff');
     
     // contrasting text color 
     const contrast = getContrastColor(color);
@@ -93,12 +93,12 @@ class AudioSyncButton extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    this.button = document.createElement('div');
+    this.button = ce('div');
     this.button.classList.add('button');
-    this.button.appendChild(document.createElement('slot'));
+    this.button.appendChild(ce('slot'));
     
     [
       sheet,

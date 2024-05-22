@@ -1,4 +1,4 @@
-import {objectToCSS} from './helpers.js';
+import {ce, objectToCSS} from './helpers.js';
 /**
  * application header
  */
@@ -36,17 +36,17 @@ class AudioSyncHeader extends HTMLElement {
       }
     };
 
-    const headerContent = document.createElement('div');
+    const headerContent = ce('div');
     headerContent.classList.add('header-content');
-    headerContent.appendChild(document.createElement('slot'));
+    headerContent.appendChild(ce('slot'));
 
-    const header = document.createElement('header'); 
+    const header = ce('header'); 
     header.appendChild(headerContent);
 
-    const headerShadow = document.createElement('div');
+    const headerShadow = ce('div');
     headerShadow.classList.add('header-shadow')
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
     const shadow = this.attachShadow({mode: "open"});
     [

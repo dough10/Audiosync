@@ -1,4 +1,4 @@
-import {qs, qsa, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS} from './helpers.js';
+import {qs, qsa, ce, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -52,11 +52,11 @@ class AudioSyncPodcasts extends HTMLElement {
     // bind this
     this._resetCheckMarks = this._resetCheckMarks.bind(this);
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
         
     // element to append podcasts to
-    this.container = document.createElement('div');
+    this.container = ce('div');
     this.container.classList.add('container');
 
     this.attachShadow({mode: "open"});
@@ -71,12 +71,12 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   _generateHead() {    
     // wrappper for plus icon
-    const addButton = document.createElement('audiosync-small-button');
+    const addButton = ce('audiosync-small-button');
     svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
     addButton.onClick(_ => this._openAddPodcastDialog());
 
     // refresh button
-    const refresh = document.createElement('audiosync-small-button');
+    const refresh = ce('audiosync-small-button');
     svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
     const menuButtons = [qs('#save'),qs('#update')];
@@ -94,7 +94,7 @@ class AudioSyncPodcasts extends HTMLElement {
     });
 
     // podcast tab header 
-    const head = document.createElement('div');
+    const head = ce('div');
     head.classList.add('head');
     buttons.forEach(el => head.appendChild(el));
     return head;
@@ -121,25 +121,25 @@ class AudioSyncPodcasts extends HTMLElement {
     icon.classList.add('spinning');
     
     // container for animated loading Icon
-    const loader = document.createElement('div');
+    const loader = ce('div');
     loader.classList.add('loading');
     loader.appendChild(icon);
 
     // text input label
-    const label = document.createElement('label');
+    const label = ce('label');
     label.classList.add('form__label');
     label.textContent = 'Podcast XML URL';
     label.setAttribute('for', 'url');
     
     // URL input
-    const input = document.createElement('input');
+    const input = ce('input');
     input.setAttribute('placeholder', 'Podcast XML URL');
     input.type = 'url';
     input.id = 'url';
     input.classList.add('form__field');
     
     // input and label wrapper
-    const group = document.createElement('div');
+    const group = ce('div');
     group.classList.add('form__group');
     [
       input,
@@ -149,7 +149,7 @@ class AudioSyncPodcasts extends HTMLElement {
     // submit / add button
     const buttonContents = fillButton("add", 'add');
 
-    const button = document.createElement('audiosync-button');
+    const button = ce('audiosync-button');
     button.appendChild(buttonContents);
     button.toggleAttribute('disabled');
     
@@ -157,17 +157,17 @@ class AudioSyncPodcasts extends HTMLElement {
     const closeIcon = await svgIcon('close');
     
     // X button
-    const closeButton = document.createElement('audiosync-small-button');
+    const closeButton = ce('audiosync-small-button');
     closeButton.color('red');
     closeButton.appendChild(closeIcon);
     
     // dialog header 
-    const closeWrapper = document.createElement('div');
+    const closeWrapper = ce('div');
     closeWrapper.classList.add('close-wrapper');
     closeWrapper.appendChild(closeButton);
     
     // animated dialog card
-    const dialog = document.createElement('audiosync-dialog');
+    const dialog = ce('audiosync-dialog');
     dialog.setAttribute('small', 1);
     [
       closeWrapper,
@@ -320,12 +320,12 @@ class AudioSyncPodcasts extends HTMLElement {
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
 
       // title of the podcast
-      const podcastTitle = document.createElement('div');
+      const podcastTitle = ce('div');
       podcastTitle.textContent = xmlString.rss.channel.title;
 
       const removeIcon = await svgIcon('close');
 
-      const removeButton = document.createElement('audiosync-small-button');
+      const removeButton = ce('audiosync-small-button');
       removeButton.color('red');
       removeButton.appendChild(removeIcon);
       removeButton.style.opacity = 0;
@@ -337,19 +337,19 @@ class AudioSyncPodcasts extends HTMLElement {
         icon.classList.add('spinning');
         
         // container for animated loading Icon
-        const loader = document.createElement('div');
+        const loader = ce('div');
         loader.classList.add('loading');
         loader.appendChild(icon);
 
-        const text = document.createElement('div');
+        const text = ce('div');
         text.classList.add('delete-notification-text');
         text.textContent = `Unsubscribe from "${podcastTitle.textContent}"?`;
         
-        const dialog = document.createElement('audiosync-dialog');
+        const dialog = ce('audiosync-dialog');
         dialog.setAttribute('small', 1);
 
-        const yes = document.createElement('audiosync-button');
-        const no = document.createElement('audiosync-button');
+        const yes = ce('audiosync-button');
+        const no = ce('audiosync-button');
         const buttons = [yes,no];
 
         const yesContents = fillButton("check", 'yes');
@@ -392,7 +392,7 @@ class AudioSyncPodcasts extends HTMLElement {
       svg.style.opacity = 0;
 
       // wrapper for title and checkmark
-      const wrapper = document.createElement('div');
+      const wrapper = ce('div');
       [
         podcastTitle,
         svg
@@ -414,15 +414,15 @@ class AudioSyncPodcasts extends HTMLElement {
       };
 
       // will be filled with podcast episode filename
-      const title = document.createElement('div');
+      const title = ce('div');
       title.id = 'title';
 
       // download percentage
-      const percent = document.createElement('div');
+      const percent = ce('div');
       percent.id = 'percent';
 
       // file download progress (hidden untill download begins)
-      const bar = document.createElement('audiosync-progress');
+      const bar = ce('audiosync-progress');
       [
         title,
         percent

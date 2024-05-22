@@ -1,8 +1,6 @@
 import {
-  fadeIn,
-  fadeOut,
   objectToCSS,
-  qs
+  ce
 } from './helpers.js';
 
 
@@ -122,16 +120,16 @@ class AudioSyncSwitch extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    this.input = document.createElement('input');
+    this.input = ce('input');
     this.input.type = 'checkbox';
 
-    const span = document.createElement('span');
-    span.appendChild(document.createElement('slot'));
+    const span = ce('span');
+    span.appendChild(ce('slot'));
 
-    const label = document.createElement('label');
+    const label = ce('label');
     label.classList.add('audiosync-switch');
     [
       this.input,

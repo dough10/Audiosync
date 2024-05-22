@@ -1,4 +1,4 @@
-import {qs, createRipple, parseCSS, objectToCSS} from './helpers.js';
+import {qs, ce, createRipple, parseCSS, objectToCSS} from './helpers.js';
 
 /**
  * tabs
@@ -19,12 +19,12 @@ class AudioSyncTabs extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
     const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
-      document.createElement('slot')
+      ce('slot')
     ].forEach(el => shadow.appendChild(el));
     qs('slot', this.shadowRoot).addEventListener('slotchange', this.handleSlotChange.bind(this));
   }

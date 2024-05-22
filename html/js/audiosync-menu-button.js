@@ -1,4 +1,4 @@
-import {qs, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS, convertToHex} from './helpers.js';
+import {qs, ce, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSVariableValue, objectToCSS, convertToHex} from './helpers.js';
 
 class MenuButton extends HTMLElement {
   static get observedAttributes() {
@@ -59,12 +59,12 @@ class MenuButton extends HTMLElement {
       }
     };
 
-    const style = document.createElement('style');
+    const style = ce('style');
     style.textContent = objectToCSS(cssJSON);
 
-    const button = document.createElement('div');
+    const button = ce('div');
     button.classList.add('menu-button');
-    button.appendChild(document.createElement('slot'));
+    button.appendChild(ce('slot'));
     button.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);

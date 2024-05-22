@@ -1,4 +1,4 @@
-import {elementHeight, animateElement, svgIcon, sleep, objectToCSS} from './helpers.js';
+import {ce, elementHeight, animateElement, svgIcon, sleep, objectToCSS} from './helpers.js';
 
 /**
  * application settings drawer
@@ -82,35 +82,35 @@ class AudioSyncSettings extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    const close = document.createElement('audiosync-small-button');
+    const close = ce('audiosync-small-button');
     svgIcon('close').then(svg => close.appendChild(svg));
     close.onClick(async _ => {
       await sleep(200);
       this.close();
     });
 
-    const headerContent = document.createElement('div');
+    const headerContent = ce('div');
     headerContent.classList.add('header-content');
     headerContent.appendChild(close);
     
-    const header = document.createElement('header');
+    const header = ce('header');
     header.appendChild(headerContent);
     
-    const headerShadow = document.createElement('div');
+    const headerShadow = ce('div');
     headerShadow.classList.add('header-shadow');
     
-    const card = document.createElement('div');
+    const card = ce('div');
     card.classList.add('card');
-    card.appendChild(document.createElement('slot'));
+    card.appendChild(ce('slot'));
     
-    const wrapper = document.createElement('div');
+    const wrapper = ce('div');
     wrapper.classList.add('wrapper');
     wrapper.appendChild(card);
     
-    this.drawer = document.createElement('div');
+    this.drawer = ce('div');
     this.drawer.classList.add('settings');
     [
       header,

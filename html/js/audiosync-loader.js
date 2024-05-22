@@ -1,7 +1,7 @@
 import {
   elementHeight,
   animateElement,
-  objectToCSS
+  objectToCSS, ce
 } from './helpers.js';
 
 /**
@@ -31,12 +31,12 @@ class AudioSyncLoader extends HTMLElement {
         "color": "#333333"
       }
     }
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    this.loader = document.createElement('div');
+    this.loader = ce('div');
     this.loader.classList.add('load')
-    this.loader.appendChild(document.createElement('slot'));
+    this.loader.appendChild(ce('slot'));
     
     [
       sheet,

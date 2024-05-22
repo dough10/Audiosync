@@ -1,4 +1,4 @@
-import {qs, fadeIn, fadeOut, animateElement, objectToCSS, parseCSS} from './helpers.js';
+import {qs, ce, fadeIn, fadeOut, animateElement, objectToCSS, parseCSS} from './helpers.js';
 
 /**
  * dialog box 
@@ -48,16 +48,16 @@ class AudioSyncDialog extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
-    this.blocker = document.createElement('div');
+    this.blocker = ce('div');
     this.blocker.id = 'click-blocker';
     this.blocker.classList.add('allow-clicks');
 
-    this.dialog = document.createElement('div');
+    this.dialog = ce('div');
     this.dialog.classList.add('dialog');
-    this.dialog.appendChild(document.createElement('slot'));
+    this.dialog.appendChild(ce('slot'));
     
     this.attachShadow({mode: "open"});
     [

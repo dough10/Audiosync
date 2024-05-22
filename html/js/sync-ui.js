@@ -1,4 +1,4 @@
-import {qs, Toast, sleep, fadeIn, fillButton, objectToCSS} from './helpers.js'
+import {qs, ce, Toast, sleep, fadeIn, fillButton, objectToCSS} from './helpers.js'
 
 /**
  * sync ui 
@@ -32,7 +32,7 @@ class SyncUI extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
     this._closeDialog = this._closeDialog.bind(this);
@@ -43,15 +43,15 @@ class SyncUI extends HTMLElement {
       {id:"playlists", text: "Copying Playlists"}
     ]
 
-    this.output = document.createElement('div');
+    this.output = ce('div');
     this.output.classList.add('console-output');
 
-    this.summary = document.createElement('div');
+    this.summary = ce('div');
     this.summary.classList.add('summary');
     
     const buttonContents = fillButton('close', "close");
     
-    this.button = document.createElement('audiosync-button');
+    this.button = ce('audiosync-button');
     this.button.appendChild(buttonContents);
     this.button.toggleAttribute('disabled');
     this.button.onClick(async _ => {
@@ -59,7 +59,7 @@ class SyncUI extends HTMLElement {
       this._closeDialog();
     });
     
-    this.dialog = document.createElement('audiosync-dialog');
+    this.dialog = ce('audiosync-dialog');
     [
       this.output,
       this._progressBar(bars[0]),
@@ -84,14 +84,14 @@ class SyncUI extends HTMLElement {
    * @returns {HTMLElement} 
    */
   _progressBar(obj) {
-    const label = document.createElement('div');
+    const label = ce('div');
     label.textContent = obj.text;
 
-    const percent = document.createElement('div');
+    const percent = ce('div');
     percent.textContent = '0%';
     percent.id = `${obj.id}-bar-text`;
 
-    const bar = document.createElement('audiosync-progress');
+    const bar = ce('audiosync-progress');
     bar.id = `${obj.id}-bar`;
     [
       label,
@@ -133,7 +133,7 @@ class SyncUI extends HTMLElement {
    * @param {Object} obj
    */
   async syncUpdate(obj) {
-    const div = document.createElement('div');
+    const div = ce('div');
     div.style.opacity = 0;
     div.textContent = obj.text;
     if (!obj.summary) {

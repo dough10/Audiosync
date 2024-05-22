@@ -3,7 +3,8 @@ import {
   fadeIn,
   fadeOut,
   objectToCSS,
-  svgIcon
+  svgIcon, 
+  ce
 } from './helpers.js';
 
 /**
@@ -115,34 +116,34 @@ class AudioSyncMenu extends HTMLElement {
       }
     };
 
-    const sheet = document.createElement('style');
+    const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
     // blocks clicks from background elements
-    this.blocker = document.createElement('div');
+    this.blocker = ce('div');
     this.blocker.id = 'click-blocker';
     this.blocker.classList.add('allow-clicks');
     this.blocker.addEventListener('click', _ => this.close());
 
     //  menu header
-    const headerContent = document.createElement('div');
+    const headerContent = ce('div');
     headerContent.classList.add('header-content');
     
-    const header = document.createElement('header'); 
+    const header = ce('header'); 
     header.appendChild(headerContent);
     
-    const headerShadow = document.createElement('div');
+    const headerShadow = ce('div');
     headerShadow.classList.add('header-shadow')
     
     //  scrollable section 
-    const wrapper = document.createElement('div');
+    const wrapper = ce('div');
     wrapper.classList.add('wrapper');
-    wrapper.appendChild(document.createElement('slot'));
+    wrapper.appendChild(ce('slot'));
     
-    this.foot = document.createElement('div');
+    this.foot = ce('div');
     this.foot.classList.add('menu-foot');
     
-    this.menu = document.createElement('div');
+    this.menu = ce('div');
     this.menu.classList.add('menu');
     [
       header,
@@ -194,10 +195,10 @@ class AudioSyncMenu extends HTMLElement {
     // empty the footer
     this.foot.innerHTML = '';
     
-    const fsText = document.createElement('div');
+    const fsText = ce('div');
     fsText.textContent = `music: ${text}`;
     
-    const dummyButton = document.createElement('div');
+    const dummyButton = ce('div');
     [
       await svgIcon('data'),
       fsText
