@@ -19,59 +19,59 @@ class FloatingActionButton extends HTMLElement {
 
     const cssObj = {
       ".fab": {
-        "overflow": "hidden",
-        "color": contrast,
-        "background": color,
-        "display": "flex",
+        overflow: "hidden",
+        color: contrast,
+        background: color,
+        display: "flex",
         "flex-direction": "column",
         "align-items": "center",
         "justify-content": "center",
         "border-radius": "50%",
         "box-sizing": "border-box",
-        "cursor": "pointer",
-        "height": "56px",
+        cursor: "pointer",
+        height: "56px",
         "min-width": 0,
-        "outline": "none",
-        "padding": "16px",
-        "width": "56px",
+        outline: "none",
+        padding: "16px",
+        width: "56px",
         "-webkit-tap-highlight-color": "transparent",
         "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
-        "position": "fixed",
+        position: "fixed",
         "z-index": 2,
-        "bottom": "20px",
-        "right": "20px",
-        "transition": "background-color 0.45s ease",
-        "transform": "translate3d(0, 0, 0)",
-        "margin": "8px"
+        bottom: "20px",
+        right: "20px",
+        transition: "background-color 0.45s ease",
+        transform: "translate3d(0, 0, 0)",
+        margin: "8px"
       },
       ".fab > *": {
         "pointer-events": "none"
       },
       ".fab:after": {
-        "display": "inline-block",
+        display: "inline-block",
         "z-index": -1,
-        "width": "100%",
-        "height": "100%",
-        "opacity": 0,
+        width: "100%",
+        height: "100%",
+        opacity: 0,
         "border-radius": "50%",
-        "transition": "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
+        transition: "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
         "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
-        "content": " ",
-        "position": "absolute",
-        "top": 0,
-        "left": 0
+        content: " ",
+        position: "absolute",
+        top: 0,
+        left: 0
       },
       ".fab:hover:after": {
-        "opacity": 1
+        opacity: 1
       },
       ".fab:hover:active:after": {
-        "opacity": 0
+        opacity: 0
       },
       ".fab[disabled]": {
-        "background": "rgba(84, 84, 84, 0.4)",
-        "color": "#ffffff",
-        "box-shadow": "none",
-        "cursor": "none",
+        background: "rgba(84, 84, 84, 0.4)",
+        color: "#ffffff",
+        'box-shadow': "none",
+        cursor: "none",
         "pointer-events": "none"
       },
       ".fab[disabled]:active, .fab[disabled]:hover, .fab[disabled]:active:hover": {
@@ -85,16 +85,16 @@ class FloatingActionButton extends HTMLElement {
         "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
       },
       "@keyframes ripple-animation": {
-        "to": {
-          "transform": "scale(4)",
-          "opacity": 0
+        to: {
+          transform: "scale(4)",
+          opacity: 0
         }
       },
       ".ripple-effect": {
-        "position": "absolute",
+        position: "absolute",
         "border-radius": "50%",
-        "background": hexToRgba(contrast),
-        "animation": "ripple-animation 0.7s linear"
+        background: hexToRgba(contrast),
+        animation: "ripple-animation 0.7s linear"
       }
     };
 
@@ -103,7 +103,7 @@ class FloatingActionButton extends HTMLElement {
     
     this.fab = document.createElement('div');
     this.fab.classList.add('fab');
-    this.fab.style.transform = "translateY(88px)";
+    this.fab.style.transform = "translateY(150%)";
     this.fab.appendChild(document.createElement('slot'));
     this.fab.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
@@ -128,7 +128,7 @@ class FloatingActionButton extends HTMLElement {
    * animate action button off screen
    */
   async offScreen() {
-    await animateElement(this.fab, "translateY(88px)", 200);
+    await animateElement(this.fab, "translateY(150%)", 200);
     this.removeAttribute('onScreen');
   }
 
