@@ -878,5 +878,6 @@ export {
   getContrastColor,
   generateRandomString,
   parseCSS,
-  objectToCSS
+  objectToCSS,
+  getIcon
 }
