@@ -232,11 +232,17 @@ class AudioPlayer extends HTMLElement {
     // previous track button 
     const back = ce('audiosync-small-button');
     back.id = 'back';
+    back.style.display = 'none';
     back.appendChild(await svgIcon('previous'));
     back.onClick(_ => {
       if (this.playing <= 0) return;
       // incriment this.playing index
       this.playing--;
+      if (!this.playlist[this.playing - 1]) {
+        back.style.display = 'none';
+      } else {
+        back.style.removeProperty('display');
+      }
       // set src
       this.player.src = this.playlist[this.playing];
       // load and play the file
@@ -268,6 +274,11 @@ class AudioPlayer extends HTMLElement {
       if (this.playing >= this.playlist.length) return;
       // incriment this.playing index
       this.playing++;
+      if (!this.playlist[this.playing + 1]) {
+        next.style.display = 'none';
+      } else {
+        next.style.removeProperty('display');
+      }
       // set src
       this.player.src = this.playlist[this.playing];
       // load and play the file
@@ -302,13 +313,18 @@ class AudioPlayer extends HTMLElement {
       buff,
       progress,
       fsButton,
-      duration,
       info,
+      duration,
       buttonWrapper
     ].forEach(el => bg.appendChild(el));
     return bg;
   }
 
+  /**
+   * opens the album art overlay
+   * 
+   * @returns {void}
+   */
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
     // new background 
@@ -344,6 +360,11 @@ class AudioPlayer extends HTMLElement {
     this.toggleAttribute('fullscreen');
   }
 
+  /**
+   * minimize the album art overlay
+   * 
+   * @returns {void}
+   */
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
@@ -369,24 +390,35 @@ class AudioPlayer extends HTMLElement {
     this.player.play();
   }
 
+  /**
+   * get ID3 info from the given file and updates the UI
+   * 
+   * @param {String} src 
+   */
   ID3(src) {
     const self = this;
-    if (qs('#info', self.shadowRoot)) qs('#info', self.shadowRoot).textContent = 'Loading..';
+    const infoEl = qs('#info', self.shadowRoot);
+    infoEl.textContent = 'Loading..';
     jsmediatags.read(`http://localhost:8000/${src}`, {
       onSuccess: function(tag) {
         self.nowPlaying = tag.tags;
         if (tag.tags.artist === undefined) {
-          qs('#info', self.shadowRoot).textContent = tag.tags.title;
+          infoEl.textContent = tag.tags.title;
           return;
         }
-        qs('#info', self.shadowRoot).textContent = `${tag.tags.artist} - ${tag.tags.title}`;
+        infoEl.textContent = `${tag.tags.artist} - ${tag.tags.title}`;
       },
       onError: function(error) {
-        qs('#info', self.shadowRoot).textContent = 'Error loading data.';
+        infoEl.textContent = 'Error loading data.';
       }
     });
   }
 
+  /**
+   * The browser estimates it can play the media up to its end without stopping for content buffering.
+   * 
+   * @param {Event} ev 
+   */
   _canPlayThrough(ev) {
     // console.log(ev);
   }
@@ -410,6 +442,16 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   _onTime(ev) {
+    if (!this.playlist[this.playing - 1]) {
+      qs('#back', this.shadowRoot).style.display = 'none';
+    } else {
+      qs('#back', this.shadowRoot).style.removeProperty('display');
+    }
+    if (!this.playlist[this.playing + 1]) {
+      qs('#next', this.shadowRoot).style.display = 'none';
+    } else {
+      qs('#next', this.shadowRoot).style.removeProperty('display');
+    }
     const player = ev.target;
     const ct = player.currentTime;
     const mins = Math.floor(ct / 60);
@@ -427,10 +469,15 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   async _onMetaData() {
-    this.ID3(this.playlist[this.playing]);
     await this._showMini();
+    this.ID3(this.playlist[this.playing]);
   }
 
+  /**
+   * The first frame of the media has finished loading.
+   * 
+   * @param {Event} ev 
+   */
   _onLoadedData(ev) {
 
   }
@@ -441,8 +488,10 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onEnd(ev) {
-    if (this.playing >= this.playlist.length) {
-      this._pauseTimeOut()
+    // check if end if playlist
+    if (!this.playlist[this.playing + 1]) {
+      this._pauseTimeOut();
+      return;
     }
     // incriment this.playing index
     this.playing++;
@@ -465,12 +514,16 @@ class AudioPlayer extends HTMLElement {
     }
   }
 
+  /**
+   * close player UI
+   */
   async _pauseTimeOut() {
     await this.minimize();
     const bg = qs('.background', this.shadowRoot);
     await animateElement(bg, 'translateY(100%)', 150);
     bg.remove();
     this.removeAttribute('playing');
+    this.player.src = '';
     this.playlist = [];
     this.playing = 0;
   }
@@ -485,7 +538,7 @@ class AudioPlayer extends HTMLElement {
     // wants to change menu icon when first loading a playlist
     if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
     icon.setAttribute('d', this.playIcon);
-    this._pauseTimer = setTimeout(this._pauseTimeOut, 60000)
+    this._pauseTimer = setTimeout(this._pauseTimeOut, 30000)
   }
 
   /**
