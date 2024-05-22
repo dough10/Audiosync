@@ -103,6 +103,7 @@ class Api:
       if key in config:
         config[key] = value
     save_config()
+    return config
 
   # exit application
   def close(self):
@@ -154,6 +155,9 @@ if __name__ == '__main__':
   server_thread = threading.Thread(target=run_combined_server)
   server_thread.daemon = True
   server_thread.start()
+
+  import time
+  time.sleep(2)
 
   # load UI
   window = webview.create_window('sync.json Creator', frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
