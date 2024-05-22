@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, fadeOut, fadeIn, Timer} from './helpers.js';
+import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, getIcon, fadeOut, fadeIn, parseCSS} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -19,10 +19,11 @@ class AudioPlayer extends HTMLElement {
         bottom: 0,
         left: 0,
         right: 0,
-        height: '110px',
+        height: '72px',
         transform: 'translateY(100%)',
         'background-color': '#ffffff',
-        color: '#333333'
+        color: '#333333',
+        'z-index': 1
       },
       '.button-wrapper': {
         position: 'fixed',
@@ -50,6 +51,7 @@ class AudioPlayer extends HTMLElement {
         transform: 'translateX(-100%)'
       },
       '.click-strip': {
+        "border-bottom": "1px solid rgba(51,51,51,0.05)",
         position: 'absolute',
         top: 0,
         left: 0,
@@ -59,22 +61,74 @@ class AudioPlayer extends HTMLElement {
         cursor: 'pointer'
       },
       svg: {
-        height: '40px',
+        height: '24px',
+        width: '24px'
+      },
+      '#play': {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
+      },
+      '#play > svg': {
+        height:'40px',
         width: '40px'
       },
-      '.big': {
-        height:'80px',
-        width: '80px'
+      '#next': {
+        position: 'fixed',
+        top: '50%',
+        right: '50%',
+        transform: 'translate(-50%, -50%) translateX(85px)'
+      },
+      '#back': {
+        position: 'fixed',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%) translateX(-50px)'
+      },
+      "#duration": {
+        position: 'fixed',
+        bottom: '5px',
+        right: '10px',
+        'font-size': '11px'
+      },
+      '#info': {
+        position: 'fixed',
+        bottom:'5px',
+        left: '10px',
+        'font-size': '11px'
+      },
+      '#expand': {
+        position: 'fixed',
+        left: '20px',
+      },
+      img: {
+        border: "1px solid rgba(51,51,51,0.2)"
       }
     };
 
-    this.showMini = this.showMini.bind(this);
+    // pause timer
+    // hide ui if paused for period of time
+    this._pauseTimer = 0;
 
+    this._nowPlaying = {};
+
+    // cache svg icon data strings
+    getIcon('play').then(svg => this.playIcon = svg.d);
+    getIcon('pause').then(svg => this.pauseIcon = svg.d);
+
+    // bind this
+    this._showMini = this._showMini.bind(this);
+    this._pauseTimeOut = this._pauseTimeOut.bind(this);
+
+    // get stylish
     const styles = ce('style');
     styles.textContent = objectToCSS(cssObj);
 
+    // why we are here after all
     this.player = new Audio();
 
+    // bind all the things
     this.player.onloadedmetadata = this._onMetaData.bind(this);
     this.player.onplay = this._onPlay.bind(this);
     this.player.onplaying = this._onPlaying.bind(this);
@@ -85,15 +139,31 @@ class AudioPlayer extends HTMLElement {
     this.player.onpause = this._onPause.bind(this);
     this.player.onended = this._onEnd.bind(this);
     this.player.oncanplaythrough = this._canPlayThrough.bind(this);
+    this.player.onloadeddata = this._onLoadedData.bind(this);
 
+    // always checking buffered
     setInterval(_ => {
-      const bufferBar = qs('.buffered', this.shadowRoot);
-      if (!this.player.buffered.end) return;
-      const buffered = (this.player.buffered.end(0) / this.player.duration) * 100;
-      if (!bufferBar) return;
-      bufferBar.style.transform = `translateX(-${100 - buffered}%)`;
+      // do nothing if no file is loaded
+      if (!this.player.src) return;
 
-    }, 500);
+      // bar may not exist no mini player created until needed
+      const bufferBar = qs('.buffered', this.shadowRoot);
+      if (!bufferBar) return;
+
+      // buffered data
+      if (this.player.buffered.length > 0) {
+        let buffered = 0;
+        for (let i = 0; i < this.player.buffered.length; i++) {
+            buffered = Math.max(buffered, this.player.buffered.end(i));
+        }
+        const bufferedPercent = (buffered / this.player.duration) * 100;
+        bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
+      } else {
+        bufferBar.style.transform = `translateX(-100%)`;
+      }
+    }, 17);
+
+    // setInterval(_ => console.log(this._nowPlaying),5000)
 
     [
       styles,
@@ -106,11 +176,12 @@ class AudioPlayer extends HTMLElement {
    * 
    * @returns {Promise}
    */
-  async showMini() {
+  async _showMini() {
     if (qs('.background', this.shadowRoot)) return;
     const ui = await this._miniUI();
     this.shadowRoot.appendChild(ui);
     await sleep(20);
+    this.toggleAttribute('playing');
     animateElement(ui, 'translateY(0)', 150);
   }
 
@@ -140,40 +211,48 @@ class AudioPlayer extends HTMLElement {
       const relativeX = e.clientX - rect.left;
       // time in seconds to set player.currentTime
       const newPosition = (relativeX / rect.width) * duration;
-      // location on bar where clicked in %
-      const clickedpercent = (relativeX / rect.width) * 100;
-      // ammount of the track that has buffered
-      const buffered = (this.player.buffered.end(0) / duration) * 100;
-      // do noting if clicked outside buffered area
-      if (clickedpercent > buffered) {
-        return;
-      }
-      // set bar progress
-      progress.style.transform = `translateX(${clickedpercent})`;
       // set time
       this.player.currentTime = newPosition;
     });
 
+    // fullscreen toggle
+    const fsButton = ce('audiosync-small-button');
+    fsButton.id = 'expand';
+    fsButton.appendChild(await svgIcon('expand'));
+    fsButton.onClick(_ => {
+      if (this.hasAttribute('fullscreen')) {
+        this.minimize();
+        animateElement(fsButton, 'rotate(0deg)', 300);
+        return;
+      }
+      this.fullScreen();
+      animateElement(fsButton, 'rotate(180deg)', 300);
+    });
+
     // previous track button 
     const back = ce('audiosync-small-button');
+    back.id = 'back';
     back.appendChild(await svgIcon('previous'));
     back.onClick(_ => {
       if (this.playing <= 0) return;
+      // incriment this.playing index
       this.playing--;
+      // set src
       this.player.src = this.playlist[this.playing];
+      // load and play the file
       this.player.load();
       this.player.play();
     });
 
     // play svg
-    const playSVG = await svgIcon('play');
-    playSVG.classList.add('big');
-
+    const playSVG = await svgIcon('pause');
+    
     // play button
     const play = ce('audiosync-small-button');
     play.id = 'play';
     play.appendChild(playSVG);
     play.onClick(_ => {
+      // toggle playback
       if (this.player.paused) {
         this.player.play();
       } else {
@@ -183,11 +262,15 @@ class AudioPlayer extends HTMLElement {
 
     // next track button
     const next = ce('audiosync-small-button');
+    next.id = 'next';
     next.appendChild(await svgIcon('next'));
     next.onClick(_ => {
       if (this.playing >= this.playlist.length) return;
+      // incriment this.playing index
       this.playing++;
+      // set src
       this.player.src = this.playlist[this.playing];
+      // load and play the file
       this.player.load();
       this.player.play();
     });
@@ -201,6 +284,16 @@ class AudioPlayer extends HTMLElement {
       next
     ].forEach(el => buttonWrapper.appendChild(el));
 
+    // elapsed time
+    const duration = ce('div');
+    duration.id = 'duration';
+    duration.textContent = '0:00';
+
+    // artist / title
+    const info = ce('div');
+    info.id = 'info';
+    info.textContent = 'Loading..'
+
     // mini player UI background
     const bg = ce('div');
     bg.classList.add('background');
@@ -208,9 +301,56 @@ class AudioPlayer extends HTMLElement {
       clickStrip,
       buff,
       progress,
+      fsButton,
+      duration,
+      info,
       buttonWrapper
     ].forEach(el => bg.appendChild(el));
     return bg;
+  }
+
+  async fullScreen() {
+    if (qs('#fbg', this.shadowRoot)) return;
+    // new background 
+    const bg = ce('div');
+    bg.id = 'fbg';
+    // push to dom
+    this.shadowRoot.appendChild(bg);
+    //  clone styles from mini player .background class
+    const bgstyles = parseCSS(qs('style', this.shadowRoot).textContent)['.background'];
+    // unneeded height property
+    delete bgstyles.height;
+    delete bgstyles['z-index'];
+    // apply closned styles
+    for (const property in bgstyles) {
+      bg.style[property] = bgstyles[property];
+    }
+    // shorter then header
+    bg.style.top = '65px';
+    if (this.art) {
+      const img = ce('img');
+      img.src = this.art;
+      img.width = 500;
+      img.height = 500;
+      img.onload = _ => {
+        const thief = new ColorThief();
+        const c = thief.getColor(img);
+        bg.style.backgroundColor = `rgba(${c[0]},${c[1]},${c[2]},0.8)`;
+      };
+      bg.appendChild(img);
+    }
+    await sleep(100);
+    await animateElement(bg, 'translateY(0%)', 300);
+    this.toggleAttribute('fullscreen');
+  }
+
+  async minimize() {
+    const bg = qs('#fbg', this.shadowRoot);
+    if (!bg) return;
+    await animateElement(bg, 'translateY(100%)', 300);
+    await sleep(100);
+    bg.remove();
+    this.removeAttribute('fullscreen');
   }
 
   /**
@@ -219,22 +359,36 @@ class AudioPlayer extends HTMLElement {
    * @param {Array} playlist 
    */
   addPlaylist(playlist) {
+    this.art = `music${playlist.folder}/cover.jpg`;
     this.playlist = [];
     for (let i = 0; i < playlist.tracks.length; i++) {
-      this.playlist.push(`http://localhost:8080${playlist.folder}/${playlist.tracks[i]}`);
+      this.playlist.push(`music${playlist.folder}/${playlist.tracks[i]}`);
     } 
-    // this.playlist = playlist.tracks;
     this.playing = 0;
     this.player.src = this.playlist[this.playing];
-    this.player.load();
+    this.player.play();
   }
 
-  // addTrack(track) {
-  //   this.player.appendChild(track);
-  // }
+  ID3(src) {
+    const self = this;
+    if (qs('#info', self.shadowRoot)) qs('#info', self.shadowRoot).textContent = 'Loading..';
+    jsmediatags.read(`http://localhost:8000/${src}`, {
+      onSuccess: function(tag) {
+        self.nowPlaying = tag.tags;
+        if (tag.tags.artist === undefined) {
+          qs('#info', self.shadowRoot).textContent = tag.tags.title;
+          return;
+        }
+        qs('#info', self.shadowRoot).textContent = `${tag.tags.artist} - ${tag.tags.title}`;
+      },
+      onError: function(error) {
+        qs('#info', self.shadowRoot).textContent = 'Error loading data.';
+      }
+    });
+  }
 
   _canPlayThrough(ev) {
-    console.log(ev);
+    // console.log(ev);
   }
 
   /**
@@ -257,12 +411,14 @@ class AudioPlayer extends HTMLElement {
    */
   _onTime(ev) {
     const player = ev.target;
-    const progress = (player.currentTime / player.duration) * 100;
+    const ct = player.currentTime;
+    const mins = Math.floor(ct / 60);
+    const secs = Math.floor(ct % 60).toString().padStart(2, '0');
+    const progress = (ct / player.duration) * 100;
     const progBar = qs('.progress', this.shadowRoot);
     if (!progBar) return;
+    qs('#duration', this.shadowRoot).textContent = `${mins}:${secs}`;
     progBar.style.transform = `translateX(-${100 - progress}%)`;
-    
-    // console.log();
   }
 
   /**
@@ -270,9 +426,13 @@ class AudioPlayer extends HTMLElement {
    * 
    * @param {Event} ev 
    */
-  async _onMetaData(ev) {
-    await this.showMini();
-    console.log(ev);
+  async _onMetaData() {
+    this.ID3(this.playlist[this.playing]);
+    await this._showMini();
+  }
+
+  _onLoadedData(ev) {
+
   }
 
   /**
@@ -281,8 +441,14 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onEnd(ev) {
+    if (this.playing >= this.playlist.length) {
+      this._pauseTimeOut()
+    }
+    // incriment this.playing index
     this.playing++;
+    // set src
     this.player.src = this.playlist[this.playing];
+    // load and play the file
     this.player.load();
     this.player.play();
   }
@@ -293,22 +459,20 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   async _onPlay() {
-    const t = new Timer('play')
-    const pause = await svgIcon('pause');
-    pause.classList.add('big');
-    pause.style.opacity = 0;
+    if (this._pauseTimer) {
+      clearTimeout(this._pauseTimer);
+      this._pauseTimer = 0;
+    }
+  }
 
-    const button = qs('#play', this.shadowRoot);
-    const oldSVG = qs('svg', button);
-    // abondon this method in favor of directly changing the path.d attribute
-    // pull all icons and hold pause and play in the class to be toggled by _onPlay and _onPause
-    await fadeOut(oldSVG, 50);
-    oldSVG.remove();
-    while (qs('svg', button)) return;
-    button.appendChild(pause);
-    await sleep(20);
-    fadeIn(pause, 50);
-    console.log(t.endString());
+  async _pauseTimeOut() {
+    await this.minimize();
+    const bg = qs('.background', this.shadowRoot);
+    await animateElement(bg, 'translateY(100%)', 150);
+    bg.remove();
+    this.removeAttribute('playing');
+    this.playlist = [];
+    this.playing = 0;
   }
 
   /**
@@ -317,22 +481,11 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   async _onPause() {
-    const t = new Timer('pause')
-    const play = await svgIcon('play');
-    play.classList.add('big');
-    play.style.opacity = 0;
-
-    const button = qs('#play', this.shadowRoot);
-    const oldSVG = qs('svg', button);
-    // abondon this method in favor of directly changing the path.d attribute
-    // pull all icons and hold pause and play in the class to be toggled by _onPlay and _onPause
-    await fadeOut(oldSVG, 50);
-    oldSVG.remove();
-    if (qs('svg', button)) return;
-    button.appendChild(play);
-    await sleep(20);
-    fadeIn(play, 50);
-    console.log(t.endString())
+    const icon = qs('path', qs('#play', this.shadowRoot));
+    // wants to change menu icon when first loading a playlist
+    if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
+    icon.setAttribute('d', this.playIcon);
+    this._pauseTimer = setTimeout(this._pauseTimeOut, 60000)
   }
 
   /**
@@ -341,7 +494,10 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onPlaying(ev) {
-    // console.log(ev, this.player);
+    const icon = qs('path', qs('#play', this.shadowRoot));
+    // wants to change menu icon when first loading a playlist
+    if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
+    icon.setAttribute('d', this.pauseIcon);
   }
 
   /**
@@ -350,7 +506,8 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onStalled(ev) {
-    console.log(ev, this.player);
+    // error notification toast and close player window
+    // console.log(ev, this.player);
   }
 
   /**
@@ -359,7 +516,8 @@ class AudioPlayer extends HTMLElement {
    * @param {*} ev 
    */
   _onWaiting(ev) {
-    console.log(ev, this.player);
+    // some kind of loading animation
+    // console.log(ev, this.player);
   }
 }
 customElements.define('audiosync-player', AudioPlayer);
