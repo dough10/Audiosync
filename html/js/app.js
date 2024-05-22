@@ -73,7 +73,7 @@ import {
     if (!conf.podcast) {
       qs('sync-ui').hideBar('#podcasts-bar');
     }
-    
+
     // reset .lrc UI
     const rm_lrc_el = qs('#remove-lrc');
     if (!conf.import_lyrics) {
@@ -129,7 +129,6 @@ import {
     const ml = qs('music-library');
     await ml.go();
     qs('audiosync-menu').footElement(ml.libSize);
-    console.log(ml.libSize)
 
     // load podcasts from config and generate UI
     await qs('audiosync-podcasts').listPodcasts();
@@ -137,29 +136,6 @@ import {
     // load screen animation
     await sleep(500);
     qs('audiosync-loader').reveal();
-
-    // media player test 
-    await sleep(2000)
-    qs('audiosync-player').addPlaylist({
-      "title": "Random Access Memories",
-      "folder": "/Other/Daft Punk/Random Access Memories",
-      "tracks": [
-        "Daft Punk - Random Access Memories - 01 - Give Life Back to Music.mp3",
-        "Daft Punk - Random Access Memories - 02 - The Game of Love.mp3",
-        "Daft Punk - Random Access Memories - 03 - Giorgio by Moroder.mp3",
-        "Daft Punk - Random Access Memories - 04 - Within.mp3",
-        "Daft Punk - Random Access Memories - 05 - Instant Crush (feat. Julian Casablancas).mp3",
-        "Daft Punk - Random Access Memories - 06 - Lose Yourself to Dance (feat. Pharrell Williams).mp3",
-        "Daft Punk - Random Access Memories - 07 - Touch (feat. Paul Williams).mp3",
-        "Daft Punk - Random Access Memories - 08 - Get Lucky (feat. Pharrell Williams).mp3",
-        "Daft Punk - Random Access Memories - 09 - Beyond.mp3",
-        "Daft Punk - Random Access Memories - 10 - Motherboard.mp3",
-        "Daft Punk - Random Access Memories - 11 - Fragments of Time (feat. Todd Edwards).mp3",
-        "Daft Punk - Random Access Memories - 12 - Doin It Right (feat. Panda Bear).mp3",
-        "Daft Punk - Random Access Memories - 13 - Contact.mp3",
-        "Daft Punk - Random Access Memories - 14 - Horizon.mp3"
-      ]
-    });
   }
 
   /**
