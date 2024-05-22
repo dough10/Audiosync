@@ -53,7 +53,7 @@ function qs(selector, scope) {
  * @param {String} selector
  * @param {Scope} scope
  * 
- * @returns {HTMLElement} 
+ * @returns {Array} 
  */
 function qsa(selector, scope) {
   return (scope || document).querySelectorAll(selector);
