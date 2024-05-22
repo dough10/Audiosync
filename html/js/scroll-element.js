@@ -125,6 +125,10 @@ class ScrollElement extends HTMLElement {
    */
   animateScroll() {
     return new Promise(async resolve => {
+      if (qs('audiosync-player').hasAttribute('fullscreen')) {
+        qs('audiosync-fab', this.shadowRoot).offScreen();
+        return;
+      }
       await sleep(100);
       const maxScrollTop = Math.max(
         this.container.scrollHeight - this.container.clientHeight,
