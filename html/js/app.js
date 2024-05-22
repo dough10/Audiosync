@@ -2,9 +2,12 @@ import {
   Toast,
   animateElement,
   qs,
+  qsa,
   sleep,
   createRipple,
-  alertUser
+  alertUser,
+  fadeIn,
+  fadeOut
 } from './helpers.js';
 
 (_ => {
@@ -70,7 +73,7 @@ import {
     if (!conf.podcast) {
       qs('sync-ui').hideBar('#podcasts-bar');
     }
-
+    
     // reset .lrc UI
     const rm_lrc_el = qs('#remove-lrc');
     if (!conf.import_lyrics) {
@@ -81,10 +84,52 @@ import {
       rm_lrc_el.style.removeProperty('display');
     }
 
+    // when a switch is changed update config & UI
+    qsa('audiosync-switch').forEach(sw => {
+      sw.addEventListener('statechange', async  ev => {
+        const changes = {}
+        if (ev.detail.id === 'cues') {
+          changes['import_cues'] = ev.detail.state;
+        } else if (ev.detail.id === 'lyrics') {
+          changes['import_lyrics'] = ev.detail.state;
+        } else if (ev.detail.id === 'remove-lrc') {
+          changes['remove_lrc_wd'] = ev.detail.state;
+        } else if (ev.detail.id === 'podcast') {
+          changes['podcast'] = ev.detail.state;
+        }
+        const states = await pywebview.api.update_config(changes);
+  
+        // podcasts transfer bar
+        if (!states.podcast) {
+          qs('sync-ui').hideBar('#podcasts-bar');
+        } else {
+          qs('sync-ui').showBar('#podcasts-bar');
+        }
+        
+        //  playlist transfer bar
+        if (!states.import_cues) {
+          qs('sync-ui').hideBar('#playlists-bar');
+        } else {
+          qs('sync-ui').showBar('#playlists-bar');
+        }
+  
+        // reset lyric files switch
+        const el = qs('#remove-lrc');
+        if (!states.import_lyrics) {
+          await fadeOut(el);
+          el.style.display = 'none';
+        } else {
+          el.style.removeProperty('display');
+          fadeIn(el);
+        }
+      });
+    });
+
     // load media library
     const ml = qs('music-library');
     await ml.go();
     qs('audiosync-menu').footElement(ml.libSize);
+    console.log(ml.libSize)
 
     // load podcasts from config and generate UI
     await qs('audiosync-podcasts').listPodcasts();
@@ -92,6 +137,29 @@ import {
     // load screen animation
     await sleep(500);
     qs('audiosync-loader').reveal();
+
+    // media player test 
+    await sleep(2000)
+    qs('audiosync-player').addPlaylist({
+      "title": "Random Access Memories",
+      "folder": "/Other/Daft Punk/Random Access Memories",
+      "tracks": [
+        "Daft Punk - Random Access Memories - 01 - Give Life Back to Music.mp3",
+        "Daft Punk - Random Access Memories - 02 - The Game of Love.mp3",
+        "Daft Punk - Random Access Memories - 03 - Giorgio by Moroder.mp3",
+        "Daft Punk - Random Access Memories - 04 - Within.mp3",
+        "Daft Punk - Random Access Memories - 05 - Instant Crush (feat. Julian Casablancas).mp3",
+        "Daft Punk - Random Access Memories - 06 - Lose Yourself to Dance (feat. Pharrell Williams).mp3",
+        "Daft Punk - Random Access Memories - 07 - Touch (feat. Paul Williams).mp3",
+        "Daft Punk - Random Access Memories - 08 - Get Lucky (feat. Pharrell Williams).mp3",
+        "Daft Punk - Random Access Memories - 09 - Beyond.mp3",
+        "Daft Punk - Random Access Memories - 10 - Motherboard.mp3",
+        "Daft Punk - Random Access Memories - 11 - Fragments of Time (feat. Todd Edwards).mp3",
+        "Daft Punk - Random Access Memories - 12 - Doin It Right (feat. Panda Bear).mp3",
+        "Daft Punk - Random Access Memories - 13 - Contact.mp3",
+        "Daft Punk - Random Access Memories - 14 - Horizon.mp3"
+      ]
+    });
   }
 
   /**
