@@ -250,6 +250,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
     <script type="module" src="./js/audiosync-menu-button.js"></script>
     <script type="module" src="./js/audiosync-fab.js"></script>
     <script type="module" src="./js/audiosync-button.js"></script>
@@ -258,6 +259,7 @@
     <script type="module" src="./js/audiosync-pages.js"></script>
     <script type="module" src="./js/audiosync-podcasts.js"></script>
     <script type="module" src="./js/audiosync-dialog.js"></script>
+    <script type="module" src="./js/audiosync-player.js"></script>
     <script type="module" src="./js/audiosync-progress.js"></script>
     <script type="module" src="./js/audiosync-header.js"></script>
     <script type="module" src="./js/audiosync-loader.js"></script>
@@ -294,7 +296,7 @@
         </svg>
       </audiosync-small-button>
     </audiosync-header>
-
+    
     <!-- hamburger menu -->
     <audiosync-menu>
       <audiosync-menu-button id="save">
@@ -339,6 +341,7 @@
           <audiosync-podcasts style="opacity:0;"></audiosync-podcasts>
         </audiosync-pages>
       </div>
+      <audiosync-player></audiosync-player>
     </scroll-element>
     
     <!-- sync dialog -->
@@ -359,7 +362,7 @@
         Import podcast
       </audiosync-switch>
     </audiosync-settings>
-
+    
     <script type="module" src="./js/app.js"></script>
   </body>
   </html>
