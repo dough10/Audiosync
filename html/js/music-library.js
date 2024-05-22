@@ -113,7 +113,7 @@ class MusicLibrary extends HTMLElement {
     for (const artist in data) {
       this._displayArtist(artist);
       for (let i = 0; i < data[artist].length; i++) {
-        this._displayAlbum(artist, data[artist][i]['title']);
+        this._displayAlbum(artist, data[artist][i]);
       }
     }
   }
@@ -215,10 +215,14 @@ class MusicLibrary extends HTMLElement {
   _displayAlbum(artist, album) {
     let albumContainer = document.createElement('div');
     albumContainer.dataset.artist = artist;
-    albumContainer.dataset.album = album;
+    albumContainer.dataset.album = album['title'];
     albumContainer.classList.add('album');
-    albumContainer.textContent = album;
+    albumContainer.textContent = album['title'];
     albumContainer.addEventListener('click', this._makeSelection);
+    albumContainer.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      qs('audiosync-player').addPlaylist(album);
+    });
     this.content.appendChild(albumContainer);
   }
 
