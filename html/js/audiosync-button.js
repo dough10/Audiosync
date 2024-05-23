@@ -128,6 +128,12 @@ class AudioSyncButton extends HTMLElement {
 
     // defaults to 'document'
     let styleNode = qs('style');
+
+    // for <music-library> initial scan
+    if (qs('style', this.parentNode.parentNode.parentNode)) {
+      styleNode = qs('style', this.parentNode.parentNode.parentNode);
+    }
+
     // for <sync-ui> 
     if (qs('style', this.parentNode.parentNode)) {
       styleNode = qs('style', this.parentNode.parentNode);
