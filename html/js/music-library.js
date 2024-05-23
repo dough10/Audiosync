@@ -9,7 +9,8 @@ import {
   createRipple,
   alertUser,
   objectToCSS,
-  ce
+  ce,
+  fillButton
 } from './helpers.js';
 
 /**
@@ -38,6 +39,10 @@ class MusicLibrary extends HTMLElement {
       },
       "div:first-child": {
         "border-top": "none"
+      },
+      svg: {
+        height: '24px',
+        width:'24px'
       },
       ".artist": {
         position: "relative",
@@ -134,9 +139,11 @@ class MusicLibrary extends HTMLElement {
     ]
     buttons.forEach(id => qs(id).setAttribute('disabled', 1));
       
+    const buttonContents = fillButton('refresh', 'scan music');
+
     // scan library button
     const button = ce('audiosync-button');
-    button.textContent = 'Scan Music';
+    button.appendChild(buttonContents);
     
     // wrapper to place content
     const wrapper = ce('div');
