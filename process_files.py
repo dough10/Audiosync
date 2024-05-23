@@ -107,7 +107,7 @@ def move_file(root, file, ext):
     return
 
   artist_folder = info['artist']
-  album_folder = info['album']
+  album_folder = file_manager.formatFilename(info['album'])
   lrc_artist = info['lrc_artist']
   song_title = info['title']
 
