@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, getIcon} from './helpers.js';
+import {qs, svgIcon, ce, animateElement, objectToCSS, sleep, getIcon, qsa, createRipple} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -6,6 +6,9 @@ class AudioPlayer extends HTMLElement {
 
     this.playlist = [];
     this.lastPlayed = '';
+
+    this.popupHeight = 300;
+    this.popupWidth = 400;
 
     this.attachShadow({mode: "open"});
 
@@ -79,6 +82,30 @@ class AudioPlayer extends HTMLElement {
         height: '5px',
         'z-index': 1,
         cursor: 'pointer'
+      },
+      '.popup': {
+        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',
+        height:`${this.popupHeight}px`,
+        width: `${this.popupWidth}px`,
+        background: 'rgba(255,255,255,0.9)',
+        color: '#333333',
+        'transform-origin': 'bottom right',
+        transform: 'scale3d(0,0,0)',
+        position: 'fixed',
+        'z-index': 1000,
+        'overflow-y': 'auto'
+      },
+      '.popup > div': {
+        cursor: "pointer",
+        padding: '8px',
+        "border-bottom": "1px solid #3333333d"
+      },
+      '.popup > div:hover': {
+        background: 'var(--hover-color)'
+      },
+      '.popup > div[playing]': {
+        background: 'rgba(100, 100, 100, 0.582)',
+        cursor:'auto'
       },
       svg: {
         height: '24px',
@@ -172,7 +199,7 @@ class AudioPlayer extends HTMLElement {
       if (this.player.buffered.length > 0) {
         let buffered = 0;
         for (let i = 0; i < this.player.buffered.length; i++) {
-            buffered = Math.max(buffered, this.player.buffered.end(i));
+          buffered = Math.max(buffered, this.player.buffered.end(i));
         }
         const bufferedPercent = (buffered / this.player.duration) * 100;
         bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
@@ -361,10 +388,43 @@ class AudioPlayer extends HTMLElement {
     bg.id = 'fbg';
     bg.style.backgroundColor = this.palette[1];
 
+    // playlist fab
     const listButton = ce('audiosync-fab');
     listButton.appendChild(await svgIcon('list'));
     listButton.position({bottom: '100px', right: '10px'});
-    listButton.onClick(_ => console.log(this.playlist));
+    listButton.onClick(async ev => {
+      const x = ev.pageX - this.popupWidth;
+      const y = ev.pageY - this.popupHeight;
+      const popup = ce('div');
+      popup.classList.add('popup');
+      popup.style.top = `${y}px`;
+      popup.style.left = `${x}px`;
+      for (let i = 0; i < this.playlist.length; i++) {
+        const div = ce('div');
+        if (this.playing === i) {
+          div.toggleAttribute('playing');
+        }
+        const parts = this.playlist[i].split('/')
+        div.textContent = parts[parts.length - 1];
+        div.addEventListener('click', eve => {
+          createRipple(eve)
+          if (i === this.playing) return;
+          this.playing = i;
+          this.player.src = this.playlist[this.playing];
+          this.player.play();
+        }); 
+        popup.appendChild(div);
+      }
+      this.shadowRoot.appendChild(popup);
+      await sleep(100);
+      animateElement(popup, 'scale3d(1,1,1)', 100);
+      const clicked = async _ => {
+        await animateElement(popup, 'scale3d(0,0,0)', 100);
+        popup.remove();
+      };
+      popup.addEventListener('click', clicked);
+      bg.addEventListener('click', clicked);
+    });
     listButton.setAttribute('color', this.palette[0]);
 
     // push to dom
@@ -389,6 +449,11 @@ class AudioPlayer extends HTMLElement {
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
+    const popup = qs('.popup', this.shadowRoot);
+    if (popup) {
+      await animateElement(popup, 'scale3d(0,0,0)', 100);
+      popup.remove();
+    }
     const fab = qs('audiosync-fab', qs('#fbg', this.shadowRoot));
     await fab.offScreen();
     await animateElement(bg, 'translateY(100%)', 300);
@@ -457,14 +522,15 @@ class AudioPlayer extends HTMLElement {
       const thief = new ColorThief();
       const c = thief.getPalette(img);
       this.palette = [
-        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab color
-        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // background color
+        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab / accent color
+        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // player art background color
       ];
       // set --pop-color elements the new accent color
-      // qs('audiosync-button').setAttribute('color', this.palette[0]);
+      qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
       qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', this.palette[0]);
       qs('audiosync-fab', qs('scroll-element').shadowRoot).setAttribute('color', this.palette[0]);
-      document.documentElement.style.setProperty('--pop-color', this.palette[0]);
+      document.documentElement.style.setProperty('--switch-rgb', `${c[0][0]},${c[0][1]},${c[0][2]}`);
+
       img.remove();
     };
   }
@@ -498,18 +564,25 @@ class AudioPlayer extends HTMLElement {
    */
   _onTime(ev) {
     // hide / show previous button 
-    if (!this.playlist[this.playing - 1]) {
-      qs('#back', this.shadowRoot).style.display = 'none';
-    } else {
-      qs('#back', this.shadowRoot).style.removeProperty('display');
+    const back = qs('#back', this.shadowRoot);
+    if (back) {
+      if (!this.playlist[this.playing - 1]) {
+        back.style.display = 'none';
+      } else {
+        back.style.removeProperty('display');
+      }
     }
 
     // hide / show next button
-    if (!this.playlist[this.playing + 1]) {
-      qs('#next', this.shadowRoot).style.display = 'none';
-    } else {
-      qs('#next', this.shadowRoot).style.removeProperty('display');
+    const next = qs('#next', this.shadowRoot);
+    if (next) {
+      if (!this.playlist[this.playing + 1]) {
+        next.style.display = 'none';
+      } else {
+        next.style.removeProperty('display');
+      }
     }
+
     const player = ev.target;
     const ct = player.currentTime;
     const mins = Math.floor(ct / 60);
