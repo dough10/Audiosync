@@ -24,6 +24,8 @@ class MusicLibrary extends HTMLElement {
     this._makeSelection = this._makeSelection.bind(this);
     this._displayArtist = this._displayArtist.bind(this);
 
+    this._usedChars = [];
+
     const cssObj = {
       "@keyframes ripple-animation": {
         to: {
@@ -78,6 +80,32 @@ class MusicLibrary extends HTMLElement {
         display: "flex",
         "align-items": "center",
         "justify-content": "center"
+      },
+      '.a-z': {
+        border: "1px solid rgba(51,51,51,0.2)",
+        'border-radius': '5px',
+        position: 'fixed',
+        right: '10px',
+        top: '125px',
+        display: 'flex',
+        'flex-direction': 'column',
+        color: '#333333',
+        background: 'rgba(255,255,255,0.5)',
+        transition: 'opacity 0.45s ease',
+        opacity: '0.1'
+      },
+      '.a-z:hover': {
+        opacity:1
+      },
+      '.a-z > a': {
+        color: '#333333',
+        'text-decoration': 'none',
+        padding: '4px'
+      },
+      '.a-z > a:hover': {
+        color: 'var(--pop-color)',
+        'text-decoration': 'underline',
+        cursor: 'pointer'
       }
     };
 
@@ -122,6 +150,29 @@ class MusicLibrary extends HTMLElement {
         this._displayAlbum(artist, data[artist][i]);
       }
     }
+    const alphabet = ce('div');
+    alphabet.classList.add('a-z');
+    this.shadowRoot.appendChild(alphabet);
+    this._usedChars.forEach(char => {
+      const link = ce('a');
+      link.classList.add('letter');
+      if (Number(char)) {
+        link.textContent = '#';
+      } else {
+        link.textContent = char;
+      }
+      alphabet.appendChild(link);
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        let target = '';
+        if (Number(char)) {
+          target = qs(`#number`, this.shadowRoot);
+        } else {
+          target = qs(`#${char}`, this.shadowRoot);
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
   }
 
   /**
@@ -240,12 +291,21 @@ class MusicLibrary extends HTMLElement {
    * @param {String} artist
    */
   _displayArtist(artist) {
+    const firstChar = artist[0];
     let artistContainer = ce('div');
     artistContainer.dataset.artist = artist;
     artistContainer.classList.add('artist');
     artistContainer.textContent = artist;
     artistContainer.addEventListener('click', this._makeSelection);
     this.content.appendChild(artistContainer);
+    if (!this._usedChars.includes(firstChar)) {
+      this._usedChars.push(firstChar);
+      if (Number(firstChar)) {
+        artistContainer.id = 'number';
+        return;
+      }
+      artistContainer.id = firstChar;
+    }
   }
 
   /**
