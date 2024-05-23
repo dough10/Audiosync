@@ -7,8 +7,8 @@ class AudioPlayer extends HTMLElement {
     this.playlist = [];
     this.lastPlayed = '';
 
-    this.popupHeight = 300;
-    this.popupWidth = 400;
+    this.popupHeight = 200;
+    this.popupWidth = 350;
 
     this.attachShadow({mode: "open"});
 
@@ -92,7 +92,6 @@ class AudioPlayer extends HTMLElement {
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
         position: 'fixed',
-        'z-index': 1000,
         'overflow-y': 'auto'
       },
       '.popup > div': {
@@ -202,7 +201,9 @@ class AudioPlayer extends HTMLElement {
           buffered = Math.max(buffered, this.player.buffered.end(i));
         }
         const bufferedPercent = (buffered / this.player.duration) * 100;
-        bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
+        requestAnimationFrame(_ => {
+          bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
+        });
       } else {
         bufferBar.style.transform = `translateX(-100%)`;
       }
@@ -281,11 +282,17 @@ class AudioPlayer extends HTMLElement {
       if (this.playing <= 0) return;
       // incriment this.playing index
       this.playing--;
+
+      // toggle button display
       if (!this.playlist[this.playing - 1]) {
         back.style.display = 'none';
       } else {
         back.style.removeProperty('display');
       }
+
+      // update playlist UI 
+      this._updatePlaylistUI();
+
       // set src
       this.player.src = this.playlist[this.playing];
       // load and play the file
@@ -317,11 +324,17 @@ class AudioPlayer extends HTMLElement {
       if (this.playing >= this.playlist.length) return;
       // incriment this.playing index
       this.playing++;
+
+      // toggle button display
       if (!this.playlist[this.playing + 1]) {
         next.style.display = 'none';
       } else {
         next.style.removeProperty('display');
       }
+
+      // update playlist UI 
+      this._updatePlaylistUI();
+
       // set src
       this.player.src = this.playlist[this.playing];
       // load and play the file
@@ -397,7 +410,7 @@ class AudioPlayer extends HTMLElement {
       const y = ev.pageY - this.popupHeight;
       const popup = ce('div');
       popup.classList.add('popup');
-      popup.style.top = `${y}px`;
+      popup.style.top = `${y - 65}px`;
       popup.style.left = `${x}px`;
       for (let i = 0; i < this.playlist.length; i++) {
         const div = ce('div');
@@ -415,7 +428,7 @@ class AudioPlayer extends HTMLElement {
         }); 
         popup.appendChild(div);
       }
-      this.shadowRoot.appendChild(popup);
+      bg.appendChild(popup);
       await sleep(100);
       animateElement(popup, 'scale3d(1,1,1)', 100);
       const clicked = async _ => {
@@ -451,7 +464,7 @@ class AudioPlayer extends HTMLElement {
     if (!bg) return;
     const popup = qs('.popup', this.shadowRoot);
     if (popup) {
-      await animateElement(popup, 'scale3d(0,0,0)', 100);
+      await animateElement(popup, 'scale3d(0,0,0)', 50);
       popup.remove();
     }
     const fab = qs('audiosync-fab', qs('#fbg', this.shadowRoot));
@@ -475,7 +488,7 @@ class AudioPlayer extends HTMLElement {
     // clear playlist and add given tracks
     this.playlist = [];
     for (let i = 0; i < playlist.tracks.length; i++) {
-      this.playlist.push(`music${folder}/${playlist.tracks[i]}`);
+      this.playlist.push(`music/${playlist.tracks[i].path.replace(/\\/g, '/')}`);
     }
     // reset index
     this.playing = 0;
@@ -504,9 +517,19 @@ class AudioPlayer extends HTMLElement {
         infoEl.textContent = `${tag.tags.artist} - ${tag.tags.title}`;
       },
       onError: function(error) {
+        console.error(error);
         infoEl.textContent = 'Error loading data.';
       }
     });
+  }
+
+  async _updatePlaylistUI() {
+    const popup = qs('.popup', this.shadowRoot);
+    if (!popup) return;
+    const divs = qsa('div', popup);
+    divs.forEach(div => div.removeAttribute('playing'));
+    await sleep(100);
+    divs[this.playing].toggleAttribute('playing');
   }
 
   /**
@@ -626,6 +649,10 @@ class AudioPlayer extends HTMLElement {
     }
     // incriment this.playing index
     this.playing++;
+
+    // update playlist UI 
+    this._updatePlaylistUI();
+
     // set src
     this.player.src = this.playlist[this.playing];
     // load and play the file
