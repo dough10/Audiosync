@@ -12,11 +12,18 @@ import {
 } from './helpers.js';
 
 (_ => {
+  let _loadTimer = 0
+
 
   /**
    * setup listeners and fetch data
    */
   async function load_app() {
+
+    if (_loadTimer) {
+      clearTimeout(_loadTimer);
+      _loadTimer = 0;
+    }
 
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
@@ -145,6 +152,9 @@ import {
    * application loaded begin startup
    */
   window.addEventListener('pywebviewready', load_app);
+
+  // sometimes the previous ever doesn't fire
+  _loadTimer = setTimeout(load_app, 2000);
 
   window.onerror = async function(message, source, lineno, colno, error) {
     console.error('Error:', message, 'at', source, 'line:', lineno, 'column:', colno);
