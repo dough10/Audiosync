@@ -7,7 +7,8 @@ import {
   createRipple,
   alertUser,
   fadeIn,
-  fadeOut
+  fadeOut,
+  getCSSVariableValue
 } from './helpers.js';
 
 (_ => {
@@ -73,6 +74,8 @@ import {
     if (!conf.podcast) {
       qs('sync-ui').hideBar('#podcasts-bar');
     }
+
+    qsa('audiosync-menu-button').forEach(button => button.iconColor(getCSSVariableValue('--pop-color')));
 
     // reset .lrc UI
     const rm_lrc_el = qs('#remove-lrc');
