@@ -48,7 +48,7 @@ pl_manager = Playlist_manager(changes)
 def is_ignored(source_file):
   return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
 
-def add_to_lib(artist, album, location, file, title):
+def add_to_lib(artist, album, location, file, title, track, disc):
   if artist not in lib_data:
     lib_data[artist] = []
 
@@ -56,13 +56,13 @@ def add_to_lib(artist, album, location, file, title):
   album_exists = False
   for alb in lib_data[artist]:
     if alb['title'] == album:
-      alb['tracks'].append({'path': os.path.join(location,file),'title': title})
+      alb['tracks'].append({'path': os.path.join(location,file), 'artist': artist, 'title': title, 'track': track, 'disc': disc})
       album_exists = True
       break
 
   # If the album does not exist, create a new entry
   if not album_exists:
-      lib_data[artist].append({'title': album, 'artist':artist, 'folder': location, 'tracks': [{'path': os.path.join(location,file),'title': title}]})
+      lib_data[artist].append({'title': album, 'artist':artist, 'folder': location, 'tracks': [{'path': os.path.join(location,file), 'artist': artist, 'title': title, 'track': track, 'disc': disc}]})
 
 def move_file(root, file, ext):
   """
@@ -112,7 +112,7 @@ def move_file(root, file, ext):
   song_title = info['title']
 
   # build data dictonary of artists and albums
-  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file, song_title)
+  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file, song_title, info['disc'], info['track'])
 
   # early return if artist or album isn't listed in sync file
   if use_sync_file:
@@ -373,7 +373,11 @@ def build_lib(root, file, ext):
     return
   if not os.path.exists(jpg):
     return
-  add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'])
+  add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
+  # sort tracks by disc then track number
+  for artist in lib_data:
+    for album in lib_data[artist]:
+      album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
 
 def create_lib_json(window):
   global lib_data
