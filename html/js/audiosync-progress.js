@@ -9,35 +9,37 @@ class AudioSyncProgress extends HTMLElement {
   }
   constructor() {
     super();
-
+    
+    this.attachShadow({mode: "open"});
+ 
     this.lastRan = 0;
 
     const cssObj = {
       ".label": {
-        "display": "flex",
+        display: "flex",
         "justify-content": "space-between",
         "align-items": "center",
         "max-width": "600px"
       },
       ".wrapper": {
-        "position": "relative",
-        "height": "12px",
-        "width": "100%",
+        position: "relative",
+        height: "12px",
+        width: "100%",
         "background-color": "var(--background-color)",
         "margin-top": "4px",
         "margin-bottom": "4px",
-        "border": "1px solid rgb(51 51 51 / 10%)",
-        "overflow": "hidden",
+        border: "1px solid rgb(51 51 51 / 10%)",
+        overflow: "hidden",
         "max-width": "600px"
       },
       ".bar": {
-        "position": "absolute",
-        "top": 0,
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "background-color": "var(--main-color)",
-        "transform": "translateX(-100%)"
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        "background-color": "var(--pop-color)",
+        transform: "translateX(-100%)"
       }
     };
 
@@ -55,12 +57,11 @@ class AudioSyncProgress extends HTMLElement {
     wrapper.classList.add('wrapper');
     wrapper.appendChild(this.bar);
 
-    const shadow = this.attachShadow({mode: "open"});
     [
       sheet,
       label,
       wrapper
-    ].forEach(el => shadow.appendChild(el));
+    ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
   connectedCallback() {

@@ -67,7 +67,7 @@ class AudioPlayer extends HTMLElement {
         left: 0,
         right: 0,
         position: 'absolute',
-        'background-color': 'var(--main-color)',
+        'background-color': 'var(--pop-color)',
         transform: 'translateX(-100%)'
       },
       '.click-strip': {
@@ -406,18 +406,7 @@ class AudioPlayer extends HTMLElement {
     // art url
     const folder = playlist.folder.replace(/\\/g, '/');
     this.art = `music${folder}/cover.jpg`;
-    // cache image & color;
-    const img = ce('img');
-    img.src = this.art;
-    img.onload = _ => {
-      const thief = new ColorThief();
-      const c = thief.getPalette(img);
-      this.palette = [
-        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab color
-        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // background color
-      ];
-      img.remove();
-    };
+    this._cacheImage(this.art);
     // clear playlist and add given tracks
     this.playlist = [];
     for (let i = 0; i < playlist.tracks.length; i++) {
@@ -456,6 +445,31 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * fetches an image and gets a palette from the image to use later
+   * 
+   * @param {String} url 
+   */
+  _cacheImage(url) {
+    // cache image & color;
+    const img = ce('img');
+    img.src = url;
+    img.onload = _ => {
+      const thief = new ColorThief();
+      const c = thief.getPalette(img);
+      this.palette = [
+        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab color
+        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // background color
+      ];
+      // set --pop-color elements the new accent color
+      // qs('audiosync-button').setAttribute('color', this.palette[0]);
+      qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', this.palette[0]);
+      qs('audiosync-fab', qs('scroll-element').shadowRoot).setAttribute('color', this.palette[0]);
+      document.documentElement.style.setProperty('--pop-color', this.palette[0]);
+      img.remove();
+    };
+  }
+
+  /**
    * The browser estimates it can play the media up to its end without stopping for content buffering.
    * 
    * @param {Event} ev 
@@ -483,11 +497,14 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   _onTime(ev) {
+    // hide / show previous button 
     if (!this.playlist[this.playing - 1]) {
       qs('#back', this.shadowRoot).style.display = 'none';
     } else {
       qs('#back', this.shadowRoot).style.removeProperty('display');
     }
+
+    // hide / show next button
     if (!this.playlist[this.playing + 1]) {
       qs('#next', this.shadowRoot).style.display = 'none';
     } else {
