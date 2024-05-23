@@ -47,10 +47,11 @@ class AudioSyncLoader extends HTMLElement {
   async reveal() {
     // reveals the app interface
     await animateElement(this.loader, `translateY(-${elementHeight(this.loader)}px) `, 350);
-    // fixes any height issues when resizing the window
-    window.addEventListener('resize', _ => {
-      this.loader.style.transform = `translateY(-${elementHeight(this.loader)}px)`;
-    });
+    this.remove();
+    // // fixes any height issues when resizing the window
+    // window.addEventListener('resize', _ => {
+    //   this.loader.style.transform = `translateY(-${elementHeight(this.loader)}px)`;
+    // });
   }
 }
 customElements.define('audiosync-loader', AudioSyncLoader);
