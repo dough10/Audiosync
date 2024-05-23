@@ -21,98 +21,99 @@ class AudioSyncMenu extends HTMLElement {
     const cssObj = {
       ".allow-clicks": {
         "pointer-events": "none",
-        "display": "none"
+        display: "none"
       },
       "#click-blocker": {
-        "position": "absolute",
-        "top": 0,
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
         "background-color": "rgba(0, 0, 0, 0.2)",
         "pointer-events": "all",
         "z-index": 1
       },
       ".wrapper": {
-        "position": "fixed",
+        position: "fixed",
         "will-change": "auto",
-        "top": "128px",
-        "left": 0,
-        "right": 0,
-        "height": "595px",
-        "overflow": "auto",
+        top: "128px",
+        left: 0,
+        right: 0,
+        height: "595px",
+        overflow: "auto",
         "overflow-x": "hidden",
-        "padding": "0px",
+        padding: "0px",
         "-webkit-overflow-scrolling": "touch",
         "text-align": "center"
       },
       "header": {
-        "position": "absolute",
-        "top": 0,
-        "left": 0,
-        "right": 0,
-        "height": "128px",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        height: "128px",
         "background-color": "var(--main-color)",
-        "color": "var(--text-color)",
+        color: "var(--text-color)",
         "will-change": "auto"
       },
       ".header-content": {
-        "padding": "12px",
-        "display": "flex",
+        padding: "12px",
+        display: "flex",
         "justify-content": "space-between",
         "align-items": "center"
       },
       ".header-shadow": {
-        "height": "6px",
+        height: "6px",
         "box-shadow": "inset 0px 5px 6px -3px rgba(0,0,0,0.4)",
-        "position": "absolute",
+        position: "absolute",
         "will-change": "auto",
-        "top": "128px",
-        "left": 0,
-        "right": 0,
+        top: "128px",
+        left: 0,
+        right: 0,
         "pointer-events": "none",
         "z-index": 1
       },
       ".menu": {
-        "position": "absolute",
-        "top": 0,
-        "bottom": 0,
-        "left": 0,
-        "width": "300px",
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        width: "300px",
         "background-color": "#ffffff",
-        "color": "var(--text-color)",
+        color: "var(--text-color)",
         "z-index": 2,
-        "transform": "translateX(-320px)",
+        transform: "translateX(-320px)",
         "box-shadow": "10px 0 0px rgba(0, 1, 0, 0.1)"
       },
       ".menu-foot": {
-        "bottom": 0,
-        "left": 0,
-        "right": 0,
-        "position": "absolute"
+        bottom: 0,
+        left: 0,
+        right: 0,
+        position: "absolute"
       },
       ".menu-button": {
-        "padding": "12px",
-        "display": "flex",
-        "color": "#333333",
+        padding: "12px",
+        display: "flex",
+        color: "#333333",
         "justify-content": "space-between",
         "align-items": "center",
         "font-size": "16px",
         "border-top": "1px solid #3333333d",
-        "position": "relative",
-        "overflow": "hidden"
+        position: "relative",
+        overflow: "hidden"
       },
       ".menu-button div": {
-        "width": "100%",
-        "display": "flex",
+        width: "100%",
+        display: "flex",
         "justify-content": "center",
         "align-items": "center",
         "text-transform": "uppercase"
       },
-      "svg": {
-        "width": "24px",
-        "height": "24px",
-        "display": "flex"
+      svg: {
+        width: "24px",
+        height: "24px",
+        display: "flex",
+        color: 'var(--pop-color)'
       }
     };
 
@@ -198,9 +199,11 @@ class AudioSyncMenu extends HTMLElement {
     const fsText = ce('div');
     fsText.textContent = `music: ${text}`;
     
+    const icon = await svgIcon('data');
+
     const dummyButton = ce('div');
     [
-      await svgIcon('data'),
+      icon,
       fsText
     ].forEach(el => dummyButton.appendChild(el));
     dummyButton.classList.add('menu-button');
