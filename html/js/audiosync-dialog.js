@@ -42,7 +42,7 @@ class AudioSyncDialog extends HTMLElement {
       },
       ".small": {
         top: "300px",
-        bottom: "300px",
+        bottom: "290px",
         left: "100px",
         right: "100px"
       }
