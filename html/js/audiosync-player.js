@@ -294,7 +294,7 @@ class AudioPlayer extends HTMLElement {
 
       // set src
       qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-      this.player.src = `music/${this.playlist[this.playing].path}`;
+      this.player.src = `music${this.playlist[this.playing].path}`;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -337,7 +337,7 @@ class AudioPlayer extends HTMLElement {
 
       // set src
       qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-      this.player.src = `music/${this.playlist[this.playing].path}`;
+      this.player.src = `music${this.playlist[this.playing].path}`;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -426,7 +426,7 @@ class AudioPlayer extends HTMLElement {
           this.playing = i;
           this._updatePlaylistUI();
           qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-          this.player.src = `music/${this.playlist[this.playing].path}`;
+          this.player.src = `music${this.playlist[this.playing].path}`;
           this.player.play();
         }); 
         popup.appendChild(div);
@@ -497,7 +497,7 @@ class AudioPlayer extends HTMLElement {
     if (!this.playlist.length) return;
     // load URL
     if (qs('#info', this.shadowRoot)) qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-    this.player.src = `music/${this.playlist[this.playing].path}`;
+    this.player.src = `music${this.playlist[this.playing].path}`;
     this.player.play();
   }
 
@@ -644,7 +644,7 @@ class AudioPlayer extends HTMLElement {
 
     // set src
     qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-    this.player.src = `music/${this.playlist[this.playing].path}`;
+    this.player.src = `music${this.playlist[this.playing].path}`;
     // load and play the file
     this.player.load();
     this.player.play();
