@@ -263,7 +263,22 @@ class Playlist_manager:
     except KeyError:
       title = os.path.splitext(file)[0]
 
-    return {'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+
+    track = int(flac['tracknumber'][0])
+    if 'discnumber' in flac:
+      try:
+        disc = int(flac['discnumber'][0])
+      except ValueError:
+        if flac['discnumber'][0] == '1/1':
+          disc = 1
+        else:
+          print(f'error processing {file} disc # {disc} using standby disc 1')
+          disc = 1
+    else:
+      disc = 1
+
+
+    return {'track': track, 'disc': disc, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
 
   def get_mp3_info(self, source_file, file, jpg):
     id3 = MP3.load_file(source_file)
@@ -295,6 +310,12 @@ class Playlist_manager:
     except KeyError:
       title = str(os.path.splitext(file)[0])
 
+    # ID3 track number  
+    track_number = int(id3['tracknumber'])
+
+    #ID3 disc number
+    disc_number = int(id3['discnumber'])
+
     # attempt to extract art from mp3 file if it doesn't exist
     if not os.path.exists(jpg):
       try:
@@ -304,7 +325,7 @@ class Playlist_manager:
       except Exception as e:
         pass
     
-    return {'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+    return {'track': track_number, 'disc': disc_number, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
   
   def create_cue_files(self, folder, window):
     """
