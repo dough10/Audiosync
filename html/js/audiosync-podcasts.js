@@ -1,4 +1,4 @@
-import {qs, qsa, ce, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS} from './helpers.js';
+import {qs, qsa, ce, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS, getCSSVariableValue} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -355,7 +355,7 @@ class AudioSyncPodcasts extends HTMLElement {
         const yesContents = fillButton("check", 'yes');
 
         yes.appendChild(yesContents);
-        yes.setAttribute('color', 'red');
+        yes.setAttribute('color', getCSSVariableValue('--pop-color'));
         yes.toggleAttribute('noshadow');
         yes.onClick(async e => {
           await sleep(200);
