@@ -1,4 +1,3 @@
-import re
 import os
 import glob
 from PIL import Image
@@ -10,10 +9,6 @@ from mutagen.flac import FLAC
 from lib.log import need_attention, log
 from lib.file_manager import File_manager
 from lib.new_files import list_of_new_files
-
-# def strip_album_name(album):
-#   filtered_text = [re.split(r"[\(\[\{].*?[\)\]\}]", album)[0].strip()]
-#   return ''.join(filtered_text)
 
 def scale_image(img, file):
   """
@@ -227,7 +222,10 @@ class Playlist_manager:
     with open(playlist_path, 'w') as playlist:
       for file in tqdm(new_files, desc='Creating new files playlist', unit='file'):
         # create relative paths
-        playlist.write(f'{os.path.join('..', file.replace(dir, ''))}\n')
+        try:
+          playlist.write(f'{os.path.join('..', file.replace(dir, ''))}\n')
+        except:
+          print(file)
 
     log(f'M3U file generated at {playlist_path}')
     self.changes["playlist_created"] += 1
