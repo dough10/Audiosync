@@ -34,7 +34,7 @@ class AudioPlayer extends HTMLElement {
         'flex-direction': 'row',
         'justify-content': 'center',
         'align-items': "center",
-        bottom: 0,
+        bottom: '72px',
         left: 0,
         right: 0,
         top: '65px',
@@ -45,8 +45,7 @@ class AudioPlayer extends HTMLElement {
       '#fbg > img': {
         'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',        
         border: "4px solid rgba(51,51,51,0.2)",
-        background: 'rgba(51,51,51,0.2)',
-        transform: 'translateY(-30px)'
+        background: 'rgba(51,51,51,0.2)'
       },
       '.button-wrapper': {
         position: 'fixed',
@@ -207,7 +206,7 @@ class AudioPlayer extends HTMLElement {
       } else {
         bufferBar.style.transform = `translateX(-100%)`;
       }
-    }, 17);
+    }, 100);
 
     [
       styles,
@@ -294,7 +293,8 @@ class AudioPlayer extends HTMLElement {
       this._updatePlaylistUI();
 
       // set src
-      this.player.src = this.playlist[this.playing];
+      qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+      this.player.src = `music/${this.playlist[this.playing].path}`;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -336,7 +336,8 @@ class AudioPlayer extends HTMLElement {
       this._updatePlaylistUI();
 
       // set src
-      this.player.src = this.playlist[this.playing];
+      qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+      this.player.src = `music/${this.playlist[this.playing].path}`;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -359,7 +360,7 @@ class AudioPlayer extends HTMLElement {
     // artist / title
     const info = ce('div');
     info.id = 'info';
-    info.textContent = 'Loading..'
+    info.textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
 
     // mini player UI background
     const bg = ce('div');
@@ -404,8 +405,9 @@ class AudioPlayer extends HTMLElement {
     // playlist fab
     const listButton = ce('audiosync-fab');
     listButton.appendChild(await svgIcon('list'));
-    listButton.position({bottom: '100px', right: '10px'});
+    listButton.position({bottom: '30px', right: '10px'});
     listButton.onClick(async ev => {
+      if (qs('.popup', this.shadowRoot)) return;
       const x = ev.pageX - this.popupWidth;
       const y = ev.pageY - this.popupHeight;
       const popup = ce('div');
@@ -417,13 +419,14 @@ class AudioPlayer extends HTMLElement {
         if (this.playing === i) {
           div.toggleAttribute('playing');
         }
-        const parts = this.playlist[i].split('/')
-        div.textContent = parts[parts.length - 1];
+        div.textContent = `(${this.playlist[i].track}) ${this.playlist[i].artist} - ${this.playlist[i].title}`;
         div.addEventListener('click', eve => {
-          createRipple(eve)
           if (i === this.playing) return;
+          createRipple(eve)
           this.playing = i;
-          this.player.src = this.playlist[this.playing];
+          this._updatePlaylistUI();
+          qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+          this.player.src = `music/${this.playlist[this.playing].path}`;
           this.player.play();
         }); 
         popup.appendChild(div);
@@ -435,8 +438,11 @@ class AudioPlayer extends HTMLElement {
         await animateElement(popup, 'scale3d(0,0,0)', 100);
         popup.remove();
       };
-      popup.addEventListener('click', clicked);
+      popup.addEventListener('mouseleave', clicked);
       bg.addEventListener('click', clicked);
+      await sleep(50);
+      const playing = qs('div[playing]', popup);
+      playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
     listButton.setAttribute('color', this.palette[0]);
 
@@ -485,42 +491,14 @@ class AudioPlayer extends HTMLElement {
     const folder = playlist.folder.replace(/\\/g, '/');
     this.art = `music${folder}/cover.jpg`;
     this._cacheImage(this.art);
-    // clear playlist and add given tracks
-    this.playlist = [];
-    for (let i = 0; i < playlist.tracks.length; i++) {
-      this.playlist.push(`music/${playlist.tracks[i].path.replace(/\\/g, '/')}`);
-    }
+    this.playlist = playlist.tracks;
     // reset index
     this.playing = 0;
     if (!this.playlist.length) return;
     // load URL
-    this.player.src = this.playlist[this.playing];
+    if (qs('#info', this.shadowRoot)) qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+    this.player.src = `music/${this.playlist[this.playing].path}`;
     this.player.play();
-  }
-
-  /**
-   * get ID3 info from the given file and updates the UI
-   * 
-   * @param {String} src 
-   */
-  ID3(src) {
-    const self = this;
-    const infoEl = qs('#info', self.shadowRoot);
-    infoEl.textContent = 'Loading..';
-    jsmediatags.read(`http://localhost:8000/${src}`, {
-      onSuccess: function(tag) {
-        self.nowPlaying = tag.tags;
-        if (tag.tags.artist === undefined) {
-          infoEl.textContent = tag.tags.title;
-          return;
-        }
-        infoEl.textContent = `${tag.tags.artist} - ${tag.tags.title}`;
-      },
-      onError: function(error) {
-        console.error(error);
-        infoEl.textContent = 'Error loading data.';
-      }
-    });
   }
 
   async _updatePlaylistUI() {
@@ -548,13 +526,25 @@ class AudioPlayer extends HTMLElement {
         `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab / accent color
         `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // player art background color
       ];
+
+
       // set --pop-color elements the new accent color
-      qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
+      let luminance = (0.2126 * c[0][0] + 0.7152 * c[0][1] + 0.0722 * c[0][2]) / 255;
+
+      // if to white use contrasting color
+      if (luminance > 0.8) {
+        qsa('audiosync-menu-button').forEach(button => button.iconColor('#333333'));
+        document.documentElement.style.setProperty('--switch-rgb', `51,51,51`);
+      } else {
+        document.documentElement.style.setProperty('--switch-rgb', `${c[0][0]},${c[0][1]},${c[0][2]}`);
+        qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
+      }
       qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', this.palette[0]);
       qs('audiosync-fab', qs('scroll-element').shadowRoot).setAttribute('color', this.palette[0]);
-      document.documentElement.style.setProperty('--switch-rgb', `${c[0][0]},${c[0][1]},${c[0][2]}`);
 
+      // destroy img element.  URL cached additional <img> elements with this url should load instant
       img.remove();
+      // maybe im wrong /shrug it seems to work
     };
   }
 
@@ -624,7 +614,6 @@ class AudioPlayer extends HTMLElement {
    */
   async _onMetaData() {
     await this._showMini();
-    this.ID3(this.playlist[this.playing]);
   }
 
   /**
@@ -654,7 +643,8 @@ class AudioPlayer extends HTMLElement {
     this._updatePlaylistUI();
 
     // set src
-    this.player.src = this.playlist[this.playing];
+    qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+    this.player.src = `music/${this.playlist[this.playing].path}`;
     // load and play the file
     this.player.load();
     this.player.play();
