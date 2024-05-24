@@ -112,7 +112,7 @@ def move_file(root, file, ext):
   song_title = info['title']
 
   # build data dictonary of artists and albums
-  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file, song_title, info['disc'], info['track'])
+  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file, song_title, info['track'], info['disc'])
 
   # early return if artist or album isn't listed in sync file
   if use_sync_file:
@@ -317,6 +317,11 @@ def run_sync(window):
   }, window)
   process_audio_files(window)
 
+  # sort tracks by disc then track number
+  for artist in lib_data:
+    for album in lib_data[artist]:
+      album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
+
   # write data file of all artists and albums
   sorted_data = dict(sorted(lib_data.items()))
   sorted_data['lib_size'] = fs_queue.get()
@@ -374,10 +379,6 @@ def build_lib(root, file, ext):
   if not os.path.exists(jpg):
     return
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
-  # sort tracks by disc then track number
-  for artist in lib_data:
-    for album in lib_data[artist]:
-      album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
 
 def create_lib_json(window):
   global lib_data
@@ -390,6 +391,12 @@ def create_lib_json(window):
     build_lib(file['root'], file['file'], file['ext'])
     if window:
       window.evaluate_js(f'document.querySelector("music-library").updateBar({ndx}, {length});')   
+  
+  # sort tracks by disc then track number
+  for artist in lib_data:
+    for album in lib_data[artist]:
+      album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
+  
   sorted_data = dict(sorted(lib_data.items()))
   sorted_data['lib_size'] = fs_queue.get()
   with open(os.path.join(script_folder, 'lib_data.json'), 'w') as data_file:
