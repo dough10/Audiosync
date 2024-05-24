@@ -9,9 +9,9 @@ class SyncUI extends HTMLElement {
 
     const cssObj = {
       ".console-output": {
-        "height": "150px",
+        height: "150px",
         "font-size": "15px",
-        "display": "flex",
+        display: "flex",
         "flex-direction": "column",
         "justify-content": "flex-end",
         "margin-top": "8px",
@@ -23,12 +23,12 @@ class SyncUI extends HTMLElement {
       ".summary": {
         "margin-top": "16px",
         "margin-bottom": "24px",
-        "height": "50px",
+        height: "50px",
         "font-size": "16px"
       },
-      "svg": {
-        "height": "24px",
-        "width": "24px"
+      svg: {
+        height: "24px",
+        width: "24px"
       }
     };
 
