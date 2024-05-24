@@ -9,7 +9,7 @@ class AudioSyncButton extends HTMLElement {
     this.attachShadow({mode: "open"});
 
     // color higherarchy 
-    // color attribute > css '--main-color' variable > white
+    // color attribute > css '--pop-color' variable > white
     const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--pop-color') || '#ffffff');
     
     // contrasting text color 
@@ -17,18 +17,18 @@ class AudioSyncButton extends HTMLElement {
 
     const cssObj = {
       ".button": {
-        "display": "inline-flex",
+        display: "inline-flex",
         "min-width": "5.14em",
-        "margin": "0.29em 0.29em",
-        "color": contrast,
+        margin: "0.29em 0.29em",
+        color: contrast,
         "background-color": color,
         "text-align": "center",
         "text-transform": "uppercase",
         "outline-width": 0,
         "border-radius": "3px",
-        "padding": "0.7em 0.57em",
-        "cursor": "pointer",
-        "position": "relative",
+        padding: "0.7em 0.57em",
+        cursor: "pointer",
+        position: "relative",
         "box-sizing": "border-box",
         "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)",
         "-webkit-user-select": "none",
@@ -36,37 +36,37 @@ class AudioSyncButton extends HTMLElement {
         "pointer-events": "all",
         "justify-content": "center",
         "align-items": "center",
-        "transition": "background-color 0.45s ease",
-        "overflow": "hidden",
-        "transform": "translate3d(0, 0, 0)"
+        transition: "background-color 0.45s ease",
+        overflow: "hidden",
+        transform: "translate3d(0, 0, 0)"
       },
       ".button > *": {
         "pointer-events": "none"
       },
       ".button:after": {
-        "display": "inline-block",
-        "width": "100%",
-        "height": "100%",
+        display: "inline-block",
+        width: "100%",
+        height: "100%",
         "border-radius": "3px",
-        "opacity": 0,
-        "transition": "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
+        opacity: 0,
+        transition: "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
         "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
-        "content": "' '",
-        "position": "absolute",
-        "top": 0,
-        "left": 0
+        content: "' '",
+        position: "absolute",
+        top: 0,
+        left: 0
       },
       ".button:hover:after": {
-        "opacity": 1
+        opacity: 1
       },
       ".button:hover:active:after": {
-        "opacity": 0
+        opacity: 0
       },
       ".button[disabled]": {
-        "background": "rgba(84, 84, 84, 0.4)",
-        "color": "#ffffff",
+        background: "rgba(84, 84, 84, 0.4)",
+        color: "#ffffff",
         "box-shadow": "none",
-        "cursor": "none",
+        cursor: "none",
         "pointer-events": "none"
       },
       ".button[disabled]:active, .button[disabled]:hover, .button[disabled]:active:hover": {
@@ -80,16 +80,16 @@ class AudioSyncButton extends HTMLElement {
         "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
       },
       "@keyframes ripple-animation": {
-        "to": {
-          "transform": "scale(4)",
-          "opacity": 0
+        to: {
+          transform: "scale(4)",
+          opacity: 0
         }
       },
       ".ripple-effect": {
-        "position": "absolute",
+        position: "absolute",
         "border-radius": "50%",
-        "background": hexToRgba(contrast),
-        "animation": "ripple-animation 0.7s linear"
+        background: hexToRgba(contrast),
+        animation: "ripple-animation 0.7s linear"
       }
     };
 
@@ -144,14 +144,14 @@ class AudioSyncButton extends HTMLElement {
 
     // css properties
     styles['audiosync-button > div'] = {
-      'display': 'flex',
+      display: 'flex',
       'flex-direction': 'row'
     };
     styles['audiosync-button > div > :first-child'] = {
       'margin-right': '16px'
     };
     styles['audiosync-button > div > :nth-child(2)'] = {
-      'display': 'flex',
+      display: 'flex',
       'align-items': 'center',
       'margin-right':'16px'
     };
@@ -195,7 +195,7 @@ class AudioSyncButton extends HTMLElement {
       // create the new style 
       currentStyle['.new-color'] = {
         'background-color': color,
-        'color': contrast
+        color: contrast
       };
       currentStyle['.ripple-effect'].background = hexToRgba(contrast);
       
