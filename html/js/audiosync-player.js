@@ -8,7 +8,7 @@ class AudioPlayer extends HTMLElement {
     this.lastPlayed = '';
 
     this.popupHeight = 200;
-    this.popupWidth = 350;
+    this.popupWidth = 400;
 
     this.attachShadow({mode: "open"});
 
@@ -85,7 +85,7 @@ class AudioPlayer extends HTMLElement {
         cursor: 'pointer'
       },
       '.popup': {
-        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',
+        "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
         height:`${this.popupHeight}px`,
         width: `${this.popupWidth}px`,
         background: 'rgba(255,255,255,0.9)',
@@ -561,23 +561,29 @@ class AudioPlayer extends HTMLElement {
     img.onload = _ => {
       const thief = new ColorThief();
       const c = thief.getPalette(img);
+      
+      let r, g, b = 0;
+      // loop through colors till color is not clashing with white
+      for (let i = 0; i < c.length; i++) {
+        if (i !== 1) { // 1 is the color used in background 
+          const brightness = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
+          if (brightness < 0.65 && brightness > 0.25) {
+            r = c[i][0];
+            g = c[i][1]; 
+            b = c[i][2];
+            break;
+          }
+        }
+      }
+
       this.palette = [
-        `rgb(${c[0][0]},${c[0][1]},${c[0][2]})`, // fab / accent color
+        `rgb(${r},${g},${b})`, // fab / accent color
         `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // player art background color
       ];
-
-
+      
       // set --pop-color elements the new accent color
-      let luminance = (0.2126 * c[0][0] + 0.7152 * c[0][1] + 0.0722 * c[0][2]) / 255;
-
-      // if to white use contrasting color
-      if (luminance > 0.8) {
-        qsa('audiosync-menu-button').forEach(button => button.iconColor('#333333'));
-        document.documentElement.style.setProperty('--switch-rgb', `51,51,51`);
-      } else {
-        document.documentElement.style.setProperty('--switch-rgb', `${c[0][0]},${c[0][1]},${c[0][2]}`);
-        qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
-      }
+      document.documentElement.style.setProperty('--switch-rgb', `${r},${g},${b}`);
+      qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
       qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', this.palette[0]);
       qs('audiosync-fab', qs('scroll-element').shadowRoot).setAttribute('color', this.palette[0]);
 
@@ -642,6 +648,7 @@ class AudioPlayer extends HTMLElement {
     const progress = (ct / player.duration) * 100;
     const progBar = qs('.progress', this.shadowRoot);
     if (!progBar) return;
+    progBar.style.transform = `translateX(-${100 - progress}%)`;
     if (!this.elapsedTime) {
       const duration = player.duration - ct;
       const dmins = Math.floor(duration / 60);
@@ -650,7 +657,6 @@ class AudioPlayer extends HTMLElement {
     } else {
       qs('#duration', this.shadowRoot).textContent = `${mins}:${secs}`;
     }
-    progBar.style.transform = `translateX(-${100 - progress}%)`;
   }
 
   /**
