@@ -12,8 +12,6 @@ class AudioSyncProgress extends HTMLElement {
     
     this.attachShadow({mode: "open"});
  
-    this.lastRan = 0;
-
     const cssObj = {
       ".label": {
         display: "flex",
@@ -76,13 +74,9 @@ class AudioSyncProgress extends HTMLElement {
    * @param {Number} newVal
    */
   attributeChangedCallback(name, oldVal, newVal) {
-    if (newVal == oldVal) return;
-    const now = new Date().getTime();
-    if ((now - this.lastRan) < 16) return; 
     requestAnimationFrame(_ =>{
       this.bar.style.transform = `translateX(-${100 - newVal}%)`;
     });
-    this.lastRan = now;
   }
 }
 customElements.define('audiosync-progress', AudioSyncProgress);
