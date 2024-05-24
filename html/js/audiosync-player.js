@@ -12,6 +12,8 @@ class AudioPlayer extends HTMLElement {
 
     this.attachShadow({mode: "open"});
 
+    this.elapsedTime = true;
+
     const cssObj = {
       '.background': {
         position: 'fixed',
@@ -95,8 +97,17 @@ class AudioPlayer extends HTMLElement {
       },
       '.popup > div': {
         cursor: "pointer",
+        display: 'flex',
+        'flex-direction': 'row',
         padding: '8px',
+        "text-transform": "uppercase",
         "border-bottom": "1px solid #3333333d"
+      },
+      '.popup > div > div:first-child': {
+        'margin-left': '8px'
+      },
+      '.popup > div > div:nth-child(2)': {
+        width: "100%"
       },
       '.popup > div:hover': {
         background: 'var(--hover-color)'
@@ -138,6 +149,7 @@ class AudioPlayer extends HTMLElement {
         'font-size': '11px'
       },
       '#info': {
+        "text-transform": "uppercase",
         position: 'fixed',
         bottom:'5px',
         left: '10px',
@@ -356,6 +368,9 @@ class AudioPlayer extends HTMLElement {
     const duration = ce('div');
     duration.id = 'duration';
     duration.textContent = '0:00';
+    duration.addEventListener('click', _ => {
+      this.elapsedTime = !this.elapsedTime;
+    });
 
     // artist / title
     const info = ce('div');
@@ -377,6 +392,67 @@ class AudioPlayer extends HTMLElement {
     return bg;
   }
 
+  async _playlistPopup(ev) {
+    if (qs('.popup', this.shadowRoot)) return;
+
+    // creaate playlist popup
+    const x = ev.pageX - this.popupWidth;
+    const y = ev.pageY - this.popupHeight;
+    const popup = ce('div');
+    popup.classList.add('popup');
+    popup.style.top = `${y - 65}px`;
+    popup.style.left = `${x}px`;
+    for (let i = 0; i < this.playlist.length; i++) {
+      const div = ce('div');
+      if (this.playing === i) {
+        div.toggleAttribute('playing');
+      }
+      // track number
+      const tnum = ce('div');
+      tnum.textContent = `(${this.playlist[i].track})`;
+      // track title
+      const ttitle = ce('div');
+      ttitle.textContent = this.playlist[i].title;
+      [
+        tnum,
+        ttitle
+      ].forEach(el => div.appendChild(el));
+
+      // clicked on a track in playlist
+      div.addEventListener('click', eve => {
+        if (i === this.playing) return;
+        createRipple(eve)
+        this.playing = i;
+        this._updatePlaylistUI();
+        qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+        this.player.src = `music${this.playlist[this.playing].path}`;
+        this.player.play();
+      }); 
+      popup.appendChild(div);
+    }
+
+    // push to DOM
+    const bg = qs('#fbg', this.shadowRoot);
+    bg.appendChild(popup);
+    await sleep(100);
+
+    // animate into view
+    animateElement(popup, 'scale3d(1,1,1)', 100);
+
+    // close and remove popup
+    const clicked = async _ => {
+      await animateElement(popup, 'scale3d(0,0,0)', 100);
+      popup.remove();
+    };
+    popup.addEventListener('mouseleave', clicked);
+    bg.addEventListener('click', clicked);
+    await sleep(50);
+
+    // ensure currently playing is in view
+    const playing = qs('div[playing]', popup);
+    playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
   /**
    * opens the album art overlay
    * 
@@ -394,8 +470,8 @@ class AudioPlayer extends HTMLElement {
     // art
     const img = ce('img');
     img.src = this.art;
-    img.width = 500;
-    img.height = 500;
+    img.width = 450;
+    img.height = 450;
 
     // background 
     const bg = ce('div');
@@ -405,45 +481,8 @@ class AudioPlayer extends HTMLElement {
     // playlist fab
     const listButton = ce('audiosync-fab');
     listButton.appendChild(await svgIcon('list'));
-    listButton.position({bottom: '30px', right: '10px'});
-    listButton.onClick(async ev => {
-      if (qs('.popup', this.shadowRoot)) return;
-      const x = ev.pageX - this.popupWidth;
-      const y = ev.pageY - this.popupHeight;
-      const popup = ce('div');
-      popup.classList.add('popup');
-      popup.style.top = `${y - 65}px`;
-      popup.style.left = `${x}px`;
-      for (let i = 0; i < this.playlist.length; i++) {
-        const div = ce('div');
-        if (this.playing === i) {
-          div.toggleAttribute('playing');
-        }
-        div.textContent = `(${this.playlist[i].track}) ${this.playlist[i].artist} - ${this.playlist[i].title}`;
-        div.addEventListener('click', eve => {
-          if (i === this.playing) return;
-          createRipple(eve)
-          this.playing = i;
-          this._updatePlaylistUI();
-          qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-          this.player.src = `music${this.playlist[this.playing].path}`;
-          this.player.play();
-        }); 
-        popup.appendChild(div);
-      }
-      bg.appendChild(popup);
-      await sleep(100);
-      animateElement(popup, 'scale3d(1,1,1)', 100);
-      const clicked = async _ => {
-        await animateElement(popup, 'scale3d(0,0,0)', 100);
-        popup.remove();
-      };
-      popup.addEventListener('mouseleave', clicked);
-      bg.addEventListener('click', clicked);
-      await sleep(50);
-      const playing = qs('div[playing]', popup);
-      playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
+    listButton.position({bottom: '55px', right: '10px'});
+    listButton.onClick(ev => this._playlistPopup(ev));
     listButton.setAttribute('color', this.palette[0]);
 
     // push to dom
@@ -603,7 +642,14 @@ class AudioPlayer extends HTMLElement {
     const progress = (ct / player.duration) * 100;
     const progBar = qs('.progress', this.shadowRoot);
     if (!progBar) return;
-    qs('#duration', this.shadowRoot).textContent = `${mins}:${secs}`;
+    if (!this.elapsedTime) {
+      const duration = player.duration - ct;
+      const dmins = Math.floor(duration / 60);
+      const dsecs = Math.floor(duration % 60).toString().padStart(2, '0');
+      qs('#duration', this.shadowRoot).textContent = `${dmins}:${dsecs}`;
+    } else {
+      qs('#duration', this.shadowRoot).textContent = `${mins}:${secs}`;
+    }
     progBar.style.transform = `translateX(-${100 - progress}%)`;
   }
 
