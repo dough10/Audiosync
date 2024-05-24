@@ -89,6 +89,7 @@ class MusicLibrary extends HTMLElement {
         top: '125px',
         display: 'flex',
         'flex-direction': 'column',
+        "text-transform": "uppercase",
         color: '#333333',
         background: 'rgba(255,255,255,0.5)',
         transition: 'opacity 0.45s ease',
@@ -132,6 +133,17 @@ class MusicLibrary extends HTMLElement {
     const syncData = await pywebview.api.sync_file()
     this._compareData(syncData);
     fadeIn(this.content);
+  }
+
+  favorites() {
+    const artists = qsa('.artist', this.shadowRoot);
+    artists.forEach(el => el.style.display = 'none');
+    const albums = qsa('.album', this.shadowRoot);
+    albums.forEach(el => {
+      if (!el.hasAttribute('favorite')) {
+        el.style.display = 'none';
+      } 
+    });
   }
 
   /**
@@ -291,7 +303,7 @@ class MusicLibrary extends HTMLElement {
    * @param {String} artist
    */
   _displayArtist(artist) {
-    const firstChar = artist[0];
+    const firstChar = artist[0].toLowerCase();
     let artistContainer = ce('div');
     artistContainer.dataset.artist = artist;
     artistContainer.classList.add('artist');
