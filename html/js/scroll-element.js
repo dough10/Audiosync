@@ -136,7 +136,7 @@ class ScrollElement extends HTMLElement {
         0
       );
       // set animation time based on distance scrolled down the page
-      const time = this._mapRange((this.container.scrollTop / maxScrollTop), 0, 1, 100, 600);
+      const time = this._mapRange((this.container.scrollTop / maxScrollTop), 0, 1, 50, 300);
       await animateElement(this.content, `translateY(${this.container.scrollTop}px)`, time);
       this.content.style.removeProperty('transform');
       this.container.scrollTop = 0;
