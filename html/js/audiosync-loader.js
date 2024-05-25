@@ -1,8 +1,4 @@
-import {
-  elementHeight,
-  animateElement,
-  objectToCSS, ce
-} from './helpers.js';
+import {objectToCSS, ce} from './helpers.js';
 
 /**
  * application loading element
@@ -14,21 +10,26 @@ class AudioSyncLoader extends HTMLElement {
     
     const cssObj = {
       ".load": {
-        "position": "absolute",
-        "top": 0,
-        "left": 0,
-        "right": 0,
-        "bottom": 0,
-        "background": "rgb(182, 182, 182)",
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgb(182, 182, 182)",
         "justify-content": "center",
-        "display": "flex",
+        display: "flex",
         "align-items": "center",
-        "z-index": 8,
+        "z-index": 1000,
         "text-transform": "uppercase",
         "pointer-events": "all",
-        "overflow": "hidden",
+        overflow: "hidden",
         "font-size": "1.5em",
-        "color": "#333333"
+        color: "#333333",
+        'will-change': 'transform',
+        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)'
+      },
+      '.offscreen': {
+        transform: 'translateY(-100%)'
       }
     }
     const sheet = ce('style');
@@ -37,21 +38,17 @@ class AudioSyncLoader extends HTMLElement {
     this.loader = ce('div');
     this.loader.classList.add('load')
     this.loader.appendChild(ce('slot'));
-    
+    this.loader.addEventListener('transitionend', _ => this.remove());
+
+
     [
       sheet,
       this.loader
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
-  async reveal() {
-    // reveals the app interface
-    await animateElement(this.loader, `translateY(-${elementHeight(this.loader)}px) `, 350);
-    this.remove();
-    // // fixes any height issues when resizing the window
-    // window.addEventListener('resize', _ => {
-    //   this.loader.style.transform = `translateY(-${elementHeight(this.loader)}px)`;
-    // });
+  reveal() {
+    this.loader.classList.add('offscreen');
   }
 }
 customElements.define('audiosync-loader', AudioSyncLoader);
