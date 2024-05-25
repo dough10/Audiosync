@@ -144,7 +144,8 @@ import {
     await qs('audiosync-podcasts').listPodcasts();
 
     // load screen animation
-    await sleep(500);
+    qs('#app').style.removeProperty('display');
+    await sleep(400)
     qs('audiosync-loader').reveal();
   }
 
