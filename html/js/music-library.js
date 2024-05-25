@@ -53,7 +53,8 @@ class MusicLibrary extends HTMLElement {
         padding: "8px",
         "font-size": "17px",
         "font-weight": "bold",
-        overflow: "hidden"
+        overflow: "hidden",
+        transition: 'background 0.7s ease'
       },
       ".artist:hover": {
         "background-color": "var(--hover-color)"
@@ -64,7 +65,8 @@ class MusicLibrary extends HTMLElement {
         cursor: "pointer",
         padding: "4px",
         "font-size": "13px",
-        overflow: "hidden"
+        overflow: "hidden",
+        transition: 'background 0.7s ease'
       },
       ".album:hover": {
         "background-color": "var(--hover-color)"
@@ -85,14 +87,15 @@ class MusicLibrary extends HTMLElement {
         border: "1px solid rgba(51,51,51,0.2)",
         'border-radius': '5px',
         position: 'fixed',
-        right: '10px',
-        top: '125px',
+        right: 0,
+        top: '50%',
         display: 'flex',
         'flex-direction': 'column',
         "text-transform": "uppercase",
         color: '#333333',
         background: 'rgba(255,255,255,0.5)',
         transition: 'opacity 0.45s ease',
+        transform: 'translate(-50%, -50%)',
         opacity: '0.1'
       },
       '.a-z:hover': {
@@ -101,7 +104,8 @@ class MusicLibrary extends HTMLElement {
       '.a-z > a': {
         color: '#333333',
         'text-decoration': 'none',
-        padding: '4px'
+        padding: '4px',
+        transition: 'color 0.3s ease'
       },
       '.a-z > a:hover': {
         color: 'var(--pop-color)',
