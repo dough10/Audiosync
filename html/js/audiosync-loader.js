@@ -48,7 +48,7 @@ class AudioSyncLoader extends HTMLElement {
   }
 
   reveal() {
-    this.loader.classList.add('offscreen');
+    requestAnimationFrame(_ => this.loader.classList.add('offscreen'));
   }
 }
 customElements.define('audiosync-loader', AudioSyncLoader);
