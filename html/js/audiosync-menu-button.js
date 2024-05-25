@@ -12,23 +12,24 @@ class MenuButton extends HTMLElement {
 
     const cssJSON = {
       ".menu-button": {
-        "padding": "12px",
-        "cursor": "pointer",
-        "display": "flex",
-        "color": "#333333",
+        padding: "12px",
+        cursor: "pointer",
+        display: "flex",
+        color: "#333333",
         "justify-content": "space-between",
         "align-items": "center",
         "font-size": "16px",
         "border-bottom": "1px solid #3333333d",
-        "position": "relative",
-        "overflow": "hidden"
+        position: "relative",
+        overflow: "hidden",
+        transition: 'background-color 0.7s ease'
       },
       ".menu-button > *": {
         "pointer-events": "none"
       },
       ".menu-button div": {
-        "width": "100%",
-        "display": "flex",
+        width: "100%",
+        display: "flex",
         "justify-content": "center",
         "align-items": "center",
         "text-transform": "uppercase"
@@ -37,25 +38,25 @@ class MenuButton extends HTMLElement {
         "background-color": "var(--hover-color)"
       },
       ".menu-button[disabled]": {
-        "background": "rgba(218, 218, 218, 0.4)",
-        "color": this.disabledColor,
-        "cursor": "none",
+        background: "rgba(218, 218, 218, 0.4)",
+        color: this.disabledColor,
+        cursor: "none",
         "pointer-events": "none"
       },
       ".menu-button[disabled]:active, .menu-button[disabled]:hover, .menu-button[disabled]:active:hover": {
         "background-color": "rgba(0, 0, 0, 0.178)"
       },
       "@keyframes ripple-animation": {
-        "to": {
-          "transform": "scale(4)",
-          "opacity": 0
+        to: {
+          transform: "scale(4)",
+          opacity: 0
         }
       },
       ".ripple-effect": {
-        "position": "absolute",
+        position: "absolute",
         "border-radius": "50%",
-        "background": "rgba(51, 51, 51, 0.4)",
-        "animation": "ripple-animation 0.7s linear"
+        background: "rgba(51, 51, 51, 0.4)",
+        animation: "ripple-animation 0.7s linear"
       }
     };
 
