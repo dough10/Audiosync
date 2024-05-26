@@ -8,9 +8,6 @@ class AudioSyncSettings extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    this.open = this.open.bind(this);
-    this.close = this.close.bind(this);
-
     const cssObj = {
       ".settings": {
         top: 0,
@@ -116,14 +113,7 @@ class AudioSyncSettings extends HTMLElement {
     
     this.drawer = ce('div');
     this.drawer.classList.add('settings');
-
-    this.drawer.addEventListener('transitionend', _ => {
-      if (this.hasAttribute('opened')) {
-        this.removeAttribute('opened');
-        return;
-      }
-      this.toggleAttribute('opened');
-    });
+    this.drawer.addEventListener('transitionend', _ => this.toggleAttribute('opened'));
 
     [
       header,
@@ -141,7 +131,7 @@ class AudioSyncSettings extends HTMLElement {
    * open the settings drawer
    */
   async open() {
-    this.drawer.classList.add('opened');
+    requestAnimationFrame(_ => this.drawer.classList.add('opened'));
     
   }
 
@@ -149,7 +139,7 @@ class AudioSyncSettings extends HTMLElement {
    * close the settings drawer
    */
   async close() {
-    this.drawer.classList.remove('opened');   
+    requestAnimationFrame(_ => this.drawer.classList.remove('opened'));   
   }
 }
 customElements.define('audiosync-settings', AudioSyncSettings);
