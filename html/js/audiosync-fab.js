@@ -1,4 +1,4 @@
-import {qs, ce, animateElement, createRipple, hexToRgba, getCSSVariableValue, convertToHex, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
+import {qs, ce, createRipple, hexToRgba, getCSSVariableValue, convertToHex, getContrastColor, parseCSS, objectToCSS} from './helpers.js';
 
 /**
  * pages
@@ -40,8 +40,9 @@ class FloatingActionButton extends HTMLElement {
         "z-index": 2,
         bottom: "5px",
         right: "20px",
-        transition: "background-color 0.45s ease",
-        transform: "translate3d(0, 0, 0)",
+        transition: 'var(--button-bg-animation)',
+        transform: "translateY(140%)",
+        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
         margin: "8px"
       },
       ".fab > *": {
@@ -95,6 +96,9 @@ class FloatingActionButton extends HTMLElement {
         "border-radius": "50%",
         background: hexToRgba(contrast),
         animation: "ripple-animation 0.7s linear"
+      },
+      '.onscreen':{
+        transform: "translateY(0)"
       }
     };
 
@@ -103,8 +107,8 @@ class FloatingActionButton extends HTMLElement {
     
     this.fab = ce('div');
     this.fab.classList.add('fab');
-    this.fab.style.transform = "translateY(150%)";
     this.fab.appendChild(ce('slot'));
+    this.fab.addEventListener('transitionend', _ => this.toggleAttribute('onscreen'))
     this.fab.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
@@ -120,16 +124,14 @@ class FloatingActionButton extends HTMLElement {
    * animate action button visable on screen
    */
   async onScreen() {
-    await animateElement(this.fab, "translateY(0px)", 200);
-    if (!this.hasAttribute('onscreen')) this.toggleAttribute('onScreen');
+    requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
   }
   
   /**
    * animate action button off screen
    */
   async offScreen() {
-    await animateElement(this.fab, "translateY(150%)", 200);
-    this.removeAttribute('onScreen');
+    requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
   }
 
   /**

@@ -54,7 +54,7 @@ class MusicLibrary extends HTMLElement {
         "font-size": "17px",
         "font-weight": "bold",
         overflow: "hidden",
-        transition: 'background 0.7s ease'
+        transition: 'var(--button-bg-animation)'
       },
       ".artist:hover": {
         "background-color": "var(--hover-color)"
@@ -66,7 +66,7 @@ class MusicLibrary extends HTMLElement {
         padding: "4px",
         "font-size": "13px",
         overflow: "hidden",
-        transition: 'background 0.7s ease'
+        transition: 'var(--button-bg-animation)'
       },
       ".album:hover": {
         "background-color": "var(--hover-color)"
@@ -139,6 +139,9 @@ class MusicLibrary extends HTMLElement {
     fadeIn(this.content);
   }
 
+  /**
+   * filter elements the have the favorite attribute
+   */
   favorites() {
     const artists = qsa('.artist', this.shadowRoot);
     artists.forEach(el => el.style.display = 'none');
@@ -166,12 +169,14 @@ class MusicLibrary extends HTMLElement {
         this._displayAlbum(artist, data[artist][i]);
       }
     }
+
+    // no need to display in not enough chars used
+    if (this._usedChars.length < 10) return;
     const alphabet = ce('div');
     alphabet.classList.add('a-z');
-    this.shadowRoot.appendChild(alphabet);
+    this.content.appendChild(alphabet);
     this._usedChars.forEach(char => {
       const link = ce('a');
-      link.classList.add('letter');
       if (Number(char)) {
         link.textContent = '#';
       } else {

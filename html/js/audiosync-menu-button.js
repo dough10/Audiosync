@@ -22,7 +22,8 @@ class MenuButton extends HTMLElement {
         "border-bottom": "1px solid #3333333d",
         position: "relative",
         overflow: "hidden",
-        transition: 'background-color 0.7s ease'
+        'will-change': 'background',
+        transition: 'var(--button-bg-animation)'
       },
       ".menu-button > *": {
         "pointer-events": "none"

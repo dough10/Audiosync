@@ -36,7 +36,7 @@ class AudioSyncButton extends HTMLElement {
         "pointer-events": "all",
         "justify-content": "center",
         "align-items": "center",
-        transition: "background-color 0.45s ease",
+        transition: 'var(--button-bg-animation)',
         overflow: "hidden",
         transform: "translate3d(0, 0, 0)"
       },
