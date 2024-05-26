@@ -72,7 +72,8 @@ class AudioPlayer extends HTMLElement {
         right: 0,
         position: 'absolute',
         'background-color': 'var(--pop-color)',
-        transform: 'translateX(-100%)'
+        transform: 'translateX(-100%)',
+        transition: 'var(--button-bg-animation)'
       },
       '.click-strip': {
         "border-bottom": "1px solid rgba(51,51,51,0.05)",
@@ -86,8 +87,8 @@ class AudioPlayer extends HTMLElement {
       },
       '.popup': {
         "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
-        height:`${this.popupHeight}px`,
-        width: `${this.popupWidth}px`,
+        height:`450px`,
+        width: `450px`,
         background: 'rgba(255,255,255,0.9)',
         color: '#333333',
         'transform-origin': 'bottom right',
@@ -95,21 +96,26 @@ class AudioPlayer extends HTMLElement {
         position: 'fixed',
         'overflow-y': 'auto'
       },
-      '.popup > div': {
+      '.popup > .track': {
         cursor: "pointer",
         display: 'flex',
         'flex-direction': 'row',
-        padding: '8px',
         "text-transform": "uppercase",
-        "border-bottom": "1px solid #3333333d"
+        "border-bottom": "1px solid #3333333d",
+        'will-change': 'background',
+        transition: 'var(--button-bg-animation)'
       },
-      '.popup > div > div:first-child': {
-        'margin-left': '8px'
+      '.popup > .track > div:first-child': {
+        'margin-left': '8px',
+        padding: '8px',
+        'margin-right': '16px'
       },
-      '.popup > div > div:nth-child(2)': {
-        width: "100%"
+      '.popup > .track > div:nth-child(2)': {
+        padding: '8px',
+        width: "100%",
+        overflow: 'hidden'
       },
-      '.popup > div:hover': {
+      '.popup > .track:hover': {
         background: 'var(--hover-color)'
       },
       '.popup > div[playing]': {
@@ -212,9 +218,7 @@ class AudioPlayer extends HTMLElement {
           buffered = Math.max(buffered, this.player.buffered.end(i));
         }
         const bufferedPercent = (buffered / this.player.duration) * 100;
-        requestAnimationFrame(_ => {
-          bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
-        });
+        bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
       } else {
         bufferBar.style.transform = `translateX(-100%)`;
       }
@@ -396,20 +400,21 @@ class AudioPlayer extends HTMLElement {
     if (qs('.popup', this.shadowRoot)) return;
 
     // creaate playlist popup
-    const x = ev.pageX - this.popupWidth;
-    const y = ev.pageY - this.popupHeight;
+    // const x = ev.pageX - this.popupWidth;
+    // const y = ev.pageY - this.popupHeight;
     const popup = ce('div');
     popup.classList.add('popup');
-    popup.style.top = `${y - 65}px`;
-    popup.style.left = `${x}px`;
+    // popup.style.top = `${y - 65}px`;
+    // popup.style.left = `${x}px`;
     for (let i = 0; i < this.playlist.length; i++) {
       const div = ce('div');
+      div.classList.add('track');
       if (this.playing === i) {
         div.toggleAttribute('playing');
       }
       // track number
       const tnum = ce('div');
-      tnum.textContent = `(${this.playlist[i].track})`;
+      tnum.textContent = this.playlist[i].track;
       // track title
       const ttitle = ce('div');
       ttitle.textContent = this.playlist[i].title;
@@ -461,7 +466,7 @@ class AudioPlayer extends HTMLElement {
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
 
-    // if scoll animation fab is onscrool remove it
+    // if scoll animation fab is onscreen remove it
     const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
     if (fab.hasAttribute('onscreen')) {
       fab.offScreen();
@@ -543,10 +548,11 @@ class AudioPlayer extends HTMLElement {
   async _updatePlaylistUI() {
     const popup = qs('.popup', this.shadowRoot);
     if (!popup) return;
-    const divs = qsa('div', popup);
+    const divs = qsa('.track', popup);
     divs.forEach(div => div.removeAttribute('playing'));
     await sleep(100);
     divs[this.playing].toggleAttribute('playing');
+    divs[this.playing].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
@@ -561,13 +567,17 @@ class AudioPlayer extends HTMLElement {
     img.onload = _ => {
       const thief = new ColorThief();
       const c = thief.getPalette(img);
-      
-      let r, g, b = 0;
-      // loop through colors till color is not clashing with white
+
+      // default to the first color in returned palette
+      let r = c[0][0];
+      let g = c[0][1];
+      let b = c[0][2];
+
+      // loop through colors for goldie locks
       for (let i = 0; i < c.length; i++) {
         if (i !== 1) { // 1 is the color used in background 
-          const brightness = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
-          if (brightness < 0.65 && brightness > 0.25) {
+          const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
+          if (luminence < 0.75 && luminence > 0.2) {
             r = c[i][0];
             g = c[i][1]; 
             b = c[i][2];
@@ -584,8 +594,10 @@ class AudioPlayer extends HTMLElement {
       // set --pop-color elements the new accent color
       document.documentElement.style.setProperty('--switch-rgb', `${r},${g},${b}`);
       qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
-      qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', this.palette[0]);
-      qs('audiosync-fab', qs('scroll-element').shadowRoot).setAttribute('color', this.palette[0]);
+      [
+        qs('audiosync-button', qs('sync-ui').shadowRoot),
+        qs('audiosync-fab', qs('scroll-element').shadowRoot)
+      ].forEach(el => el.setAttribute('color', this.palette[0]));
 
       // destroy img element.  URL cached additional <img> elements with this url should load instant
       img.remove();
