@@ -8,44 +8,44 @@ class AudioSyncPodcasts extends HTMLElement {
     super();
 
     const cssObj = {
-      "svg": {
-        "width": "24px",
-        "height": "24px"
+      svg: {
+        width: "24px",
+        height: "24px"
       },
       ".container": {
-        "padding": "8px",
-        "display": "flex",
+        padding: "8px",
+        display: "flex",
         "flex-direction": "column",
         "jusify-content": "space-between"
       },
       ".wrapper": {
-        "display": "flex",
+        display: "flex",
         "flex-direction": "row",
         "justify-content": "space-between",
         "align-items": "center",
         "border-top": "1px solid #3333333d",
-        "padding": "8px",
+        padding: "8px",
         "font-size": "14px",
         "font-weight": "bold",
         "min-height": "44px"
       },
       ".head": {
-        "width": "100%",
-        "display": "flex",
+        width: "100%",
+        display: "flex",
         "justify-content": "space-between",
         "align-items": "center",
-        "position": "relative"
+        position: "relative"
       },
       "@keyframes spin": {
-        "from": {
-          "transform": "rotate(0deg)"
+        from: {
+          transform: "rotate(0deg)"
         },
-        "to": {
-          "transform": "rotate(360deg)"
+        to: {
+          transform: "rotate(360deg)"
         }
       },
       ".spinning": {
-        "animation": "spin 1.5s linear infinite"
+        animation: "spin 1.5s linear infinite"
       }
     };
 
@@ -168,7 +168,7 @@ class AudioSyncPodcasts extends HTMLElement {
     
     // animated dialog card
     const dialog = ce('audiosync-dialog');
-    dialog.setAttribute('small', 1);
+
     [
       closeWrapper,
       group,
@@ -189,7 +189,7 @@ class AudioSyncPodcasts extends HTMLElement {
     // closes the dialog
     closeButton.onClick(async e => {
       await dialog.close();
-      await sleep(100);
+      await sleep(500);
       dialog.remove();
     });
     
@@ -346,7 +346,6 @@ class AudioSyncPodcasts extends HTMLElement {
         text.textContent = `Unsubscribe from "${podcastTitle.textContent}"?`;
         
         const dialog = ce('audiosync-dialog');
-        dialog.setAttribute('small', 1);
 
         const yes = ce('audiosync-button');
         const no = ce('audiosync-button');
