@@ -1,4 +1,4 @@
-import {qs, ce, Toast, sleep, fadeIn, fillButton, objectToCSS} from './helpers.js'
+import {qs, ce, Toast, sleep, fadeIn, fillButton, objectToCSS, parseCSS} from './helpers.js'
 
 /**
  * sync ui 
@@ -60,6 +60,12 @@ class SyncUI extends HTMLElement {
     });
     
     this.dialog = ce('audiosync-dialog');
+
+    // style the dialog wider the normal 
+    const dstyles = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
+    dstyles[".dialog"]['min-width'] = '445px';
+    qs('style', this.dialog.shadowRoot).textContent = objectToCSS(dstyles);
+
     [
       this.output,
       this._progressBar(bars[0]),
