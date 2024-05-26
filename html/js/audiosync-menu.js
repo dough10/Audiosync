@@ -1,11 +1,4 @@
-import {
-  animateElement,
-  fadeIn,
-  fadeOut,
-  objectToCSS,
-  svgIcon, 
-  ce
-} from './helpers.js';
+import {objectToCSS, svgIcon, ce} from './helpers.js';
 
 /**
  * menu drawer element
@@ -21,7 +14,7 @@ class AudioSyncMenu extends HTMLElement {
     const cssObj = {
       ".allow-clicks": {
         "pointer-events": "none",
-        display: "none"
+        opacity:0
       },
       "#click-blocker": {
         position: "absolute",
@@ -29,6 +22,8 @@ class AudioSyncMenu extends HTMLElement {
         bottom: 0,
         left: 0,
         right: 0,
+        'will-change': 'opacity',
+        transition: 'opacity 300ms cubic-bezier(.33,.17,.85,1.1)',
         "background-color": "rgba(0, 0, 0, 0.2)",
         "pointer-events": "all",
         "z-index": 1
@@ -82,8 +77,13 @@ class AudioSyncMenu extends HTMLElement {
         "background-color": "#ffffff",
         color: "var(--text-color)",
         "z-index": 2,
-        transform: "translateX(-320px)",
+        'will-change': 'transform',
+        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
+        transform: "translateX(-110%)",
         "box-shadow": "10px 0 0px rgba(0, 1, 0, 0.1)"
+      },
+      '.open': {
+        transform: "translateX(0)"
       },
       ".menu-foot": {
         bottom: 0,
@@ -112,7 +112,6 @@ class AudioSyncMenu extends HTMLElement {
       svg: {
         width: "24px",
         height: "24px",
-        display: "flex",
         color: 'var(--pop-color)'
       }
     };
@@ -124,6 +123,7 @@ class AudioSyncMenu extends HTMLElement {
     this.blocker = ce('div');
     this.blocker.id = 'click-blocker';
     this.blocker.classList.add('allow-clicks');
+    this.blocker.style.display = 'none';
     this.blocker.addEventListener('click', _ => this.close());
 
     //  menu header
@@ -146,6 +146,8 @@ class AudioSyncMenu extends HTMLElement {
     
     this.menu = ce('div');
     this.menu.classList.add('menu');
+    this.menu.addEventListener('transitionend', _ => this.toggleAttribute('open'));
+
     [
       header,
       headerShadow,
@@ -161,30 +163,33 @@ class AudioSyncMenu extends HTMLElement {
   }
 
   /**
-   * element connected to DOM
-   */
-  connectedCallback() {
-    this.setAttribute('opened', 0);
-  }
-
-  /**
    * open menu drawer
    */
   async open() {
-    fadeIn(this.blocker);
-    this.blocker.classList.remove('allow-clicks');
-    await animateElement(this.menu, `translateX(0px)`, 250);
-    this.setAttribute('opened', 1);
+    const tend = _ => {
+      this.blocker.removeEventListener('transitionend', tend);
+    };
+    this.blocker.addEventListener('transitionend', tend);
+    requestAnimationFrame(_ => {
+      this.menu.classList.add('open');
+      this.blocker.classList.remove('allow-clicks');
+      this.blocker.style.removeProperty('display');
+    });
   }
 
   /**
    * close menu drawer
    */
   async close() {
-    fadeOut(this.blocker);
-    await animateElement(this.menu, `translateX(-320px)`, 250);
-    this.blocker.classList.add('allow-clicks');
-    this.setAttribute('opened', 0);
+    const tend = _ => {
+      this.blocker.removeEventListener('transitionend', tend);
+      this.blocker.style.display = 'none';
+    };
+    this.blocker.addEventListener('transitionend', tend);
+    requestAnimationFrame(_ => {
+      this.menu.classList.remove('open');
+      this.blocker.classList.add('allow-clicks');
+    });
   }
 
   /**
@@ -202,11 +207,11 @@ class AudioSyncMenu extends HTMLElement {
     const icon = await svgIcon('data');
 
     const dummyButton = ce('div');
+    dummyButton.classList.add('menu-button');
     [
       icon,
       fsText
     ].forEach(el => dummyButton.appendChild(el));
-    dummyButton.classList.add('menu-button');
               
     this.foot.appendChild(dummyButton);
   }
