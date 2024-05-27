@@ -62,6 +62,9 @@ class AudioSyncProgress extends HTMLElement {
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
+  /**
+   * element connected to the DOM
+   */
   connectedCallback() {
     this.setAttribute('percent', 0);
   }
@@ -74,9 +77,12 @@ class AudioSyncProgress extends HTMLElement {
    * @param {Number} newVal
    */
   attributeChangedCallback(name, oldVal, newVal) {
-    requestAnimationFrame(_ =>{
-      this.bar.style.transform = `translateX(-${100 - newVal}%)`;
+    this.bar.style.transform = `translateX(-${100 - newVal}%)`;
+
+    const ev = new CustomEvent('percent-change', {
+      detail:{id: this.id, percent: newVal}
     });
+    this.dispatchEvent(ev);
   }
 }
 customElements.define('audiosync-progress', AudioSyncProgress);
