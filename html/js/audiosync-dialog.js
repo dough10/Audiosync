@@ -78,7 +78,6 @@ class AudioSyncDialog extends HTMLElement {
       styles['#click-blocker'].bottom = '72px';
     } else {
       styles['#click-blocker'].bottom = 0;
-
     }
     qs('style', this.shadowRoot).textContent = objectToCSS(styles);
   }
