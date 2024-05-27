@@ -123,15 +123,29 @@ class FloatingActionButton extends HTMLElement {
   /**
    * animate action button visable on screen
    */
-  async onScreen() {
-    requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
+  onScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
+    });
   }
   
   /**
    * animate action button off screen
    */
-  async offScreen() {
-    requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
+  offScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
+    });
   }
 
   /**
