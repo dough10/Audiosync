@@ -178,7 +178,6 @@ class SyncUI extends HTMLElement {
   async _closeDialog() {
     const ml = qs('music-library');
     await ml.go();
-    qs('audiosync-menu').footElement(ml.libSize);
     await this.dialog.close();
     this.button.toggleAttribute('disabled');
     [

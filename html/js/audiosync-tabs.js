@@ -11,10 +11,10 @@ class AudioSyncTabs extends HTMLElement {
     super();
 
     const cssObj = {
-      "slot": {
-        "display": "flex",
+      slot: {
+        display: "flex",
         "flex-direction": "row",
-        "position": "relative",
+        position: "relative",
         "background-color": "var(--background-color)"
       }
     };
@@ -35,6 +35,7 @@ class AudioSyncTabs extends HTMLElement {
   connectedCallback() {
     this.setAttribute('selected', 0);
 
+    // modify document css for [disabled] tabs
     const styles = parseCSS(qs('style').textContent);
 
     styles['audiosync-tabs[disabled] .tab'] = {
@@ -53,8 +54,10 @@ class AudioSyncTabs extends HTMLElement {
    */
   attributeChangedCallback(name, oldVal, newVal) {
     if (newVal == oldVal) return;
-    const pages = qs('audiosync-pages');
-    if (pages) pages.setAttribute('selected', newVal);
+    const ev = new CustomEvent('selected-change', {
+      detail:{selected: newVal}
+    });
+    this.dispatchEvent(ev);
   }
 
   /**

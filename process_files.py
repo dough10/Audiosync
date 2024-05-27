@@ -56,13 +56,33 @@ def add_to_lib(artist, album, location, file, title, track, disc):
   album_exists = False
   for alb in lib_data[artist]:
     if alb['title'] == album:
-      alb['tracks'].append({'path': os.path.join(location,file), 'artist': artist, 'title': title, 'track': track, 'disc': disc})
+      alb['tracks'].append({
+        'file': file,
+        'path': location,
+        'artist': artist, 
+        'title': title, 
+        'track': track, 
+        'disc': disc
+      })
       album_exists = True
       break
 
   # If the album does not exist, create a new entry
   if not album_exists:
-      lib_data[artist].append({'title': album, 'artist':artist, 'folder': location, 'tracks': [{'path': os.path.join(location,file), 'artist': artist, 'title': title, 'track': track, 'disc': disc}]})
+      lib_data[artist].append({
+        'title': album, 
+        'artist':artist,
+        'tracks': [
+          {
+            'file': file,
+            'path': location,
+            'artist': artist, 
+            'title': title, 
+            'track': track, 
+            'disc': disc
+          }
+        ]
+      })
 
 def move_file(root, file, ext):
   """

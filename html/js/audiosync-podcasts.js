@@ -104,10 +104,10 @@ class AudioSyncPodcasts extends HTMLElement {
    * creates and opens the add podcast UI
    */
   async _openAddPodcastDialog() {
-    const addUI = await this._addPodcastUI();
-    qs('body').appendChild(addUI);
+    this.addUI = await this._addPodcastUI();
+    qs('body').appendChild(this.addUI);
     await sleep(100);
-    addUI.open();
+    this.addUI.open();
   }
 
   /** 
@@ -220,17 +220,16 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   async subResponse(message) {
     new Toast(message);
-    await sleep(3000);
+    await sleep(100);
 
     if (message === "Subscribed!") {
       await this.listPodcasts();
     }
 
-    const dialog = qs('audiosync-dialog');
-    if (!dialog) return;
-    dialog.close();
+    if (!this.addUI) return;
+    this.addUI.close();
     await sleep(100);
-    dialog.remove();
+    this.addUI.remove();
   }
 
   /**

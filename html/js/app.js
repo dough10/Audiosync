@@ -12,18 +12,51 @@ import {
 } from './helpers.js';
 
 (_ => {
+  
   let _loadTimer = 0
-
-
+  
+  
   /**
    * setup listeners and fetch data
-   */
-  async function load_app() {
+  */
+ async function load_app(e) {
+    console.log(e.type)
 
     if (_loadTimer) {
       clearTimeout(_loadTimer);
       _loadTimer = 0;
     }
+
+    const player = qs('audiosync-player');
+
+    // set --pop-color elements the new accent color
+    player.addEventListener('image-loaded', e => {
+      const palette = e.detail.palette;
+      document.documentElement.style.setProperty('--switch-rgb', palette[2]);
+      qsa('audiosync-menu-button').forEach(button => button.iconColor(palette[0]));
+      [
+        qs('audiosync-button', qs('sync-ui').shadowRoot),
+        qs('audiosync-fab', qs('scroll-element').shadowRoot)
+      ].forEach(el => el.setAttribute('color', palette[0]));
+    });
+
+    // player toggeled fullscreen
+    player.addEventListener('player-fullscreen', e => {
+      const fullscreen = e.detail.fullscreen;
+      if (fullscreen) {
+        // if scoll animation fab is onscreen remove it
+        const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
+        if (fab.hasAttribute('onscreen')) {
+          fab.offScreen();
+        }
+      }
+    });
+
+    // change page when tab is selected
+    qs('audiosync-tabs').addEventListener('selected-change', e => {
+      const selected = e.detail.selected;
+      qs('audiosync-pages').setAttribute('selected', selected);
+    });
 
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
@@ -33,6 +66,13 @@ import {
     // header gear icon
     qs('#settings').onClick(_ => {
       qs('audiosync-settings').open()
+    });
+
+    // toggle filter for music-library by favorites
+    qs("#fav").onClick(async _ => {
+      await sleep(200);
+      qs('audiosync-menu').close();
+      qs('music-library').favorites();
     });
 
     // menu drawer save / file icon
@@ -137,8 +177,9 @@ import {
 
     // load media library
     const ml = qs('music-library');
+    ml.addEventListener('album-played', e => qs('audiosync-player').addPlaylist(e.detail.album));
+    ml.addEventListener('lib_size_updated', e => qs('audiosync-menu').footElement(e.detail.lib_size));
     await ml.go();
-    qs('audiosync-menu').footElement(ml.libSize);
 
     // load podcasts from config and generate UI
     await qs('audiosync-podcasts').listPodcasts();
