@@ -310,7 +310,7 @@ class AudioPlayer extends HTMLElement {
 
       // set src
       qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-      this.player.src = `music${this.playlist[this.playing].path}`;
+      this.player.src = this.playlist[this.playing].path;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -353,7 +353,7 @@ class AudioPlayer extends HTMLElement {
 
       // set src
       qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-      this.player.src = `music${this.playlist[this.playing].path}`;
+      this.player.src = this.playlist[this.playing].path;
       // load and play the file
       this.player.load();
       this.player.play();
@@ -399,13 +399,9 @@ class AudioPlayer extends HTMLElement {
   async _playlistPopup(ev) {
     if (qs('.popup', this.shadowRoot)) return;
 
-    // creaate playlist popup
-    // const x = ev.pageX - this.popupWidth;
-    // const y = ev.pageY - this.popupHeight;
+    // create playlist popup
     const popup = ce('div');
     popup.classList.add('popup');
-    // popup.style.top = `${y - 65}px`;
-    // popup.style.left = `${x}px`;
     for (let i = 0; i < this.playlist.length; i++) {
       const div = ce('div');
       div.classList.add('track');
@@ -430,7 +426,7 @@ class AudioPlayer extends HTMLElement {
         this.playing = i;
         this._updatePlaylistUI();
         qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-        this.player.src = `music${this.playlist[this.playing].path}`;
+        this.player.src = this.playlist[this.playing].path;
         this.player.play();
       }); 
       popup.appendChild(div);
@@ -465,19 +461,18 @@ class AudioPlayer extends HTMLElement {
    */
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
-
-    // if scoll animation fab is onscreen remove it
-    const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
-    if (fab.hasAttribute('onscreen')) {
-      fab.offScreen();
-    }
+    
+    const ev = new CustomEvent('player-fullscreen', {
+      detail:{fullscreen: true}
+    });
+    this.dispatchEvent(ev);
 
     // art
     const img = ce('img');
     img.src = this.art;
     img.width = 450;
     img.height = 450;
-
+    
     // background 
     const bg = ce('div');
     bg.id = 'fbg';
@@ -489,7 +484,7 @@ class AudioPlayer extends HTMLElement {
     listButton.position({bottom: '55px', right: '10px'});
     listButton.onClick(ev => this._playlistPopup(ev));
     listButton.setAttribute('color', this.palette[0]);
-
+    
     // push to dom
     [
       img,
@@ -512,6 +507,10 @@ class AudioPlayer extends HTMLElement {
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
+    const ev = new CustomEvent('player-fullscreen', {
+      detail:{fullscreen: false}
+    });
+    this.dispatchEvent(ev);
     const popup = qs('.popup', this.shadowRoot);
     if (popup) {
       await animateElement(popup, 'scale3d(0,0,0)', 50);
@@ -526,25 +525,56 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * replace \\ for / 
+   * 
+   * @param {String} string 
+   * @returns {String}
+   */
+  _fixSlashes(string) {
+    return string.replace(/\\/g, '/');
+  }
+
+  /**
+   * fix paths from backend for use in the UI
+   * 
+   * @param {Array} array 
+   * @returns {Array}
+   */
+  _fixPaths(array) {
+    for (let i = 0; i < array.length; i++) {
+      const path = this._fixSlashes(array[i].path);
+      array[i].art = `music${path}/cover.jpg`;
+      array[i].path = `music${path}/${array[i].file}`;
+      delete array[i].file;
+    }
+    return array
+  }
+
+  /**
    * add tracks to playlist
    * 
    * @param {Array} playlist 
    */
-  addPlaylist(playlist) {
-    // art url
-    const folder = playlist.folder.replace(/\\/g, '/');
-    this.art = `music${folder}/cover.jpg`;
-    this._cacheImage(this.art);
-    this.playlist = playlist.tracks;
+  addPlaylist(albumInfo) {
     // reset index
     this.playing = 0;
+    // set playlist
+    this.playlist = this._fixPaths(albumInfo.tracks);
     if (!this.playlist.length) return;
+    // art url
+    this.art = this.playlist[this.playing].art;
+    this._cacheImage(this.art);
     // load URL
     if (qs('#info', this.shadowRoot)) qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-    this.player.src = `music${this.playlist[this.playing].path}`;
+    this.player.src = this.playlist[this.playing].path;
     this.player.play();
   }
 
+  /**
+   * updates the playlist ui with now playing indicator
+   * 
+   * @returns {void}
+   */
   async _updatePlaylistUI() {
     const popup = qs('.popup', this.shadowRoot);
     if (!popup) return;
@@ -588,17 +618,14 @@ class AudioPlayer extends HTMLElement {
 
       this.palette = [
         `rgb(${r},${g},${b})`, // fab / accent color
-        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)` // player art background color
+        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.9)`, // player art background color
+        `${r},${g},${b}`
       ];
-      
-      // set --pop-color elements the new accent color
-      document.documentElement.style.setProperty('--switch-rgb', `${r},${g},${b}`);
-      qsa('audiosync-menu-button').forEach(button => button.iconColor(this.palette[0]));
-      [
-        qs('audiosync-button', qs('sync-ui').shadowRoot),
-        qs('audiosync-fab', qs('scroll-element').shadowRoot)
-      ].forEach(el => el.setAttribute('color', this.palette[0]));
 
+      const ev = new CustomEvent('image-loaded', {
+        detail:{palette: this.palette}
+      });
+      this.dispatchEvent(ev);
       // destroy img element.  URL cached additional <img> elements with this url should load instant
       img.remove();
       // maybe im wrong /shrug it seems to work
@@ -708,7 +735,7 @@ class AudioPlayer extends HTMLElement {
 
     // set src
     qs('#info', this.shadowRoot).textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
-    this.player.src = `music${this.playlist[this.playing].path}`;
+    this.player.src = this.playlist[this.playing].path;
     // load and play the file
     this.player.load();
     this.player.play();
