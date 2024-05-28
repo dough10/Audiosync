@@ -199,7 +199,7 @@ def get_audio_files():
   audio_files = []
   for root, dirs, files in os.walk(working_dir):
     for file in files:
-      if is_audio_file(file):
+      if is_audio_file(file) and not file.startswith('._'):
         file = file_manager.fix_filename(root, file)
         audio_files.append({'root': root, 'file': file, 'ext': os.path.splitext(file)[-1].lower()})
   return audio_files

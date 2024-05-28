@@ -55,7 +55,7 @@ class Playlist_manager:
       return
     
     # list usable audio files
-    audio_files = [file for file in os.listdir(directory) if file.endswith('.mp3') or file.endswith('.m4a')]
+    audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.mp3') or file.endswith('.m4a')]
     
     # early return if no files
     if len(audio_files) == 0:
@@ -132,7 +132,7 @@ class Playlist_manager:
       return
     
     # list flac files
-    audio_files = [file for file in os.listdir(directory) if file.endswith('.flac')]
+    audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.flac')]
     
     # early return if no files in list
     if len(audio_files) == 0:
