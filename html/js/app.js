@@ -57,6 +57,11 @@ import {
       qs('audiosync-pages').setAttribute('selected', selected);
     });
 
+    qs('music-library').addEventListener('album-selected', e=> {
+      const data = e.detail.sync_data;
+      pywebview.api.save(JSON.stringify(data, null, 2));
+    });
+
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
       qs('audiosync-menu').open();
@@ -72,19 +77,6 @@ import {
       await sleep(200);
       qs('audiosync-menu').close();
       qs('music-library').favorites();
-    });
-
-    // menu drawer save / file icon
-    qs('#save').onClick(async _ => {
-      await sleep(200);
-      qs('audiosync-menu').close();
-      const dataObj = qs('music-library').buildObject();
-      if (Object.keys(dataObj).length === 0) {
-        new Toast('No albums selected');
-        return
-      }
-      pywebview.api.save(JSON.stringify(dataObj, null, 2));
-      new Toast('JSON saved');
     });
 
     // menu drawer refresh / update icon

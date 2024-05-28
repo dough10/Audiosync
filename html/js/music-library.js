@@ -521,12 +521,16 @@ class MusicLibrary extends HTMLElement {
     artistContainer.addEventListener('click', this._makeSelection);
     artistContainer.addEventListener('contextmenu', ev => ev.preventDefault());
     this.content.appendChild(artistContainer);
+
+    // first char isn't included in the list of chars
     if (!this._usedChars.includes(firstChar)) {
+      // ignore all numbers
+      if (Number(firstChar)) return;
+      
+      // add the char
       this._usedChars.push(firstChar);
-      if (Number(firstChar)) {
-        artistContainer.id = 'number';
-        return;
-      }
+
+      // add id the first time a char is used to start a word
       artistContainer.id = firstChar;
     }
   }
@@ -556,7 +560,7 @@ class MusicLibrary extends HTMLElement {
   /**
    * creates a new object from selected elements to be saved as sync.json
    */
-  buildObject() {
+  _buildObject() {
     const artistAlbums = {};
     // Select all elements with the data-artist attribute
     const artistElements = qsa('.selected', this.shadowRoot);
@@ -604,6 +608,10 @@ class MusicLibrary extends HTMLElement {
         } 
       });
     }
+    const ev = new CustomEvent('album-selected', {
+      detail:{sync_data: this._buildObject()}
+    });
+    this.dispatchEvent(ev);
   }
 }
 customElements.define('music-library', MusicLibrary);
