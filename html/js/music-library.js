@@ -424,7 +424,9 @@ class MusicLibrary extends HTMLElement {
       ev.preventDefault();
       const x = ev.pageX;
       const y = ev.pageY;
-      
+    
+      this.content.style.pointerEvents = 'none';
+
       const wrapper = ce('div');
       if (y > 500) {
         wrapper.style.top = `${y - this.popupHeight}px`;
@@ -440,13 +442,14 @@ class MusicLibrary extends HTMLElement {
 
       // closes and cleans up the popup element
       const close = _ => {
+        this.content.style.removeProperty('pointer-events');
         wrapper.addEventListener('transitionend', async _ => {
           await sleep(500);
           wrapper.remove();
         });
         wrapper.style.removeProperty('transform');
       };
-      wrapper.addEventListener('mouseleave', close);
+      // wrapper.addEventListener('mouseleave', close);
       qs('body').addEventListener('click', close);
 
       const play = fillButton('play', 'play');
