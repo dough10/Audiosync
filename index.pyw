@@ -111,12 +111,14 @@ class Api:
       window.destroy()
 
   def load_favorites(self):
-    with open(os.path.join(script_folder, 'favorites.json'), 'r') as j:
-      return json.load(j)
-   
+    try:
+      with open(os.path.join(script_folder, 'favorites.json'), 'r') as j:
+        return json.load(j)
+    except FileNotFoundError:
+      return {}
+    
   # save favorites to file
   def save_favorites(self, favs):
-    print(favs)
     with open(os.path.join(script_folder, 'favorites.json'), 'w') as fav_file:
       fav_file.write(favs) 
 
