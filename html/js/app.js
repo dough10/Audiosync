@@ -20,7 +20,6 @@ import {
    * setup listeners and fetch data
   */
  async function load_app(e) {
-    console.log(e.type)
 
     if (_loadTimer) {
       clearTimeout(_loadTimer);
@@ -33,7 +32,7 @@ import {
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
       document.documentElement.style.setProperty('--switch-rgb', palette[2]);
-      qsa('audiosync-menu-button').forEach(button => button.iconColor(palette[0]));
+      qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', palette[0]));
       [
         qs('audiosync-button', qs('sync-ui').shadowRoot),
         qs('audiosync-fab', qs('scroll-element').shadowRoot)
@@ -122,7 +121,7 @@ import {
       qs('sync-ui').hideBar('#podcasts-bar');
     }
 
-    qsa('audiosync-menu-button').forEach(button => button.iconColor(getCSSVariableValue('--pop-color')));
+    qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', getCSSVariableValue('--pop-color')));
 
     // reset .lrc UI
     const rm_lrc_el = qs('#remove-lrc');
