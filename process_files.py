@@ -414,6 +414,7 @@ def create_lib_json(window):
   
   # sort tracks by disc then track number
   for artist in lib_data:
+    lib_data[artist].sort(key=lambda x: x["title"])
     for album in lib_data[artist]:
       album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
   
