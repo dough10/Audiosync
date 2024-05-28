@@ -2,7 +2,7 @@ import {qs, ce, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSV
 
 class MenuButton extends HTMLElement {
   static get observedAttributes() {
-    return ['disabled'];
+    return ['disabled','color'];
   }
   constructor() {
     super();
@@ -107,7 +107,7 @@ class MenuButton extends HTMLElement {
    * 
    * @param {String} color 
    */
-  iconColor(color) {
+  _iconColor(color) {
     if (!this.id) {
       this.id = generateRandomString();
     }
@@ -168,6 +168,8 @@ class MenuButton extends HTMLElement {
       } else {
         qs('.menu-button', this.shadowRoot).removeAttribute(name);
       }
+    } else if (name === 'color') {
+      this._iconColor(newVal);
     }
   }
 }
