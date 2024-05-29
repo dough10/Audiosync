@@ -26,7 +26,13 @@ import {
       _loadTimer = 0;
     }
 
+    /**
+     * data change in an element
+     */
+
     const player = qs('audiosync-player');
+    const musicLib = qs('music-library');
+
 
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
@@ -51,16 +57,29 @@ import {
       }
     });
 
+    // keep favorite in sync
+    player.addEventListener('fav-album', e => qs('music-library').playerSetFavorite(e.detail));
+
+    // keep favorite in sync
+    musicLib.addEventListener('fav-album', e => player.favorite(e.detail));
+
+    // album selected / clicked (saves sync.json)
+    musicLib.addEventListener('album-selected', e=> {
+      const data = e.detail.sync_data;
+      pywebview.api.save(JSON.stringify(data, null, 2));
+    });
+
+
     // change page when tab is selected
     qs('audiosync-tabs').addEventListener('selected-change', e => {
       const selected = e.detail.selected;
       qs('audiosync-pages').setAttribute('selected', selected);
     });
 
-    qs('music-library').addEventListener('album-selected', e=> {
-      const data = e.detail.sync_data;
-      pywebview.api.save(JSON.stringify(data, null, 2));
-    });
+
+    /**
+     * button / switch interactions
+     */
 
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
@@ -93,37 +112,6 @@ import {
       await sleep(200);
       await animateElement(event.target, 'translateY(-120%)', 800, 0);
     });
-
-    // get settings from config.json
-    const conf = await pywebview.api.get_config();
-
-    // playlist import ui
-    qs('#cues').setState(conf.import_cues);
-    if (!conf.import_cues) {
-      qs('sync-ui').hideBar('#playlists-bar');
-    }
-
-    // lyrics import
-    qs('#lyrics').setState(conf.import_lyrics);
-    qs('#remove-lrc').setState(conf.remove_lrc_wd);
-
-    // podcast import ui
-    qs('#podcast').setState(conf.podcast);
-    if (!conf.podcast) {
-      qs('sync-ui').hideBar('#podcasts-bar');
-    }
-
-    qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', getCSSVariableValue('--pop-color')));
-
-    // reset .lrc UI
-    const rm_lrc_el = qs('#remove-lrc');
-    if (!conf.import_lyrics) {
-      rm_lrc_el.style.opacity = 0;
-      rm_lrc_el.style.display = 'none';
-    } else {
-      rm_lrc_el.style.opacity = 1;
-      rm_lrc_el.style.removeProperty('display');
-    }
 
     // when a switch is changed update config & UI
     qsa('audiosync-switch').forEach(sw => {
@@ -165,6 +153,41 @@ import {
         }
       });
     });
+
+    /**
+     * load data
+     */
+
+    // get settings from config.json
+    const conf = await pywebview.api.get_config();
+
+    // playlist import ui
+    qs('#cues').setState(conf.import_cues);
+    if (!conf.import_cues) {
+      qs('sync-ui').hideBar('#playlists-bar');
+    }
+
+    // lyrics import
+    qs('#lyrics').setState(conf.import_lyrics);
+    qs('#remove-lrc').setState(conf.remove_lrc_wd);
+
+    // podcast import ui
+    qs('#podcast').setState(conf.podcast);
+    if (!conf.podcast) {
+      qs('sync-ui').hideBar('#podcasts-bar');
+    }
+
+    qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', getCSSVariableValue('--pop-color')));
+
+    // reset .lrc UI
+    const rm_lrc_el = qs('#remove-lrc');
+    if (!conf.import_lyrics) {
+      rm_lrc_el.style.opacity = 0;
+      rm_lrc_el.style.display = 'none';
+    } else {
+      rm_lrc_el.style.opacity = 1;
+      rm_lrc_el.style.removeProperty('display');
+    }
 
     // load media library
     const ml = qs('music-library');
