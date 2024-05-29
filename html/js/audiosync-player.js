@@ -110,7 +110,8 @@ class AudioPlayer extends HTMLElement {
       '.popup > .track > div:nth-child(2)': {
         padding: '8px',
         width: "100%",
-        overflow: 'hidden'
+        overflow: 'hidden',
+        transform: 'translateX(-15px)'
       },
       '.popup > .track:hover': {
         background: 'var(--hover-color)'
@@ -390,6 +391,10 @@ class AudioPlayer extends HTMLElement {
     // load and play the file
     this.player.load();
     this.player.play();
+    const ev = new CustomEvent('now-playing', {
+      detail:{artist: this.artist, album: this.title}
+    });
+    this.dispatchEvent(ev);
   }
 
   /**
@@ -560,10 +565,10 @@ class AudioPlayer extends HTMLElement {
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
-    const ev = new CustomEvent('player-fullscreen', {
+    const fullscreenEvent = new CustomEvent('player-fullscreen', {
       detail:{fullscreen: false}
     });
-    this.dispatchEvent(ev);
+    this.dispatchEvent(fullscreenEvent);
     const popup = qs('.popup', this.shadowRoot);
     if (popup) {
       qs('img', this.shadowRoot).style.removeProperty('filter');
@@ -612,7 +617,7 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
-   * fetches an image and gets a palette from the image to use later
+   * loads an image and gets a palette from the image
    * 
    * @param {String} url 
    */
@@ -657,10 +662,12 @@ class AudioPlayer extends HTMLElement {
         qs('#favorite', fullscreen).setAttribute('color', getContrastColor(hex));
       }
 
+      // fire event to update app ui element with new color
       const ev = new CustomEvent('image-loaded', {
         detail:{palette: this.palette}
       });
       this.dispatchEvent(ev);
+
       // destroy img element.  URL cached additional <img> elements with this url should load instant
       img.remove();
       // maybe im wrong /shrug it seems to work
@@ -783,6 +790,10 @@ class AudioPlayer extends HTMLElement {
    * close player UI
    */
   async _pauseTimeOut() {
+    const playingEvent = new CustomEvent('now-playing', {
+      detail:undefined
+    });
+    this.dispatchEvent(playingEvent);
     await this.minimize();
     const bg = qs('.background', this.shadowRoot);
     await animateElement(bg, 'translateY(100%)', 150);
