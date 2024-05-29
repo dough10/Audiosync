@@ -2,7 +2,7 @@ import {ce, qs, createRipple, hexToRgba, convertToHex, parseCSS, objectToCSS} fr
 
 class SmallButton extends HTMLElement {
   static get observedAttributes() {
-    return ['disabled'];
+    return ['disabled','color'];
   }
   constructor() {
     super();
@@ -55,7 +55,7 @@ class SmallButton extends HTMLElement {
    */
   connectedCallback() {
     const textColor = convertToHex(window.getComputedStyle(this.button).color); 
-    this.color(textColor);
+    this._color(textColor);
     this.button.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
@@ -67,7 +67,7 @@ class SmallButton extends HTMLElement {
    * 
    * @param {String} color 
    */
-  async color(color) {
+  async _color(color) {
     //  capture styles
     const styles = parseCSS(qs('style', this.shadowRoot).textContent);
 
@@ -108,6 +108,8 @@ class SmallButton extends HTMLElement {
       } else {
         this.button.removeAttribute(name);
       }
+    } else if (name === 'color') {
+      this._color(newVal);
     }
   }
 }
