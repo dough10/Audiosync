@@ -1,8 +1,6 @@
 import {
-  animateElement,
   qs,
   svgIcon,
-  sleep,
   objectToCSS,
   ce
 } from './helpers.js';
@@ -15,8 +13,7 @@ class ScrollElement extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    // scroll position memory
-    let last_top = 0;
+    this._lastTop = 0;
 
     this.animateScroll = this.animateScroll.bind(this);
 
@@ -73,25 +70,14 @@ class ScrollElement extends HTMLElement {
     // scrollable content container
     this.container = ce('div');
     this.container.classList.add('wrapper');
-    this.container.onscroll = _ => {
-      // no action button on podcasts (animation bug)
-      const currentPage = qs('audiosync-pages').getAttribute('selected');
-      if (currentPage > 0 ) return;
-
-      // control action button
-      const scrollTop = this.container.scrollTop;
-      if (scrollTop < last_top) {
-        fab.offScreen();
-      } else if (scrollTop != 0) {
-        fab.onScreen();
-      } else {
-        fab.offScreen();
-      }
-      last_top = scrollTop;
-    };
+    this.container.onscroll = this._containerScrolled.bind(this);
+  
+    const scrollTarget = ce('div');
+    scrollTarget.id = 'top';
 
     // fill container
     [
+      scrollTarget,
       fab,
       this.content
     ].forEach(el => this.container.appendChild(el));
@@ -101,6 +87,29 @@ class ScrollElement extends HTMLElement {
       sheet,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
+  }
+
+  /**
+   * container scrolled
+   * 
+   * @returns {void}
+   */
+  _containerScrolled() {
+    const fab = qs('audiosync-fab', this.shadowRoot);
+    // no action button on podcasts (animation bug)
+    const currentPage = qs('audiosync-pages').getAttribute('selected');
+    if (currentPage > 0 ) return;
+
+    // control action button
+    const scrollTop = this.container.scrollTop;
+    if (scrollTop < this._lastTop) {
+      fab.offScreen();
+    } else if (scrollTop != 0) {
+      fab.onScreen();
+    } else {
+      fab.offScreen();
+    }
+      this._lastTop = scrollTop;
   }
 
   /**
@@ -125,19 +134,8 @@ class ScrollElement extends HTMLElement {
    * @returns {Promise<Void>} Nothing
    */
   animateScroll() {
-    return new Promise(async resolve => {
-      await sleep(100);
-      const maxScrollTop = Math.max(
-        this.container.scrollHeight - this.container.clientHeight,
-        0
-      );
-      // set animation time based on distance scrolled down the page
-      const time = this._mapRange((this.container.scrollTop / maxScrollTop), 0, 1, 50, 300);
-      await animateElement(this.content, `translateY(${this.container.scrollTop}px)`, time);
-      this.content.style.removeProperty('transform');
-      this.container.scrollTop = 0;
-      resolve();
-    });
+    const target= qs('#top', this.shadowRoot);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 customElements.define('scroll-element', ScrollElement);
