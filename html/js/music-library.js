@@ -29,8 +29,6 @@ class MusicLibrary extends HTMLElement {
     this._displayArtist = this._displayArtist.bind(this);
     this._openContexMenu = this._openContexMenu.bind(this)
 
-    this._usedChars = [];
-
     const cssObj = {
       "@keyframes ripple-animation": {
         to: {
@@ -76,6 +74,9 @@ class MusicLibrary extends HTMLElement {
         'align-items': 'center',
         overflow: 'hidden'
       },
+      ".album:hover": {
+        "background-color": "var(--hover-color)"
+      },
       '.album > *': {
         'pointer-events': 'none'
       },
@@ -95,13 +96,16 @@ class MusicLibrary extends HTMLElement {
       '.album[favorite] > svg': {
         opacity: 0.6
       },
-      ".album:hover": {
-        "background-color": "var(--hover-color)"
+      '.album[playing]': {
+        color: 'var(--pop-color)'
+      },      
+      '.album[playing][selected]': {
+        color: '#ffffff'
       },
-      ".album.selected": {
+      ".album[selected]": {
         "background-color": "rgba(100, 100, 100, 0.582)"
       },
-      ".album.selected:hover": {
+      ".album[selected]:hover": {
         "background-color": "#00000044"
       },
       ".blank": {
@@ -188,7 +192,9 @@ class MusicLibrary extends HTMLElement {
    * fetch data
    */
   async go() {
-    this._usedChars = [];
+    this._usedChars = [
+      '>'
+    ];
     await fadeOut(this.content);
     this.content.innerHTML = '';
     const library = await pywebview.api.lib_data();
@@ -204,6 +210,24 @@ class MusicLibrary extends HTMLElement {
       detail:{lib_size: this.libSize}
     });
     this.dispatchEvent(ev);
+  }
+
+  /**
+   * update library ui with currently playing album
+   * 
+   * @param {Object} details 
+   * @returns {void}
+   */
+  nowPlaying(details) {
+    const link = qs('a[title="Playing"]', this.shadowRoot)
+    link.style.display = 'none';
+    qsa('.album', this.shadowRoot).forEach(el => {
+      el.removeAttribute('playing');
+    });
+    if (!details) return;
+    const newPlaying = qs(`[data-artist="${details.artist}"][data-album="${details.album}"]`, this.shadowRoot);
+    newPlaying.toggleAttribute('playing');
+    link.style.removeProperty('display');
   }
 
   /**
@@ -244,7 +268,7 @@ class MusicLibrary extends HTMLElement {
   _loadFavorites(favs) {
     for (const artist in favs) {
       favs[artist].forEach(album => {
-        const el = qs(`[data-album="${album}"]`, this.shadowRoot);
+        const el = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
         if (!el) return;
         el.toggleAttribute('favorite');
       });
@@ -277,7 +301,13 @@ class MusicLibrary extends HTMLElement {
       const link = ce('a');
       if (Number(char)) {
         link.textContent = '#';
+        link.title = '#';
+      } else if (char === '>') {
+        link.title = 'Playing';
+        link.textContent = char;
+        link.style.display = 'none';
       } else {
+        link.title = char.toLocaleUpperCase();
         link.textContent = char;
       }
       alphabet.appendChild(link);
@@ -286,9 +316,12 @@ class MusicLibrary extends HTMLElement {
         let target = '';
         if (Number(char)) {
           target = qs(`#number`, this.shadowRoot);
+        } else if (char === '>') {
+          target = qs('.album[playing]', this.shadowRoot);
         } else {
           target = qs(`#${char}`, this.shadowRoot);
         }
+        if (!target) return;
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
@@ -435,8 +468,7 @@ class MusicLibrary extends HTMLElement {
   }
 
   favoriteAlbum(artist, album) {
-    const albumContainer = qs(`[data-album="${album}"]`, this.shadowRoot);
-    if (albumContainer.dataset.artist !== artist) return;
+    const albumContainer = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
     albumContainer.toggleAttribute('favorite');
     const favs = this._getFavorites();
     pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
@@ -616,10 +648,10 @@ class MusicLibrary extends HTMLElement {
     }
     for (const artist in data) {
       const m = qsa(`[data-artist="${artist}"].artist`, this.shadowRoot);
-      m.forEach(el => el.classList.add('selected'));
+      m.forEach(el => el.toggleAttribute('selected'));
       for (let i=0; i < data[artist].length; i++) {
         const s = qsa(`[data-album="${data[artist][i]}"]`, this.shadowRoot);
-        s.forEach(el => el.classList.add('selected'));
+        s.forEach(el => el.toggleAttribute('selected'));
       }
     }
   }
@@ -630,7 +662,7 @@ class MusicLibrary extends HTMLElement {
   _buildObject() {
     const artistAlbums = {};
     // Select all elements with the data-artist attribute
-    const artistElements = qsa('.selected', this.shadowRoot);
+    const artistElements = qsa('.album[selected]', this.shadowRoot);
     // Iterate over each artist element
     artistElements.forEach(artistElement => {
       const artistName = artistElement.dataset.artist;
@@ -654,24 +686,25 @@ class MusicLibrary extends HTMLElement {
   _makeSelection(e) {
     createRipple(e);
     const target = e.target;
-    target.classList.toggle('selected');
+    target.toggleAttribute('selected');
     if (target.classList.contains('artist')) {
       const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"]`, this.shadowRoot);
       matchingArtist.forEach(el => {
-        if (target.classList.contains('selected')) {
-          el.classList.add('selected');
+        if (target === el) return;
+        if (target.hasAttribute('selected')) {
+          el.toggleAttribute('selected');
         } else {
-          el.classList.remove('selected');
+          el.removeAttribute('selected');
         } 
       });
     }
     if (target.classList.contains('album')) {
       const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"].artist`, this.shadowRoot);
       matchingArtist.forEach(el => {
-        if (target.classList.contains('selected')) {
-          el.classList.add('selected');
+        if (target.hasAttribute('selected')) {
+          el.toggleAttribute('selected');
         } else {
-          el.classList.remove('selected');
+          el.removeAttribute('selected');
         } 
       });
     }
