@@ -57,6 +57,9 @@ import {
       }
     });
 
+    // for marking now playing in <music-library>
+    player.addEventListener('now-playing', e => musicLib.nowPlaying(e.detail));
+
     // keep favorite in sync
     player.addEventListener('fav-album', e => qs('music-library').playerSetFavorite(e.detail));
 
