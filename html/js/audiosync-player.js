@@ -157,7 +157,12 @@ class AudioPlayer extends HTMLElement {
         position: 'fixed',
         bottom:'5px',
         left: '10px',
-        'font-size': '11px'
+        overflow: 'hidden',
+        'font-size': '11px',
+        'max-height': '14px',
+        'max-width': '250px',
+        'white-space': 'nowrap',
+        'text-overflow': 'ellipsis'
       },
       '#expand': {
         position: 'fixed',
