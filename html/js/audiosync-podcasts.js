@@ -158,7 +158,7 @@ class AudioSyncPodcasts extends HTMLElement {
     
     // X button
     const closeButton = ce('audiosync-small-button');
-    closeButton.color('red');
+    closeButton.setAttribute('color', 'red');
     closeButton.appendChild(closeIcon);
     
     // dialog header 
