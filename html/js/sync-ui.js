@@ -1,4 +1,4 @@
-import {qs, ce, Toast, sleep, fadeIn, fillButton, objectToCSS, parseCSS} from './helpers.js'
+import {qs, qsa, ce, Toast, sleep, fadeIn, fillButton, objectToCSS, parseCSS} from './helpers.js'
 
 /**
  * sync ui 
@@ -40,7 +40,7 @@ class SyncUI extends HTMLElement {
     const bars = [
       {id:"files", text: "Copying Files"},
       {id:"podcasts", text: "Copying Podcasts"},
-      {id:"playlists", text: "Copying Playlists"}
+      {id:"playlists", text: "Creating Playlists"}
     ]
 
     this.output = ce('div');
@@ -131,6 +131,40 @@ class SyncUI extends HTMLElement {
    */
   open() {
     this.dialog.open();
+  }
+
+  startSync() {
+    const debounceTime = 20;
+    let lastRan = 0;
+    let values = {};
+    
+    // Query all elements with class "audiosync-progress" within the shadow root
+    const progressElements = Array.from(qsa('audiosync-progress', this.shadowRoot));
+    
+    // Function to calculate and print average percent
+    const printAveragePercent = () => {
+      const visibleProgressElements = progressElements.filter(el => el.style.display !== 'none');
+      const totalPercent = Object.values(values).reduce((acc, percent) => acc + percent, 0);
+      
+      const ev = new CustomEvent('total-progress', {
+        detail:{percent: (totalPercent / visibleProgressElements.length)}
+      });
+      this.dispatchEvent(ev);
+    };
+    
+    // Event listener for "percent-changed" event
+    const percentChangedHandler = (e) => {
+      values[e.detail.id] = e.detail.percent;
+      const now = Date.now();
+      if (now - lastRan < debounceTime) return;
+      printAveragePercent();
+      lastRan = now;
+    };
+    
+    // Add event listener to each progress element
+    progressElements.forEach(el => {
+      el.addEventListener('percent-changed', percentChangedHandler);
+    });
   }
 
   /**
