@@ -26,6 +26,8 @@ import {
       _loadTimer = 0;
     }
 
+    const debouneTime = 100;
+    let last = 0;
     /**
      * data change in an element
      */
@@ -79,6 +81,14 @@ import {
       qs('audiosync-pages').setAttribute('selected', selected);
     });
 
+    qs('sync-ui').addEventListener('total-progress', e => {
+      const now = new Date().getTime();
+      if (now - last < 20) return;
+
+      last = now;
+      qs('#update').setAttribute('percent', e.detail.percent);
+    });
+
 
     /**
      * button / switch interactions
@@ -86,33 +96,48 @@ import {
 
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
+      const now = new Date().getTime();
+      if (now - last < debouneTime) return;
+      last = now;
       qs('audiosync-menu').open();
     });
 
     // header gear icon
     qs('#settings').onClick(_ => {
+      const now = new Date().getTime();
+      if (now - last < debouneTime) return;
+      last = now;
       qs('audiosync-settings').open()
     });
 
     // toggle filter for music-library by favorites
     qs("#fav").onClick(async _ => {
-      await sleep(200);
+      const now = new Date().getTime();
+      if (now - last < debouneTime) return;
+      last = now;
+      await sleep(20);
       qs('audiosync-menu').close();
       qs('music-library').favorites();
     });
 
     // menu drawer refresh / update icon
     qs('#update').onClick(async _ => {
-      await sleep(200);
+      const now = new Date().getTime();
+      if (now - last < debouneTime) return;
+      last = now;
+      await sleep(20);
       qs('audiosync-menu').close();
-      await qs('sync-ui').open();
+      await qs('sync-ui').startSync();
       await pywebview.api.run_sync();
     });
 
     // top of screen alert
     qs('#alert').addEventListener('click', async event => {
+      const now = new Date().getTime();
+      if (now - last < debouneTime) return;
+      last = now;
       createRipple(event);
-      await sleep(200);
+      await sleep(20);
       await animateElement(event.target, 'translateY(-120%)', 800, 0);
     });
 
