@@ -111,7 +111,9 @@ class AudioPlayer extends HTMLElement {
         padding: '8px',
         width: "100%",
         overflow: 'hidden',
-        transform: 'translateX(-15px)'
+        transform: 'translateX(-15px)',
+        'white-space': 'nowrap',
+        'text-overflow': 'ellipsis'
       },
       '.popup > .track:hover': {
         background: 'var(--hover-color)'
