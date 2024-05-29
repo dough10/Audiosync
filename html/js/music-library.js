@@ -27,6 +27,7 @@ class MusicLibrary extends HTMLElement {
 
     this._makeSelection = this._makeSelection.bind(this);
     this._displayArtist = this._displayArtist.bind(this);
+    this._openContexMenu = this._openContexMenu.bind(this)
 
     this._usedChars = [];
 
@@ -79,7 +80,8 @@ class MusicLibrary extends HTMLElement {
         'pointer-events': 'none'
       },
       '.album > svg': {
-        color: 'var(--pop-color)',
+        height: '12px',
+        width: '12px',
         opacity: 0,
         transition: 'all 150ms cubic-bezier(.33,.17,.85,1.1)',
         transform: 'translateX(-26px)'
@@ -89,12 +91,6 @@ class MusicLibrary extends HTMLElement {
         overflow: "hidden",
         'white-space': 'nowrap',
         'text-overflow': 'ellipsis'
-      },
-      '.album[favorite]':{
-        color: 'var(--pop-color)'
-      },
-      '.album[favorite].selected':{
-        color: 'initial'
       },
       '.album[favorite] > svg': {
         opacity: 0.6
@@ -408,6 +404,151 @@ class MusicLibrary extends HTMLElement {
     return favList;
   }
 
+
+  /**
+   * replace \\ for / 
+   * 
+   * @param {String} string 
+   * @returns {String}
+   */
+  _fixSlashes(string) {
+    return string.replace(/\\/g, '/');
+  }
+
+  /**
+   * fix paths from backend for use in the UI
+   * 
+   * @param {Array} array 
+   * @returns {Array}
+   */
+  _fixPaths(array) {
+    for (let i = 0; i < array.length; i++) {
+      const path = this._fixSlashes(array[i].path);
+      array[i].art = `music${path}/cover.jpg`;
+      array[i].path = `music${path}/${array[i].file}`;
+      delete array[i].file;
+    }
+  }
+
+  playerSetFavorite(data) {
+    this.favoriteAlbum(data.artist,data.title);
+  }
+
+  favoriteAlbum(artist, album) {
+    const albumContainer = qs(`[data-album="${album}"]`, this.shadowRoot);
+    if (albumContainer.dataset.artist !== artist) return;
+    albumContainer.toggleAttribute('favorite');
+    const favs = this._getFavorites();
+    pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
+    
+    // cleanup when unfavoriting an ablum while displaying favorites
+    if (this.hasAttribute('favorites')) {
+      // list all albums
+      const albums = qsa('.album', this.shadowRoot);
+      // hide all elements that are not favirotes
+      albums.forEach(async el => {
+        if (!el.hasAttribute('favorite')) {
+          await fadeOut(el);
+          el.style.display = 'none';
+        } 
+      });
+    }
+  }
+
+  /**
+   * open popup context menu
+   * 
+   * @param {HTMLElement} albumContainer
+   */
+  async _openContexMenu(ev, albumContainer, artist, album) {
+    ev.preventDefault();
+    const x = ev.pageX;
+    const y = ev.pageY;
+  
+    this.content.style.pointerEvents = 'none';
+
+    // add favorite data to tracks
+    // this sets favorite button when fullscreen
+    album.favorite = albumContainer.hasAttribute('favorite');
+
+    // for changing favorite button when playlist changes (not implimented)
+    for (let i = 0; i < album.tracks.length; i++) {
+      album.tracks[i].favorite = album.favorite;
+    }
+
+    // create popup & set position
+    const wrapper = ce('div');
+    if (y > 500) {
+      wrapper.style.top = `${y - this.popupHeight}px`;
+    } else {
+      wrapper.style.top = `${y}px`;
+    }
+    if (x > 300) {
+      wrapper.style.left = `${x - this.popupWidth}px`;
+    } else {
+      wrapper.style.left = `${x}px`;
+    }
+    wrapper.classList.add('popup');
+
+    // any click to close the popup
+    // closes and cleans up the popup element
+    qs('body').addEventListener('click', _ => {
+      this.content.style.removeProperty('pointer-events');
+      wrapper.addEventListener('transitionend', async _ => {
+        await sleep(500);
+        wrapper.remove();
+      });
+      wrapper.style.removeProperty('transform');
+    });
+
+    // popup play button
+    const play = fillButton('play', 'play');
+    play.classList.add('option');
+
+    // fire an event to play the album
+    play.addEventListener('click', _ => {
+      // fire event saying play album
+      const ev = new CustomEvent('album-played', {
+        detail:{album: album}
+      });
+      this.dispatchEvent(ev);
+    });
+    
+    // popup favorite button (toggles)
+    let fav;
+    if (albumContainer.hasAttribute('favorite')) {
+      fav = fillButton('removeFav', 'unfavorite');
+    } else {
+      fav = fillButton('addFav', 'favorite');
+    }
+    fav.classList.add('option');
+    fav.addEventListener('click', _ => {
+      this.favoriteAlbum(artist, album.title);
+      const ev = new CustomEvent('fav-album', {
+        detail:{artist: artist, title: album.title, favorite: albumContainer.hasAttribute('favorite')}
+      });
+      this.dispatchEvent(ev);
+    });
+
+    // display album info dialog (eventualy)
+    const info = fillButton('list', 'info');
+    info.classList.add('option');
+    info.addEventListener('click', _ => {
+
+      console.log(album);
+    });
+
+    [
+      play,
+      fav,
+      info
+    ].forEach(el => wrapper.appendChild(el));
+    
+    this.shadowRoot.appendChild(wrapper);
+    await sleep(20);
+    requestAnimationFrame(_ => wrapper.style.transform = 'scale3d(1,1,1)');
+  }
+
   /**
    * album element
    * 
@@ -415,88 +556,14 @@ class MusicLibrary extends HTMLElement {
    * @param {String} album
    */
   _displayAlbum(artist, album) {
+    this._fixPaths(album.tracks);
     let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
     albumContainer.dataset.album = album['title'];
     albumContainer.classList.add('album');
     albumContainer.addEventListener('click', this._makeSelection);
-    albumContainer.addEventListener('contextmenu', async ev => {
-      ev.preventDefault();
-      const x = ev.pageX;
-      const y = ev.pageY;
-    
-      this.content.style.pointerEvents = 'none';
-
-      const wrapper = ce('div');
-      if (y > 500) {
-        wrapper.style.top = `${y - this.popupHeight}px`;
-      } else {
-        wrapper.style.top = `${y}px`;
-      }
-      if (x > 300) {
-        wrapper.style.left = `${x - this.popupWidth}px`;
-      } else {
-        wrapper.style.left = `${x}px`;
-      }
-      wrapper.classList.add('popup');
-
-      // closes and cleans up the popup element
-      const close = _ => {
-        this.content.style.removeProperty('pointer-events');
-        wrapper.addEventListener('transitionend', async _ => {
-          await sleep(500);
-          wrapper.remove();
-        });
-        wrapper.style.removeProperty('transform');
-      };
-      // wrapper.addEventListener('mouseleave', close);
-      qs('body').addEventListener('click', close);
-
-      const play = fillButton('play', 'play');
-      play.classList.add('option');
-      play.addEventListener('click', _ => {
-        const ev = new CustomEvent('album-played', {
-          detail:{album: album}
-        });
-        this.dispatchEvent(ev);
-      });
-      
-      let fav;
-      if (albumContainer.hasAttribute('favorite')) {
-        fav = fillButton('removeFav', 'favorite');
-      } else {
-        fav = fillButton('addFav', 'favorite');
-      }
-      fav.classList.add('option');
-      fav.addEventListener('click', async _ => {
-        albumContainer.toggleAttribute('favorite');
-        const favs = this._getFavorites();
-        pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
-        if (this.hasAttribute('favorites')) {
-          const albums = qsa('.album', this.shadowRoot);
-      
-          albums.forEach(async el => {
-            if (!el.hasAttribute('favorite')) {
-              await fadeOut(el);
-              el.style.display = 'none';
-            } 
-          });
-        }
-      });
-
-      const info = fillButton('list', 'info');
-      info.classList.add('option');
-      info.addEventListener('click', _ => console.log(album));
-
-      [
-        play,
-        fav,
-        info
-      ].forEach(el => wrapper.appendChild(el));
-      
-      this.shadowRoot.appendChild(wrapper);
-      await sleep(20);
-      requestAnimationFrame(_ => wrapper.style.transform = 'scale3d(1,1,1)');
+    albumContainer.addEventListener('contextmenu', ev => {
+      this._openContexMenu(ev, albumContainer, artist, album);
     });
     svgIcon('favorite').then(svg => {
       albumContainer.appendChild(svg);
