@@ -79,7 +79,7 @@ class AudioSyncProgress extends HTMLElement {
   attributeChangedCallback(name, oldVal, newVal) {
     this.bar.style.transform = `translateX(-${100 - newVal}%)`;
 
-    const ev = new CustomEvent('percent-change', {
+    const ev = new CustomEvent('percent-changed', {
       detail:{id: this.id, percent: newVal}
     });
     this.dispatchEvent(ev);
