@@ -79,7 +79,7 @@ class AudioSyncPodcasts extends HTMLElement {
     const refresh = ce('audiosync-small-button');
     svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
-    const menuButtons = [qs('#save'),qs('#update')];
+    const menuButtons = [qs('#fav'),qs('#update')];
     qsa('.tab').forEach(el => menuButtons.push(el));
     refresh.id ='refresh';
     refresh.onClick(async e => {
@@ -325,7 +325,7 @@ class AudioSyncPodcasts extends HTMLElement {
       const removeIcon = await svgIcon('close');
 
       const removeButton = ce('audiosync-small-button');
-      removeButton.color('red');
+      removeButton.setAttribute('color', 'red');
       removeButton.appendChild(removeIcon);
       removeButton.style.opacity = 0;
       removeButton.onClick(async ev => {
