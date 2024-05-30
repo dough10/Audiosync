@@ -10,7 +10,7 @@ data.icons.forEach(async (icon, i) => {
 
   const button = document.createElement('audiosync-menu-button');
   // button.id = icon.name;
-  button.iconColor(color);
+  button.setAttribute('color', color);
   button.onClick(_ => {
     new Toast(`${icon.name} menu button clicked`,1);
   });
@@ -33,8 +33,22 @@ setInterval(_ => {
   }
   last = ndx;
 
-}, 5000)
+}, 5000);
 
-setInterval(_ => {
-  qsa('audiosync-menu-button').forEach(button => button.iconColor(generateRandomHexCode()));
-}, 15000)
+async function testBar() {
+  const max = 1000;
+  const buttons = qsa('audiosync-menu-button');
+  const ndx = Math.floor(Math.random() * data.icons.length);
+  for (let i = 1; i < max; i++) {
+    buttons[ndx].setAttribute('percent', (i / (max - 1)) * 100);
+    await sleep(20);
+  }
+  await sleep(1000);
+  buttons[ndx].setAttribute('percent', 0);
+  await sleep(1000);
+  testBar();
+}
+
+
+await sleep(1000);
+testBar();
