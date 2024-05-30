@@ -407,8 +407,16 @@ class MusicLibrary extends HTMLElement {
    */
   async updateBar(ndx, length) {
     const percent = ((ndx + 1) / length) * 100;
-    this.bar.setAttribute('percent', percent);
-    this.percent.textContent = `${percent.toFixed(1)}%`;
+    if (this.bar) this.bar.setAttribute('percent', percent);
+    if (this.percent) this.percent.textContent = `${percent.toFixed(1)}%`;
+
+    const ev = new CustomEvent('library-scan', {
+      detail:{percent: percent}
+    });
+    this.dispatchEvent(ev);
+
+    if (!this.bar) await sleep(1000);
+
     if (percent === 100) {
       await fadeOut(this.bar);
       await sleep(100);
