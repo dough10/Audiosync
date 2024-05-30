@@ -2,7 +2,7 @@ import {qs, ce, createRipple, hexToRgba, generateRandomString, parseCSS, getCSSV
 
 class MenuButton extends HTMLElement {
   static get observedAttributes() {
-    return ['disabled','color'];
+    return ['disabled','color','percent'];
   }
   constructor() {
     super();
@@ -23,7 +23,8 @@ class MenuButton extends HTMLElement {
         position: "relative",
         overflow: "hidden",
         'will-change': 'background',
-        transition: 'var(--button-bg-animation)'
+        transition: 'var(--button-bg-animation)',
+        'max-width': '350px'
       },
       ".menu-button > *": {
         "pointer-events": "none"
@@ -58,20 +59,48 @@ class MenuButton extends HTMLElement {
         "border-radius": "50%",
         background: "rgba(51, 51, 51, 0.4)",
         animation: "ripple-animation 0.7s linear"
+      },
+      '.prog_wrapper': {
+        position: 'absolute',
+        bottom: 0,
+        left:0,
+        right:0,
+        height: '5px'
+      },
+      '.prog_bar': {
+        position: 'absolute',
+        top:0,
+        left:0,
+        right:0,
+        bottom:0,
+        background: 'var(--pop-color)',
+        transform: 'translateX(-100%)'
+      },
+      '.menu-button[disabled] .prog_bar': {
+        background: 'var(--disabled-color)'
       }
     };
+    this.bar = ce('div');
+    this.bar.classList.add('prog_bar');
 
-    const style = ce('style');
-    style.textContent = objectToCSS(cssJSON);
+    const wrapper = ce('div');
+    wrapper.classList.add('prog_wrapper');
+    wrapper.appendChild(this.bar);
 
     const button = ce('div');
     button.classList.add('menu-button');
-    button.appendChild(ce('slot'));
     button.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
     });
+    [
+      ce('slot'),
+      wrapper
+    ].forEach(el => button.appendChild(el));
     
+    const style = ce('style');
+    style.textContent = objectToCSS(cssJSON);
+
     [
       style,
       button
@@ -136,6 +165,7 @@ class MenuButton extends HTMLElement {
 
     // update ripple styles
     shadowCss['.ripple-effect'].background = hexToRgba(color);
+    shadowCss['.prog_bar'].background = color;
 
     // apply updated styles. 
     qs('style', this.shadowRoot).textContent = objectToCSS(shadowCss);
@@ -170,6 +200,8 @@ class MenuButton extends HTMLElement {
       }
     } else if (name === 'color') {
       this._iconColor(newVal);
+    } else if (name === 'percent') {
+      this.bar.style.transform = `translateX(-${100 - newVal}%)`;
     }
   }
 }
