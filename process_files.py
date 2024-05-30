@@ -339,13 +339,19 @@ def run_sync(window):
 
   # sort tracks by disc then track number
   for artist in lib_data:
+    lib_data[artist].sort(key=lambda x: x["title"])
     for album in lib_data[artist]:
       album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
 
   # write data file of all artists and albums
   sorted_data = dict(sorted(lib_data.items()))
   sorted_data['lib_size'] = fs_queue.get()
-  with open(os.path.join(script_folder, 'lib_data.json'), 'w') as data_file:
+
+  lib_path = os.path.join(script_folder, 'lib_data.json')
+  if os.path.exists(lib_path):
+    os.remove(lib_path)
+
+  with open(lib_path, 'w') as data_file:
     data_file.write(json.dumps(sorted_data, indent=2))
 
   # copy / delete podcasts and add those changes to the total changes
