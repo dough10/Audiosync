@@ -62,34 +62,16 @@ class AudioSyncDialog extends HTMLElement {
       this.blocker,
       this.dialog
     ].forEach(el => this.shadowRoot.appendChild(el));
-
-    setInterval(this._playerDisplayToggle.bind(this), 50);
-  }
-
-  /**
-   * toggle height of click blocked blocking audio mini player
-   * 
-   * @returns {void}
-   */
-  _playerDisplayToggle() {
-    if (!qs('audiosync-player')) return;
-    const styles = parseCSS(qs('style', this.shadowRoot).textContent);
-    if (qs('audiosync-player').hasAttribute('playing')) {
-      styles['#click-blocker'].bottom = '72px';
-    } else {
-      styles['#click-blocker'].bottom = 0;
-    }
-    qs('style', this.shadowRoot).textContent = objectToCSS(styles);
   }
 
   /**
    * open the dialog
    */
   async open() {
-    const tend = _ => {
-      this.blocker.removeEventListener('transitionend', tend);
+    const otend = _ => {
+      this.dialog.removeEventListener('transitionend', otend);
     };
-    this.dialog.addEventListener('transitionend', tend);
+    this.dialog.addEventListener('transitionend', otend);
     requestAnimationFrame(_ => {
       this.dialog.classList.add('open');
       this.blocker.classList.remove('allow-clicks');
@@ -101,11 +83,11 @@ class AudioSyncDialog extends HTMLElement {
    * close the dialog
    */
   async close() {
-    const tend = _ => {
-      this.blocker.removeEventListener('transitionend', tend);
+    const ctend = _ => {
+      this.dialog.removeEventListener('transitionend', ctend);
       this.blocker.style.display = 'none';
     };
-    this.dialog.addEventListener('transitionend', tend);
+    this.dialog.addEventListener('transitionend', ctend);
     requestAnimationFrame(_ => {
       this.dialog.classList.remove('open');
       this.blocker.classList.add('allow-clicks');
