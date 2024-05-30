@@ -32,6 +32,8 @@ class SyncUI extends HTMLElement {
       }
     };
 
+    this.syncing = false;
+
     const sheet = ce('style');
     sheet.textContent = objectToCSS(cssObj);
 
@@ -49,7 +51,7 @@ class SyncUI extends HTMLElement {
     this.summary = ce('div');
     this.summary.classList.add('summary');
     
-    const buttonContents = fillButton('close', "close");
+    const buttonContents = fillButton('close', "reset");
     
     this.button = ce('audiosync-button');
     this.button.appendChild(buttonContents);
@@ -60,6 +62,7 @@ class SyncUI extends HTMLElement {
     });
     
     this.dialog = ce('audiosync-dialog');
+    this.dialog.blocker.addEventListener('click', _ => this.dialog.close());
 
     // style the dialog wider the normal 
     const dstyles = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
@@ -134,8 +137,8 @@ class SyncUI extends HTMLElement {
   }
 
   startSync() {
-    const debounceTime = 20;
-    let lastRan = 0;
+    this.syncing = true;
+
     let values = {};
     
     // Query all elements with class "audiosync-progress" within the shadow root
@@ -155,10 +158,7 @@ class SyncUI extends HTMLElement {
     // Event listener for "percent-changed" event
     const percentChangedHandler = (e) => {
       values[e.detail.id] = e.detail.percent;
-      const now = Date.now();
-      if (now - lastRan < debounceTime) return;
       printAveragePercent();
-      lastRan = now;
     };
     
     // Add event listener to each progress element
@@ -210,6 +210,7 @@ class SyncUI extends HTMLElement {
    * 
    */
   async _closeDialog() {
+    this.syncing = false;
     const ml = qs('music-library');
     await ml.go();
     await this.dialog.close();
@@ -224,7 +225,8 @@ class SyncUI extends HTMLElement {
       '#files-bar', 
       '#podcasts-bar', 
       '#playlists-bar'
-    ].forEach(id => {
+    ].forEach(async id => {
+      await sleep(200);
       qs(id, this.shadowRoot).setAttribute('percent', 0);
       qs(`${id}-text`, this.shadowRoot).textContent = '0%';
     });
