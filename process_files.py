@@ -45,10 +45,29 @@ sync_file = os.path.join(sorted_dir, 'sync.json')
 file_manager = File_manager(changes)
 pl_manager = Playlist_manager(changes)
 
+
+
 def is_ignored(source_file):
   return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
 
+
+
 def add_to_lib(artist, album, location, file, title, track, disc):
+  """
+  add audio file to data dict.
+
+  Parameters:
+  - artist (str): album artist
+  - album (str): album title
+  - location  (str): file path
+  - file (str): audio filename
+  - title (str): track title
+  - track (num): track number
+  - disc (num): disc number
+  
+  Returns:
+  None
+  """
   if artist not in lib_data:
     lib_data[artist] = []
 
@@ -83,6 +102,8 @@ def add_to_lib(artist, album, location, file, title, track, disc):
           }
         ]
       })
+
+
 
 def move_file(root, file, ext):
   """
@@ -209,7 +230,7 @@ def process_audio_files(window):
   Process all audio files in the working directory.
 
   Parameters:
-  - working_dir (str): The working directory path.
+  - window (object): pywebview window object.
 
   Returns:
   None
@@ -251,6 +272,7 @@ def run_sync(window):
   global sync_file
   global lib_data
 
+  lib_data = {}
 
   sync_file = os.path.join(sorted_dir, 'sync.json')
   playlist_folder = os.path.join(sorted_dir, 'playlist_data')
@@ -348,8 +370,6 @@ def run_sync(window):
   sorted_data['lib_size'] = fs_queue.get()
 
   lib_path = os.path.join(script_folder, 'lib_data.json')
-  if os.path.exists(lib_path):
-    os.remove(lib_path)
 
   with open(lib_path, 'w') as data_file:
     data_file.write(json.dumps(sorted_data, indent=2))
@@ -408,6 +428,7 @@ def build_lib(root, file, ext):
 
 def create_lib_json(window):
   global lib_data
+  lib_data = {}
   fs_queue = queue.Queue()
   thread = threading.Thread(target=get_lib_size, args=(fs_queue,))
   thread.start()
@@ -426,7 +447,10 @@ def create_lib_json(window):
   
   sorted_data = dict(sorted(lib_data.items()))
   sorted_data['lib_size'] = fs_queue.get()
-  with open(os.path.join(script_folder, 'lib_data.json'), 'w') as data_file:
+
+  lib_path = os.path.join(script_folder, 'lib_data.json')
+
+  with open(lib_path, 'w') as data_file:
     data_file.write(json.dumps(sorted_data, indent=2))
 
 if __name__ == "__main__":
