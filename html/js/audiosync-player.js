@@ -162,7 +162,7 @@ class AudioPlayer extends HTMLElement {
         overflow: 'hidden',
         'font-size': '11px',
         'max-height': '14px',
-        'max-width': '250px',
+        'max-width': '300px',
         'white-space': 'nowrap',
         'text-overflow': 'ellipsis'
       },
