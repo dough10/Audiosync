@@ -342,7 +342,7 @@ class MusicLibrary extends HTMLElement {
     ]
     buttons.forEach(id => qs(id).setAttribute('disabled', 1));
       
-    const buttonContents = fillButton('refresh', 'scan music');
+    const buttonContents = fillButton('scan', 'scan music');
 
     // scan library button
     const button = ce('audiosync-button');
