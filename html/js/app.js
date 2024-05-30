@@ -34,7 +34,7 @@ import {
 
     const player = qs('audiosync-player');
     const musicLib = qs('music-library');
-
+    const scanButton = qs('#scan');
 
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
@@ -74,6 +74,17 @@ import {
       pywebview.api.save(JSON.stringify(data, null, 2));
     });
 
+    musicLib.addEventListener('library-scan', async e => {
+      if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
+      scanButton.setAttribute('percent', e.detail.percent);
+      if (e.detail.percent === 100) {
+        await sleep(500);
+        scanButton.setAttribute('percent', 0);
+        scanButton.removeAttribute('disabled');
+        new Toast('Scan complete')
+      }
+    });
+
 
     // change page when tab is selected
     qs('audiosync-tabs').addEventListener('selected-change', e => {
@@ -89,6 +100,13 @@ import {
     /**
      * button / switch interactions
      */
+
+    qs('#scan').onClick(async _ => {
+      await sleep(20);
+      await qs('audiosync-menu').close();
+      pywebview.api.create_json();
+      new Toast('Library scan started')
+    });
 
     // header hamburger icon
     qs('#menu-button').onClick(_ => {
