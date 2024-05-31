@@ -6,7 +6,7 @@ data.icons.forEach(icon => {
   const button = document.createElement('audiosync-small-button');
   button.id = icon.name;
   svgIcon(icon.name).then(svg => button.appendChild(svg));
-  button.color(generateRandomHexCode());
+  button.setAttribute('color', generateRandomHexCode());
   qs('body').appendChild(button);
   button.onClick(_ => new Toast(`${icon.name} small button clicked`,1));
 });
