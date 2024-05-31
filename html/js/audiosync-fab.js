@@ -108,7 +108,13 @@ class FloatingActionButton extends HTMLElement {
     this.fab = ce('div');
     this.fab.classList.add('fab');
     this.fab.appendChild(ce('slot'));
-    this.fab.addEventListener('transitionend', _ => this.toggleAttribute('onscreen'))
+    this.fab.addEventListener('transitionend', _ => {
+      if (this.fab.classList.contains('onscreen')) {
+        this.toggleAttribute('onscreen');
+        return;
+      }
+      this.removeAttribute('onscreen');
+    })
     this.fab.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
