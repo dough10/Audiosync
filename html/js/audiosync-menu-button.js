@@ -8,8 +8,6 @@ class MenuButton extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    this.disabledColor = getCSSVariableValue('--disabled-color');
-
     const cssJSON = {
       ".menu-button": {
         padding: "12px",
@@ -41,7 +39,7 @@ class MenuButton extends HTMLElement {
       },
       ".menu-button[disabled]": {
         background: "rgba(218, 218, 218, 0.4)",
-        color: this.disabledColor,
+        color: 'var(--disabled-color)',
         cursor: "none",
         "pointer-events": "none"
       },
@@ -120,8 +118,8 @@ class MenuButton extends HTMLElement {
     const css = parseCSS(styles);
 
     css['audiosync-menu-button > div'] = {
-      'width': '100%',
-      'display': 'flex',
+      width: '100%',
+      display: 'flex',
       'justify-content': 'center',
       'align-items': 'center',
       'text-transform': 'uppercase'
@@ -150,10 +148,10 @@ class MenuButton extends HTMLElement {
     
     // create / update styles
     css[`#${this.id} > svg`] = {
-      'color': color
+      color: color
     };
     css[`#${this.id}[disabled] > svg`] = {
-      'color': this.disabledColor
+      color: 'var(--disabled-color)'
     };
     
     // apply new styles
