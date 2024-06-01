@@ -107,8 +107,7 @@ class Api:
 
   # exit application
   def close(self):
-    if window:
-      window.destroy()
+    window.destroy()
 
   def load_favorites(self):
     try:
@@ -172,5 +171,5 @@ if __name__ == '__main__':
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
