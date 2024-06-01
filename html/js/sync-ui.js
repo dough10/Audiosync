@@ -136,6 +136,9 @@ class SyncUI extends HTMLElement {
     this.dialog.open();
   }
 
+  /**
+   * starts the sync progress
+   */
   startSync() {
     this.syncing = true;
 
@@ -207,13 +210,11 @@ class SyncUI extends HTMLElement {
 
   /**
    * transfer dialog close button clicked
-   * 
    */
   async _closeDialog() {
     this.syncing = false;
-    const ml = qs('music-library');
-    await ml.go();
     await this.dialog.close();
+    qs('music-library').go();
     this.button.toggleAttribute('disabled');
     [
       this.output,
