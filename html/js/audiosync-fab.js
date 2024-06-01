@@ -41,7 +41,7 @@ class FloatingActionButton extends HTMLElement {
         bottom: "5px",
         right: "20px",
         transition: 'var(--button-bg-animation)',
-        transform: "translateY(140%)",
+        transform: "translateY(300px)",
         transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
         margin: "8px"
       },
