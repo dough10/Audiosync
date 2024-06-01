@@ -779,6 +779,7 @@ class MusicLibrary extends HTMLElement {
     addtoplaylist.onClick(_ => {
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
+      albumContainer.toggleAttribute('inlist');
     });
 
     const imgwrapper = ce('div');
