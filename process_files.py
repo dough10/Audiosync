@@ -78,6 +78,7 @@ def add_to_lib(artist, album, location, file, title, track, disc):
       alb['tracks'].append({
         'file': file,
         'path': location,
+        'album': album,
         'artist': artist, 
         'title': title, 
         'track': track, 
@@ -95,6 +96,7 @@ def add_to_lib(artist, album, location, file, title, track, disc):
           {
             'file': file,
             'path': location,
+            'album': album,
             'artist': artist, 
             'title': title, 
             'track': track, 
