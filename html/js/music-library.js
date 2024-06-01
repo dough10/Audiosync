@@ -11,7 +11,9 @@ import {
   objectToCSS,
   ce,
   fillButton,
-  svgIcon
+  svgIcon,
+  getColorAtPoint,
+  getContrastColor
 } from './helpers.js';
 
 /**
@@ -775,7 +777,7 @@ class MusicLibrary extends HTMLElement {
     addtoplaylist.classList.add('add');
     addtoplaylist.setAttribute('color', '#ffffff');
     addtoplaylist.appendChild(await svgIcon('add'));
-    if (albumContainer.hasAttribute('playing')) addtoplaylist.style.display = 'none';
+    if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('playing')) addtoplaylist.style.display = 'none';
     addtoplaylist.onClick(_ => {
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
@@ -789,10 +791,24 @@ class MusicLibrary extends HTMLElement {
     placeholder.classList.add('img-placeholder');
     placeholder.textContent  = 'Loading Image..';
 
+
+    const canvas = ce('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 450;
+    canvas.height = 450;
+
     const img = ce('img');
     img.src = album.tracks[0].art;
     img.style.opacity = 0;
     img.onload = async _ => {
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      const pointone = getColorAtPoint(canvas, 40,40,30);
+      const pointtwo = getColorAtPoint(canvas, (canvas.width - 40),40,30);
+
+      addtoplaylist.setAttribute('color', getContrastColor(pointone));
+      favbutton.setAttribute('color', getContrastColor(pointtwo));
+
       img.style.display = 'block';
       await fadeIn(img);
       placeholder.style.display = 'none';
