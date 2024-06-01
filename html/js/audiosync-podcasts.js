@@ -153,24 +153,15 @@ class AudioSyncPodcasts extends HTMLElement {
     button.appendChild(buttonContents);
     button.toggleAttribute('disabled');
     
-    // X icon
-    const closeIcon = await svgIcon('close');
-    
-    // X button
-    const closeButton = ce('audiosync-small-button');
-    closeButton.setAttribute('color', 'red');
-    closeButton.appendChild(closeIcon);
-    
-    // dialog header 
-    const closeWrapper = ce('div');
-    closeWrapper.classList.add('close-wrapper');
-    closeWrapper.appendChild(closeButton);
-    
     // animated dialog card
     const dialog = ce('audiosync-dialog');
+    dialog.blocker.addEventListener('click', async _ => {
+      await dialog.close();
+      await sleep(500);
+      dialog.remove();
+    });
 
     [
-      closeWrapper,
       group,
       button,
       loader
@@ -185,13 +176,6 @@ class AudioSyncPodcasts extends HTMLElement {
         button.setAttribute('disabled', 1);
       }
     };
-
-    // closes the dialog
-    closeButton.onClick(async e => {
-      await dialog.close();
-      await sleep(500);
-      dialog.remove();
-    });
     
     // add button clicked
     button.onClick(async e => {
