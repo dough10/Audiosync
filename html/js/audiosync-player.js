@@ -408,7 +408,7 @@ class AudioPlayer extends HTMLElement {
     this.art = nowplaying.art;
     this._cacheImage(this.art);
 
-    const playingArt = qs('img', qs('#fbg', this.shadowRoot));
+    const playingArt = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
     if (playingArt) playingArt.src = this.art;
 
     const info = qs('#info', this.shadowRoot)
@@ -503,6 +503,7 @@ class AudioPlayer extends HTMLElement {
 
     // art
     const img = ce('img');
+    img.id = 'fsart';
     img.src = this.art;
 
     const imgwrapper = ce('div');
@@ -523,7 +524,7 @@ class AudioPlayer extends HTMLElement {
     listButton.title = 'Playlist';
     
     const favButton = ce('audiosync-small-button');
-    favButton.setButtonColor = _ => {
+    favButton.setButtonOpacity = _ => {
       if (this.isFavorite) {
         favButton.title = 'Unfavorite';
         favButton.style.opacity = 1;
@@ -531,14 +532,14 @@ class AudioPlayer extends HTMLElement {
         favButton.title = 'Favorite';
         favButton.style.opacity = 0.2;
       }
-      favButton.setAttribute('color', this.palette.contrast);
     };
     favButton.id = 'favorite';
-    favButton.setButtonColor()
+    favButton.setButtonOpacity()
     favButton.appendChild(await svgIcon('favorite'));
+    favButton.setAttribute('color', this.palette.contrast);
     favButton.onClick(_ => {
       this.isFavorite = !this.isFavorite;
-      favButton.setButtonColor();
+      favButton.setButtonOpacity();
       // pass favorite to library
       this.library.favoriteAlbum(this.artist, this.title);
     });
@@ -678,7 +679,7 @@ class AudioPlayer extends HTMLElement {
 
       // loop through colors for goldie locks
       for (let i = 0; i < c.length; i++) {
-        if (i !== 1 || i !== 3) { // 1 is the color used in background 
+        if (i !== 1 || i !== 3) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
           if (luminence < 0.75 && luminence > 0.2) {
             r = c[i][0];
