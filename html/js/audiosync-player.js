@@ -697,13 +697,14 @@ class AudioPlayer extends HTMLElement {
         bottom: `rgba(${c[3][0]},${c[3][1]},${c[3][2]},0.97)` // player bg gradient bottom color
       };
 
+      const hex = convertToHex(this.palette.top);
+      this.palette.contrast = getContrastColor(hex);
+
       // update colors if fullscreen
       const fullscreen = qs('#fbg', this.shadowRoot);
       if (fullscreen) {
         fullscreen.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
         qs('audiosync-fab', fullscreen).setAttribute('color', this.palette.fab);
-        const hex = convertToHex(this.palette.top);
-        this.palette.contrast = getContrastColor(hex);
         qs('#favorite', fullscreen).setAttribute('color', this.palette.contrast);
       }
 
