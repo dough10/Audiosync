@@ -42,13 +42,19 @@ class AudioPlayer extends HTMLElement {
         'background-color': 'rgba(255,255,255,0.9)',
         color: '#333333'
       },
-      '#fbg > img': {
+      '#fbg > .img-wrapper': {
         'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',        
-        border: "4px solid rgba(51,51,51,0.2)",
+        border: "5px solid rgba(51,51,51,0.2)",
         background: 'rgba(51,51,51,0.2)',
         overflow: 'hidden',
         'border-radius': '24px',
-        transition: 'var(--button-bg-animation)'
+        transition: 'var(--button-bg-animation)',
+        height: '450px',
+        width: '450px'
+      },
+      '#fbg > .img-wrapper > img': {
+        height: "100%",
+        width: '100%'
       },
       '.buffered': {
         height: '5px',
@@ -85,13 +91,13 @@ class AudioPlayer extends HTMLElement {
       '.popup': {
         height:`450px`,
         width: `450px`,
-        background: 'rgba(255,255,255,0.6)',
+        background: 'rgba(255,255,255,0.67)',
         color: '#333333',
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
         position: 'fixed',
         'overflow-y': 'auto',
-        'border-radius': '24px'
+        'border-radius': '18px'
       },
       '.popup > .track': {
         cursor: "pointer",
@@ -100,7 +106,8 @@ class AudioPlayer extends HTMLElement {
         "text-transform": "uppercase",
         "border-bottom": "1px solid #3333333d",
         'will-change': 'background',
-        transition: 'var(--button-bg-animation)'
+        transition: 'var(--button-bg-animation)',
+        'font-weight': 500
       },
       '.popup > .track > div:first-child': {
         'margin-left': '8px',
@@ -178,6 +185,9 @@ class AudioPlayer extends HTMLElement {
         transition: 'color 500ms ease'
       }
     };
+
+    this.library = qs('music-library');
+
 
     // pause timer
     // hide ui if paused for period of time
@@ -317,7 +327,7 @@ class AudioPlayer extends HTMLElement {
       // incriment this.playing index
       this.playing--;
       // update src attribute
-      this._chanceSrc();
+      this._changeSrc();
     });
     
     // play button
@@ -343,7 +353,7 @@ class AudioPlayer extends HTMLElement {
       // incriment this.playing index
       this.playing++;
       // change src attribute
-      this._chanceSrc();
+      this._changeSrc();
     });
 
     // elapsed time
@@ -377,9 +387,19 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * play a specific playlist index number
+   * 
+   * @param {Number} ndx 
+   */
+  playNdx(ndx) {
+    this.playing = ndx;
+    this._changeSrc();
+  }
+
+  /**
    * update playlist ui, cache art, change <audio> src attribute and call play()
    */
-  _chanceSrc() {
+  _changeSrc() {
     // update playlist UI 
     this._updatePlaylistUI();
 
@@ -393,15 +413,16 @@ class AudioPlayer extends HTMLElement {
     const info = qs('#info', this.shadowRoot)
     if (info) info.textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
     
+    const nowplaying = this.playlist[this.playing];
+
     // set src
-    this.player.src = this.playlist[this.playing].path;
+    this.player.src = nowplaying.path;
     // load and play the file
     this.player.load();
     this.player.play();
-    const ev = new CustomEvent('now-playing', {
-      detail:{artist: this.artist, album: this.title}
-    });
-    this.dispatchEvent(ev);
+
+    // update library UI
+    this.library.nowPlaying(nowplaying);
   }
 
   /**
@@ -437,7 +458,7 @@ class AudioPlayer extends HTMLElement {
         if (i === this.playing) return;
         createRipple(eve)
         this.playing = i;
-        this._chanceSrc();
+        this._changeSrc();
       }); 
       popup.appendChild(div);
     }
@@ -474,22 +495,24 @@ class AudioPlayer extends HTMLElement {
    */
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
-    
-    const ev = new CustomEvent('player-fullscreen', {
-      detail:{fullscreen: true}
-    });
-    this.dispatchEvent(ev);
+
+    const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
+    if (fab.hasAttribute('onscreen')) {
+      fab.offScreen();
+    }
 
     // art
     const img = ce('img');
     img.src = this.art;
-    img.width = 450;
-    img.height = 450;
+
+    const imgwrapper = ce('div');
+    imgwrapper.classList.add('img-wrapper');
+    imgwrapper.appendChild(img);
     
     // background 
     const bg = ce('div');
     bg.id = 'fbg';
-    bg.style.backgroundColor = this.palette[1];
+    bg.style.background = `linear-gradient(to bottom, ${this.palette[1]}, ${this.palette[3]})`;
 
     // playlist fab
     const listButton = ce('audiosync-fab');
@@ -518,15 +541,13 @@ class AudioPlayer extends HTMLElement {
     favButton.onClick(_ => {
       this.isFavorite = !this.isFavorite;
       favButton.setButtonColor();
-      const ev = new CustomEvent('fav-album', {
-        detail:{artist: this.artist, title: this.title, favorite: this.isFavorite}
-      });
-      this.dispatchEvent(ev);
+      // pass favorite to library
+      this.library.favoriteAlbum(this.artist, this.title);
     });
 
     // push to dom
     [
-      img,
+      imgwrapper,
       listButton,
       favButton
     ].forEach(el => bg.appendChild(el));
@@ -572,10 +593,6 @@ class AudioPlayer extends HTMLElement {
   async minimize() {
     const bg = qs('#fbg', this.shadowRoot);
     if (!bg) return;
-    const fullscreenEvent = new CustomEvent('player-fullscreen', {
-      detail:{fullscreen: false}
-    });
-    this.dispatchEvent(fullscreenEvent);
     const popup = qs('.popup', this.shadowRoot);
     if (popup) {
       qs('img', this.shadowRoot).style.removeProperty('filter');
@@ -591,13 +608,15 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
-   * add tracks to playlist
+   * add an albums tracks to playlist and play it from beginning
    * 
-   * @param {Array} playlist 
+   * @param {Object} albumInfo 
+   * @param {Number} ndx
    */
-  addPlaylist(albumInfo) {
+  playAlbum(albumInfo, ndx) {
     // reset index
-    this.playing = 0;
+    this.playing = ndx || 0;
+    if (!ndx) this.library.playlistCleared();
     // set playing info
     this.artist = albumInfo.artist;
     this.title = albumInfo.title;
@@ -605,7 +624,25 @@ class AudioPlayer extends HTMLElement {
     // set playlist
     this.playlist = albumInfo.tracks;
     if (!this.playlist.length) return;
-    this._chanceSrc();
+    this._changeSrc();
+  }
+
+  /**
+   * add an albums tracks to the playlist
+   * 
+   * @param {Object} albumInfo 
+   */
+  addToPlaylist(albumInfo) {
+    albumInfo.tracks.forEach(track => this.playlist.push(track));
+  }
+
+  _cacheNext() {
+    const nextndx = this.playing + 1
+    if (nextndx > this.playlist.length || this.caching) return;
+    this.caching = true;
+    const nextaudio = new Audio();
+    nextaudio.preload = true;
+    nextaudio.src = this.playlist[nextndx].path;
   }
 
   /**
@@ -643,7 +680,7 @@ class AudioPlayer extends HTMLElement {
 
       // loop through colors for goldie locks
       for (let i = 0; i < c.length; i++) {
-        if (i !== 1) { // 1 is the color used in background 
+        if (i !== 1 || i !== 3) { // 1 is the color used in background 
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
           if (luminence < 0.75 && luminence > 0.2) {
             r = c[i][0];
@@ -657,13 +694,14 @@ class AudioPlayer extends HTMLElement {
       this.palette = [
         `rgb(${r},${g},${b})`, // fab / accent color
         `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art background color
-        `${r},${g},${b}`
+        `${r},${g},${b}`,
+        `rgba(${c[3][0]},${c[3][1]},${c[3][2]},0.97)`
       ];
 
       // update colors if fullscreen
       const fullscreen = qs('#fbg', this.shadowRoot);
       if (fullscreen) {
-        fullscreen.style.backgroundColor = this.palette[1];
+        fullscreen.style.background = `linear-gradient(to bottom, ${this.palette[1]}, ${this.palette[3]})`;
         qs('audiosync-fab', fullscreen).setAttribute('color', this.palette[0]);
         const hex = convertToHex(this.palette[1]);
         qs('#favorite', fullscreen).setAttribute('color', getContrastColor(hex));
@@ -731,19 +769,20 @@ class AudioPlayer extends HTMLElement {
 
     const player = ev.target;
     const ct = player.currentTime;
+    const duration = player.duration - ct;
     const mins = Math.floor(ct / 60);
     const secs = Math.floor(ct % 60).toString().padStart(2, '0');
     const progress = (ct / player.duration) * 100;
     const progBar = qs('.progress', this.shadowRoot);
-    if (!progBar) return;
-    progBar.style.transform = `translateX(-${100 - progress}%)`;
+    const durationtext = qs('#duration', this.shadowRoot);
+    if (duration < 100) this._cacheNext();
+    if (progBar) progBar.style.transform = `translateX(-${100 - progress}%)`;
     if (!this.elapsedTime) {
-      const duration = player.duration - ct;
       const dmins = Math.floor(duration / 60);
       const dsecs = Math.floor(duration % 60).toString().padStart(2, '0');
-      qs('#duration', this.shadowRoot).textContent = `${dmins}:${dsecs}`;
+      if (durationtext) durationtext.textContent = `${dmins}:${dsecs}`;
     } else {
-      qs('#duration', this.shadowRoot).textContent = `${mins}:${secs}`;
+      if (durationtext) durationtext.textContent = `${mins}:${secs}`;
     }
   }
 
@@ -771,6 +810,7 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onEnd(ev) {
+    this.caching = false;
     // check if end if playlist
     if (!this.playlist[this.playing + 1]) {
       this._pauseTimeOut();
@@ -778,7 +818,7 @@ class AudioPlayer extends HTMLElement {
     }
     // incriment this.playing index
     this.playing++;
-    this._chanceSrc();
+    this._changeSrc();
   }
 
   /**
@@ -797,10 +837,7 @@ class AudioPlayer extends HTMLElement {
    * close player UI
    */
   async _pauseTimeOut() {
-    const playingEvent = new CustomEvent('now-playing', {
-      detail:undefined
-    });
-    this.dispatchEvent(playingEvent);
+    this.library.nowPlaying();
     await this.minimize();
     const bg = qs('.background', this.shadowRoot);
     await animateElement(bg, 'translateY(100%)', 150);

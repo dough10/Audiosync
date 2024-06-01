@@ -34,8 +34,7 @@ import {
 
     const player = qs('audiosync-player');
     const musicLib = qs('music-library');
-    const scanButton = qs('#scan');
-
+    
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
@@ -46,34 +45,8 @@ import {
         qs('audiosync-fab', qs('scroll-element').shadowRoot)
       ].forEach(el => el.setAttribute('color', palette[0]));
     });
-
-    // player toggeled fullscreen
-    player.addEventListener('player-fullscreen', e => {
-      const fullscreen = e.detail.fullscreen;
-      if (fullscreen) {
-        // if scoll animation fab is onscreen remove it
-        const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
-        if (fab.hasAttribute('onscreen')) {
-          fab.offScreen();
-        }
-      }
-    });
-
-    // for marking now playing in <music-library>
-    player.addEventListener('now-playing', e => musicLib.nowPlaying(e.detail));
-
-    // keep favorite in sync
-    player.addEventListener('fav-album', e => qs('music-library').playerSetFavorite(e.detail));
-
-    // keep favorite in sync
-    musicLib.addEventListener('fav-album', e => player.favorite(e.detail));
-
-    // album selected / clicked (saves sync.json)
-    musicLib.addEventListener('album-selected', e=> {
-      const data = e.detail.sync_data;
-      pywebview.api.save(JSON.stringify(data, null, 2));
-    });
-
+    
+    const scanButton = qs('#scan');
     musicLib.addEventListener('library-scan', async e => {
       if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
       scanButton.setAttribute('percent', e.detail.percent);
@@ -102,6 +75,7 @@ import {
      */
 
     qs('#scan').onClick(async _ => {
+      if (qs('sync-ui.scanning')) return;
       await sleep(20);
       await qs('audiosync-menu').close();
       pywebview.api.create_json();
@@ -113,6 +87,14 @@ import {
       qs('audiosync-menu').open();
     });
 
+    qs('#close').onClick(_ => {
+      if (qs('sync-ui').syncing) {
+        new Toast('Sync running. please wait')
+        return;
+      }
+      pywebview.api.close();
+    });
+
     // header gear icon
     qs('#settings').onClick(_ => qs('audiosync-settings').open());
 
@@ -120,11 +102,12 @@ import {
     qs("#fav").onClick(async _ => {
       await sleep(20);
       await qs('audiosync-menu').close();
-      qs('music-library').favorites();
+      musicLib.favorites();
     });
 
     // menu drawer refresh / update icon
     qs('#update').onClick(async _ => {
+      if (!qs('#scan').hasAttribute('disabled')) qs('#scan').toggleAttribute('disabled');
       await sleep(20);
       await qs('audiosync-menu').close();
       if (qs('sync-ui').syncing) {
@@ -133,7 +116,8 @@ import {
         return;
       }
       qs('sync-ui').startSync();
-      pywebview.api.run_sync();
+      await pywebview.api.run_sync();
+      qs('#scan').removeAttribute('disabled');
     });
 
     // top of screen alert
@@ -220,10 +204,8 @@ import {
     }
 
     // load media library
-    const ml = qs('music-library');
-    ml.addEventListener('album-played', e => qs('audiosync-player').addPlaylist(e.detail.album));
-    ml.addEventListener('lib_size_updated', e => qs('audiosync-menu').footElement(e.detail.lib_size));
-    await ml.go();
+    musicLib.addEventListener('lib_size_updated', e => qs('audiosync-menu').footElement(e.detail.lib_size));
+    await musicLib.go();
 
     // load podcasts from config and generate UI
     await qs('audiosync-podcasts').listPodcasts();
