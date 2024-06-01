@@ -89,9 +89,9 @@ class AudioPlayer extends HTMLElement {
         width: 0
       },
       '.popup': {
-        height:`450px`,
+        height:`451px`,
         width: `450px`,
-        background: 'rgba(255,255,255,0.67)',
+        background: 'rgba(255,255,255,0.35)',
         color: '#333333',
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
@@ -106,8 +106,7 @@ class AudioPlayer extends HTMLElement {
         "text-transform": "uppercase",
         "border-bottom": "1px solid #3333333d",
         'will-change': 'background',
-        transition: 'var(--button-bg-animation)',
-        'font-weight': 500
+        transition: 'var(--button-bg-animation)'
       },
       '.popup > .track > div:first-child': {
         'margin-left': '8px',
@@ -403,17 +402,18 @@ class AudioPlayer extends HTMLElement {
     // update playlist UI 
     this._updatePlaylistUI();
 
+    const nowplaying = this.playlist[this.playing];
+
     // cache art
-    this.art = this.playlist[this.playing].art;
+    this.art = nowplaying.art;
     this._cacheImage(this.art);
 
     const playingArt = qs('img', qs('#fbg', this.shadowRoot));
     if (playingArt) playingArt.src = this.art;
 
     const info = qs('#info', this.shadowRoot)
-    if (info) info.textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+    if (info) info.textContent = `${nowplaying.artist} - ${nowplaying.title}`;
     
-    const nowplaying = this.playlist[this.playing];
 
     // set src
     this.player.src = nowplaying.path;
@@ -471,7 +471,7 @@ class AudioPlayer extends HTMLElement {
     
     // animate into view
     await animateElement(popup, 'scale3d(1,1,1)', 150);
-    qs('img', this.shadowRoot).style.filter = 'blur(5px)';
+    qs('img', this.shadowRoot).style.filter = 'blur(10px)';
 
     // close and remove popup
     const clicked = async _ => {
@@ -512,16 +512,15 @@ class AudioPlayer extends HTMLElement {
     // background 
     const bg = ce('div');
     bg.id = 'fbg';
-    bg.style.background = `linear-gradient(to bottom, ${this.palette[1]}, ${this.palette[3]})`;
+    bg.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
 
     // playlist fab
     const listButton = ce('audiosync-fab');
     listButton.appendChild(await svgIcon('list'));
     listButton.position({bottom: '60px', right: '15px'});
     listButton.onClick(ev => this._playlistPopup(ev));
-    listButton.setAttribute('color', this.palette[0]);
+    listButton.setAttribute('color', this.palette.fab);
     listButton.title = 'Playlist';
-    
     
     const favButton = ce('audiosync-small-button');
     favButton.setButtonColor = _ => {
@@ -532,8 +531,7 @@ class AudioPlayer extends HTMLElement {
         favButton.title = 'Favorite';
         favButton.style.opacity = 0.2;
       }
-      const hex = convertToHex(this.palette[1]);
-      favButton.setAttribute('color', getContrastColor(hex));
+      favButton.setAttribute('color', this.palette.contrast);
     };
     favButton.id = 'favorite';
     favButton.setButtonColor()
@@ -611,7 +609,7 @@ class AudioPlayer extends HTMLElement {
    * add an albums tracks to playlist and play it from beginning
    * 
    * @param {Object} albumInfo 
-   * @param {Number} ndx
+   * @param {Number} ndx *optional*
    */
   playAlbum(albumInfo, ndx) {
     // reset index
@@ -638,7 +636,7 @@ class AudioPlayer extends HTMLElement {
 
   _cacheNext() {
     const nextndx = this.playing + 1
-    if (nextndx > this.playlist.length || this.caching) return;
+    if (nextndx > this.playlist.length - 1 || this.caching || !this.playlist[nextndx]) return;
     this.caching = true;
     const nextaudio = new Audio();
     nextaudio.preload = true;
@@ -691,20 +689,21 @@ class AudioPlayer extends HTMLElement {
         }
       }
 
-      this.palette = [
-        `rgb(${r},${g},${b})`, // fab / accent color
-        `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art background color
-        `${r},${g},${b}`,
-        `rgba(${c[3][0]},${c[3][1]},${c[3][2]},0.97)`
-      ];
+      this.palette = {
+        fab: `rgb(${r},${g},${b})`, // fab / accent color
+        variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
+        top: `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art gradient top color
+        bottom: `rgba(${c[3][0]},${c[3][1]},${c[3][2]},0.97)` // player bg gradient bottom color
+      };
 
       // update colors if fullscreen
       const fullscreen = qs('#fbg', this.shadowRoot);
       if (fullscreen) {
-        fullscreen.style.background = `linear-gradient(to bottom, ${this.palette[1]}, ${this.palette[3]})`;
-        qs('audiosync-fab', fullscreen).setAttribute('color', this.palette[0]);
-        const hex = convertToHex(this.palette[1]);
-        qs('#favorite', fullscreen).setAttribute('color', getContrastColor(hex));
+        fullscreen.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
+        qs('audiosync-fab', fullscreen).setAttribute('color', this.palette.fab);
+        const hex = convertToHex(this.palette.top);
+        this.palette.contrast = getContrastColor(hex);
+        qs('#favorite', fullscreen).setAttribute('color', this.palette.contrast);
       }
 
       // fire event to update app ui element with new color

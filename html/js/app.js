@@ -38,12 +38,12 @@ import {
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
-      document.documentElement.style.setProperty('--switch-rgb', palette[2]);
-      qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', palette[0]));
+      document.documentElement.style.setProperty('--switch-rgb', palette.variable);
+      qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', palette.fab));
       [
         qs('audiosync-button', qs('sync-ui').shadowRoot),
         qs('audiosync-fab', qs('scroll-element').shadowRoot)
-      ].forEach(el => el.setAttribute('color', palette[0]));
+      ].forEach(el => el.setAttribute('color', palette.fab));
     });
     
     const scanButton = qs('#scan');
