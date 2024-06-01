@@ -854,6 +854,58 @@ function objectToCSS(cssObject) {
   return cssString.trim();
 }
 
+
+/**
+ * returs average color around a point of a canvas element
+ * 
+ * @param {HTMLElement} canvas 
+ * @param {Number} x 
+ * @param {Number} y 
+ * @param {Number} radius 
+ * @returns {String}
+ */
+function getColorAtPoint(canvas, x, y, radius) {
+  const ctx = canvas.getContext('2d');
+  const pixelData = ctx.getImageData(x - radius, y - radius, radius * 2, radius * 2).data;
+  let totalRed = 0, totalGreen = 0, totalBlue = 0;
+
+  for (let i = 0; i < pixelData.length; i += 4) {
+    totalRed += pixelData[i];
+    totalGreen += pixelData[i + 1];
+    totalBlue += pixelData[i + 2];
+  }
+
+  const numPixels = pixelData.length / 4; // Number of pixels sampled
+  const averageRed = Math.round(totalRed / numPixels);
+  const averageGreen = Math.round(totalGreen / numPixels);
+  const averageBlue = Math.round(totalBlue / numPixels);
+
+  return rgbToHex(averageRed, averageGreen, averageBlue);
+}
+
+/**
+ * retrns a hx value from r,g,b value given
+ * 
+ * @param {Number} r 
+ * @param {Number} g 
+ * @param {Number} b 
+ * @returns {String}
+ */
+function rgbToHex(r, g, b) {
+  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+/**
+ * convers number to hex value
+ * 
+ * @param {Number} c 
+ * @returns {String}
+ */
+function componentToHex(c) {
+  var hex = c.toString(16);
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
 export {
   Timer,
   Toast,
@@ -879,5 +931,6 @@ export {
   generateRandomString,
   parseCSS,
   objectToCSS,
-  getIcon
+  getIcon,
+  getColorAtPoint
 }
