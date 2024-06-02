@@ -806,6 +806,7 @@ class MusicLibrary extends HTMLElement {
     
     const img = ce('img');
     img.src = album.tracks[0].art;
+    img.style.display = 'none';
     img.style.opacity = 0;
     img.onload = async _ => {
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
@@ -816,9 +817,9 @@ class MusicLibrary extends HTMLElement {
       addtoplaylist.setAttribute('color', getContrastColor(pointone));
       favbutton.setAttribute('color', getContrastColor(pointtwo));
 
-      img.style.display = 'block';
-      await fadeIn(img);
+      img.style.removeProperty('display');
       placeholder.style.display = 'none';
+      await fadeIn(img);
     };
 
     [
