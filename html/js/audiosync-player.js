@@ -158,7 +158,12 @@ class AudioPlayer extends HTMLElement {
         position: 'fixed',
         bottom: '5px',
         right: '10px',
-        'font-size': '11px'
+        'font-size': '11px',
+        padding: '4px',
+        cursor:'pointer'
+      },
+      '#duration > *': {
+        'pointer-events': 'none'
       },
       '#info': {
         "text-transform": "uppercase",
@@ -170,7 +175,8 @@ class AudioPlayer extends HTMLElement {
         'max-height': '14px',
         'max-width': '300px',
         'white-space': 'nowrap',
-        'text-overflow': 'ellipsis'
+        'text-overflow': 'ellipsis',
+        padding: '4px'
       },
       '#expand': {
         position: 'fixed',
@@ -200,6 +206,7 @@ class AudioPlayer extends HTMLElement {
     this._showMini = this._showMini.bind(this);
     this._pauseTimeOut = this._pauseTimeOut.bind(this);
     this._checkBuffered = this._checkBuffered.bind(this);
+    this.addToPlaylist = this.addToPlaylist.bind(this);
 
     // push styles to <style> element
     const styles = ce('style');
@@ -358,10 +365,7 @@ class AudioPlayer extends HTMLElement {
     // elapsed time
     const duration = ce('div');
     duration.id = 'duration';
-    duration.textContent = '0:00';
-    duration.addEventListener('click', _ => {
-      this.elapsedTime = !this.elapsedTime;
-    });
+    duration.addEventListener('click', _ => this.elapsedTime = !this.elapsedTime);
 
     // artist / title
     const info = ce('div');
@@ -404,8 +408,12 @@ class AudioPlayer extends HTMLElement {
 
     const nowplaying = this.playlist[this.playing];
 
-    // cache art
+    this.artist = nowplaying.artist;
+    this.albumTitle = nowplaying.album;
+    this.isFavorite = qs(`[data-artist="${this.artist}"][data-album="${this.albumTitle}"]`, qs('music-library').shadowRoot).hasAttribute('favorite');
     this.art = nowplaying.art;
+
+    // cache art also sets opacity of favorite button to indicate favorite status
     this._cacheImage(this.art);
 
     const playingArt = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
@@ -541,7 +549,7 @@ class AudioPlayer extends HTMLElement {
       this.isFavorite = !this.isFavorite;
       favButton.setButtonOpacity();
       // pass favorite to library
-      this.library.favoriteAlbum(this.artist, this.title);
+      this.library.favoriteAlbum(this.artist, this.albumTitle);
     });
 
     // push to dom
@@ -567,7 +575,7 @@ class AudioPlayer extends HTMLElement {
    */
   favorite(data) {
     // if favorited album is the currently playing ablum
-    if (this.artist === data.artist && this.title === data.title) {
+    if (this.artist === data.artist && this.albumTitle === data.title) {
       // toggle state
       this.isFavorite = data.favorite;
 
@@ -616,12 +624,8 @@ class AudioPlayer extends HTMLElement {
     // reset index
     this.playing = ndx || 0;
     if (!ndx) this.library.playlistCleared();
-    // set playing info
-    this.artist = albumInfo.artist;
-    this.title = albumInfo.title;
-    this.isFavorite = albumInfo.favorite;
-    // set playlist
-    this.playlist = albumInfo.tracks;
+    // set playlist * clone array to prevent album info issue on <music-library>
+    this.playlist = albumInfo.tracks.slice();
     if (!this.playlist.length) return;
     this._changeSrc();
   }
@@ -632,9 +636,16 @@ class AudioPlayer extends HTMLElement {
    * @param {Object} albumInfo 
    */
   addToPlaylist(albumInfo) {
-    albumInfo.tracks.forEach(track => this.playlist.push(track));
+    // clone array to prevent album info issue on <music-library>
+    const addedTracks = albumInfo.tracks.slice();
+    addedTracks.forEach(track => this.playlist.push(track));
   }
 
+  /**
+   * 
+   * 
+   * @returns {void}
+   */
   _cacheNext() {
     const nextndx = this.playing + 1
     if (nextndx > this.playlist.length - 1 || this.caching || !this.playlist[nextndx]) return;
@@ -677,9 +688,12 @@ class AudioPlayer extends HTMLElement {
       let g = c[0][1];
       let b = c[0][2];
 
-      // loop through colors for goldie locks
+      // for selecting bottom gradient color
+      const ndx = c.length - 1;
+
+      // loop through colors for goldie locks color to use for --pop-color
       for (let i = 0; i < c.length; i++) {
-        if (i !== 1 || i !== 3) {
+        if (i !== 1 || i !== ndx) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
           if (luminence < 0.75 && luminence > 0.2) {
             r = c[i][0];
@@ -694,18 +708,24 @@ class AudioPlayer extends HTMLElement {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
         top: `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art gradient top color
-        bottom: `rgba(${c[3][0]},${c[3][1]},${c[3][2]},0.97)` // player bg gradient bottom color
+        bottom: `rgba(${c[ndx][0]},${c[ndx][1]},${c[ndx][2]},0.97)`, // player bg gradient bottom color
+        contrast: getContrastColor(convertToHex(`rgb(${c[1][0]},${c[1][1]},${c[1][2]}}`)) // contrasting color to color used to top of gradient
       };
-
-      const hex = convertToHex(this.palette.top);
-      this.palette.contrast = getContrastColor(hex);
 
       // update colors if fullscreen
       const fullscreen = qs('#fbg', this.shadowRoot);
       if (fullscreen) {
         fullscreen.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
         qs('audiosync-fab', fullscreen).setAttribute('color', this.palette.fab);
-        qs('#favorite', fullscreen).setAttribute('color', this.palette.contrast);
+        const favButton = qs('#favorite', fullscreen);
+        favButton.setAttribute('color', this.palette.contrast);
+        if (this.isFavorite) {
+          favButton.title = 'Unfavorite';
+          favButton.style.opacity = 1;
+        } else { 
+          favButton.title = 'Favorite';
+          favButton.style.opacity = 0.2;
+        }
       }
 
       // fire event to update app ui element with new color
