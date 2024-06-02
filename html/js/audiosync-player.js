@@ -704,12 +704,14 @@ class AudioPlayer extends HTMLElement {
         }
       }
 
+      const hex = convertToHex(`rgb(${c[1][0]},${c[1][1]},${c[1][2]})`);
+      
       this.palette = {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
         top: `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art gradient top color
         bottom: `rgba(${c[ndx][0]},${c[ndx][1]},${c[ndx][2]},0.97)`, // player bg gradient bottom color
-        contrast: getContrastColor(convertToHex(`rgb(${c[1][0]},${c[1][1]},${c[1][2]}}`)) // contrasting color to color used to top of gradient
+        contrast: getContrastColor(hex) // contrasting color to color used to top of gradient
       };
 
       // update colors if fullscreen
