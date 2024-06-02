@@ -49,11 +49,13 @@ import {
     const scanButton = qs('#scan');
     musicLib.addEventListener('library-scan', async e => {
       if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
+      if (!qs('#update').hasAttribute('disabled')) qs('#update').toggleAttribute('disabled');
       scanButton.setAttribute('percent', e.detail.percent);
       if (e.detail.percent === 100) {
         await sleep(500);
         scanButton.setAttribute('percent', 0);
         scanButton.removeAttribute('disabled');
+        qs('#update').removeAttribute('disabled');
         new Toast('Scan complete')
       }
     });
@@ -74,7 +76,7 @@ import {
      * button / switch interactions
      */
 
-    qs('#scan').onClick(async _ => {
+    scanButton.onClick(async _ => {
       if (qs('sync-ui.scanning')) return;
       await sleep(20);
       await qs('audiosync-menu').close();
@@ -102,12 +104,15 @@ import {
     qs("#fav").onClick(async _ => {
       await sleep(20);
       await qs('audiosync-menu').close();
+      if (player.hasAttribute('fullscreen')) {
+        await player.minimize();
+      }
       musicLib.favorites();
     });
 
     // menu drawer refresh / update icon
     qs('#update').onClick(async _ => {
-      if (!qs('#scan').hasAttribute('disabled')) qs('#scan').toggleAttribute('disabled');
+      if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
       await sleep(20);
       await qs('audiosync-menu').close();
       if (qs('sync-ui').syncing) {
@@ -117,7 +122,7 @@ import {
       }
       qs('sync-ui').startSync();
       await pywebview.api.run_sync();
-      qs('#scan').removeAttribute('disabled');
+      scanButton.removeAttribute('disabled');
     });
 
     // top of screen alert
