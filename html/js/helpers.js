@@ -862,6 +862,7 @@ function objectToCSS(cssObject) {
  * @param {Number} x 
  * @param {Number} y 
  * @param {Number} radius 
+ * 
  * @returns {String}
  */
 function getColorAtPoint(canvas, x, y, radius) {
@@ -889,6 +890,7 @@ function getColorAtPoint(canvas, x, y, radius) {
  * @param {Number} r 
  * @param {Number} g 
  * @param {Number} b 
+ * 
  * @returns {String}
  */
 function rgbToHex(r, g, b) {
@@ -904,6 +906,43 @@ function rgbToHex(r, g, b) {
 function componentToHex(c) {
   var hex = c.toString(16);
   return hex.length == 1 ? "0" + hex : hex;
+}
+
+/**
+ * is array1 present in array2?
+ * 
+ * @param {Array} arr1 
+ * @param {Array} arr2 
+ * 
+ * @returns {Boolean}
+ */
+function areElementsPresent(arr1, arr2) {
+  // Loop through each element of arr1
+  for (let i = 0; i < arr1.length; i++) {
+    // If the element is not present in arr2, return false
+    if (!arr2.includes(arr1[i])) {
+        return false;
+    }
+  }
+  // All elements in arr1 are present in arr2
+  return true;
+}
+
+/**
+ * test if element is in an array
+ * 
+ * @param {Array} arr 
+ * @param {Object} element 
+ * 
+ * @returns {Boolean}
+ */
+function indexOfElement(arr, element) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === element) {
+      return i;
+    }
+  }
+  return -1; 
 }
 
 export {
@@ -932,5 +971,7 @@ export {
   parseCSS,
   objectToCSS,
   getIcon,
-  getColorAtPoint
+  getColorAtPoint,
+  areElementsPresent,
+  indexOfElement
 }
