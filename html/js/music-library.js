@@ -799,10 +799,11 @@ class MusicLibrary extends HTMLElement {
 
 
     const canvas = ce('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
     canvas.width = 450;
     canvas.height = 450;
 
+    
     const img = ce('img');
     img.src = album.tracks[0].art;
     img.style.opacity = 0;
