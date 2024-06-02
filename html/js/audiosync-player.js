@@ -419,10 +419,9 @@ class AudioPlayer extends HTMLElement {
     const playingArt = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
     if (playingArt) playingArt.src = this.art;
 
-    const info = qs('#info', this.shadowRoot)
+    const info = qs('#info', this.shadowRoot);
     if (info) info.textContent = `${nowplaying.artist} - ${nowplaying.title}`;
     
-
     // set src
     this.player.src = nowplaying.path;
     // load and play the file
@@ -688,12 +687,15 @@ class AudioPlayer extends HTMLElement {
       let g = c[0][1];
       let b = c[0][2];
 
+      // for selecting top color for cradient
+      const topNdx = 1;
+
       // for selecting bottom gradient color
-      const ndx = c.length - 1;
+      const bottomNdx = c.length - 3;
 
       // loop through colors for goldie locks color to use for --pop-color
       for (let i = 0; i < c.length; i++) {
-        if (i !== 1 || i !== ndx) {
+        if (i !== topNdx || i !== bottomNdx) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
           if (luminence < 0.75 && luminence > 0.2) {
             r = c[i][0];
@@ -704,13 +706,17 @@ class AudioPlayer extends HTMLElement {
         }
       }
 
-      const hex = convertToHex(`rgb(${c[1][0]},${c[1][1]},${c[1][2]})`);
-      
+      // rgb value string
+      const rgbstring = `${c[topNdx][0]},${c[topNdx][1]},${c[topNdx][2]}`;
+
+      // hex value
+      const hex = convertToHex(`rgb(${rgbstring})`);
+
       this.palette = {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
-        top: `rgba(${c[1][0]},${c[1][1]},${c[1][2]},0.97)`, // player art gradient top color
-        bottom: `rgba(${c[ndx][0]},${c[ndx][1]},${c[ndx][2]},0.97)`, // player bg gradient bottom color
+        top: `rgba(${rgbstring},0.97)`, // player art gradient top color
+        bottom: `rgba(${c[bottomNdx][0]},${c[bottomNdx][1]},${c[bottomNdx][2]},0.97)`, // player bg gradient bottom color
         contrast: getContrastColor(hex) // contrasting color to color used to top of gradient
       };
 
@@ -798,7 +804,7 @@ class AudioPlayer extends HTMLElement {
     const progress = (ct / player.duration) * 100;
     const progBar = qs('.progress', this.shadowRoot);
     const durationtext = qs('#duration', this.shadowRoot);
-    if (duration < 100) this._cacheNext();
+    // if (duration < 100) this._cacheNext();
     if (progBar) progBar.style.transform = `translateX(-${100 - progress}%)`;
     if (!this.elapsedTime) {
       const dmins = Math.floor(duration / 60);
