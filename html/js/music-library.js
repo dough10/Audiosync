@@ -13,7 +13,9 @@ import {
   fillButton,
   svgIcon,
   getColorAtPoint,
-  getContrastColor
+  getContrastColor,
+  areElementsPresent,
+  indexOfElement
 } from './helpers.js';
 
 /**
@@ -247,7 +249,7 @@ class MusicLibrary extends HTMLElement {
       el.removeAttribute('playing');
     });
 
-    // return if nothing it playing
+    // return if nothing is playing
     if (!details) {
       this.playlistCleared();
       return;
@@ -768,8 +770,10 @@ class MusicLibrary extends HTMLElement {
       this.player.favorite({artist: artist, title: album.title, favorite: album.favorite});
       if (album.favorite) {
         favbutton.style.opacity = 1;
+        favbutton.title = 'Unfavorite';
       } else {
         favbutton.style.opacity = 0.5;
+        favbutton.title = 'Favorite';
       }
     });
 
@@ -777,11 +781,13 @@ class MusicLibrary extends HTMLElement {
     addtoplaylist.classList.add('add');
     addtoplaylist.setAttribute('color', '#ffffff');
     addtoplaylist.appendChild(await svgIcon('add'));
-    if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('playing')) addtoplaylist.style.display = 'none';
-    addtoplaylist.onClick(_ => {
+    if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('inlist')) addtoplaylist.style.display = 'none';
+    addtoplaylist.onClick(async _ => {
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
       albumContainer.toggleAttribute('inlist');
+      await fadeOut(addtoplaylist);
+      addtoplaylist.style.display = 'none';
     });
 
     const imgwrapper = ce('div');
@@ -821,13 +827,12 @@ class MusicLibrary extends HTMLElement {
     
 
     const tracklist = ce('div');
-    tracklist.classList.add('tracklist')
+    tracklist.classList.add('tracklist');
     album.tracks.forEach((track, ndx) => {
 
       // shortened path to playing file
       const playing = this.player.player.src.replace('http://localhost:8000/', '');
 
-      
       const tnum = ce('div');
       tnum.textContent = track.track;
       
@@ -841,14 +846,24 @@ class MusicLibrary extends HTMLElement {
       container.dataset.src = track.path;
       container.classList.add('track');
       container.addEventListener('click', _ => {
-        const t = this.player.playlist === album.tracks;
-        if (t) {
+        // check if tracks are in playlist
+        const tracksInPlaylist = areElementsPresent(album.tracks, this.player.playlist);
+
+        if (tracksInPlaylist && this.player.playlist.length === album.tracks.length) {
+          // tracks in playlist are this album and only this album it is safe to play ndx directly
           this.player.playNdx(ndx);
+        } else if (tracksInPlaylist) {
+          // tracks are present with tracks from other albums
+          const albumStartsAt = indexOfElement(this.player.playlist, album.tracks[0]);
+          this.player.playNdx(albumStartsAt + ndx);
         } else {
+          // not in playlist. will overwrite current playlist and play this album starting on the song clicked
           this.player.playAlbum(album, ndx);
+          // set playlist "inline" state
           albumContainer.toggleAttribute('inlist');
         }
       });
+
       [
         tnum,
         title
@@ -888,14 +903,17 @@ class MusicLibrary extends HTMLElement {
     albumContainer.addEventListener('contextmenu', ev => this._openContexMenu(ev, albumContainer, artist, album));
     svgIcon('playing').then(svg => {
       svg.classList.add('playing-svg');
+      svg.title = 'Playing';
       albumContainer.appendChild(svg);
     });
     svgIcon('list').then(svg => {
       svg.classList.add('listed');
+      svg.title = 'In Playlist';
       albumContainer.appendChild(svg);
     });
     svgIcon('favorite').then(svg => {
       svg.classList.add('fav');
+      svg.title = 'Favorite';
       albumContainer.appendChild(svg);
       const text = ce('div');
       text.textContent = album['title']
@@ -982,8 +1000,9 @@ class MusicLibrary extends HTMLElement {
    * @param {Event} e
    */
   _makeSelection(e) {
-    createRipple(e);
     const target = e.target;
+    if (target.classList.contains('artist') && this.hasAttribute('favorites')) return;
+    createRipple(e);
     target.toggleAttribute('selected');
     if (target.classList.contains('artist')) {
       const matchingArtist = qsa(`[data-artist="${target.dataset.artist}"]`, this.shadowRoot);
