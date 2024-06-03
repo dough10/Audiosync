@@ -67,7 +67,7 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
-   * generate head element with close button
+   * generate head element
    */
   _generateHead() {    
     // wrappper for plus icon
@@ -296,129 +296,134 @@ class AudioSyncPodcasts extends HTMLElement {
    * 
    * @param {String} url podcast url
    */
-  _fetchAndParseXML(url) {
-    pywebview.api.xmlProxy(url).then(async xmlString => {
+  async _fetchAndParseXML(url) {
 
+    // title of the podcast
+    const podcastTitle = ce('div');
+
+    // get title from xml URL
+    podcastTitle.textContent = 'Loading'
+    pywebview.api.xmlProxy(url).then(async xmlString => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
-
-      // title of the podcast
-      const podcastTitle = ce('div');
       podcastTitle.textContent = xmlString.rss.channel.title;
+    }).catch(error => {
+      podcastTitle.textContent = url;
+      console.error('Error fetching XML:', error);
+    });
 
-      const removeIcon = await svgIcon('close');
+    const removeIcon = await svgIcon('close');
 
-      const removeButton = ce('audiosync-small-button');
-      removeButton.setAttribute('color', 'red');
-      removeButton.appendChild(removeIcon);
-      removeButton.style.opacity = 0;
-      removeButton.onClick(async ev => {
-        //  loading animation
-        const icon = await svgIcon('refresh');
-        icon.style.height = '40px';
-        icon.style.width = '40px';
-        icon.classList.add('spinning');
-        
-        // container for animated loading Icon
-        const loader = ce('div');
-        loader.classList.add('loading');
-        loader.appendChild(icon);
-
-        const text = ce('div');
-        text.classList.add('delete-notification-text');
-        text.textContent = `Unsubscribe from "${podcastTitle.textContent}"?`;
-        
-        const dialog = ce('audiosync-dialog');
-
-        const yes = ce('audiosync-button');
-        const no = ce('audiosync-button');
-        const buttons = [yes,no];
-
-        const yesContents = fillButton("check", 'yes');
-
-        yes.appendChild(yesContents);
-        yes.setAttribute('color', getCSSVariableValue('--pop-color'));
-        yes.toggleAttribute('noshadow');
-        yes.onClick(async e => {
-          await sleep(200);
-          buttons.forEach(button => button.setAttribute('disabled', 1));
-          loader.style.display = 'flex';
-          await fadeIn(loader);
-          await pywebview.api.unsubscribe(url);
-          new Toast(`${podcastTitle.textContent} unsubscribed`);
-          await sleep(200);
-          await dialog.close();
-          this.listPodcasts();
-          dialog.remove();
-        });
-
-        const noContents = fillButton('close', 'no');
-        
-        no.appendChild(noContents);
-        no.setAttribute('color', '#ffffff');
-        no.toggleAttribute('noshadow');
-        no.onClick(async e => {
-          await sleep(200);
-          buttons.forEach(button => button.setAttribute('disabled', 1));
-          await dialog.close();
-          dialog.remove();
-        });
-
-        [loader,text,yes,no].forEach(el => dialog.appendChild(el));
-        qs('body').appendChild(dialog);
-        await sleep(20);
-        dialog.open();
-      });
+    const removeButton = ce('audiosync-small-button');
+    removeButton.setAttribute('color', 'red');
+    removeButton.appendChild(removeIcon);
+    removeButton.style.opacity = 0;
+    removeButton.onClick(async ev => {
+      //  loading animation
+      const icon = await svgIcon('refresh');
+      icon.style.height = '40px';
+      icon.style.width = '40px';
+      icon.classList.add('spinning');
       
-      const svg = await svgIcon("check", 'green');
-      svg.style.opacity = 0;
+      // container for animated loading Icon
+      const loader = ce('div');
+      loader.classList.add('loading');
+      loader.appendChild(icon);
 
-      // wrapper for title and checkmark
-      const wrapper = ce('div');
-      [
-        podcastTitle,
-        svg
-      ].forEach(el => wrapper.appendChild(el));
-      wrapper.classList.add('wrapper');
-      wrapper.id = url;
+      const text = ce('div');
+      text.classList.add('delete-notification-text');
+      text.textContent = `Unsubscribe from "${podcastTitle.textContent}"?`;
+      
+      const dialog = ce('audiosync-dialog');
 
-      // show remove button on mouse over
-      wrapper.onmouseenter = _ => {
-        if (qs('#refresh', this.shadowRoot).classList.contains('spinning')) return;
-        wrapper.appendChild(removeButton);
-        fadeIn(removeButton);
-      };
+      const yes = ce('audiosync-button');
+      const no = ce('audiosync-button');
+      const buttons = [yes,no];
 
-      // hide remove button when mouse leaves element
-      wrapper.onmouseleave = async _ => {
-        await fadeOut(removeButton);
-        removeButton.remove();
-      };
+      const yesContents = fillButton("check", 'yes');
 
-      // will be filled with podcast episode filename
-      const title = ce('div');
-      title.id = 'title';
+      yes.appendChild(yesContents);
+      yes.setAttribute('color', getCSSVariableValue('--pop-color'));
+      yes.toggleAttribute('noshadow');
+      yes.onClick(async e => {
+        await sleep(200);
+        buttons.forEach(button => button.setAttribute('disabled', 1));
+        loader.style.display = 'flex';
+        await fadeIn(loader);
+        await pywebview.api.unsubscribe(url);
+        new Toast(`${podcastTitle.textContent} unsubscribed`);
+        await sleep(200);
+        await dialog.close();
+        this.listPodcasts();
+        dialog.remove();
+      });
 
-      // download percentage
-      const percent = ce('div');
-      percent.id = 'percent';
+      const noContents = fillButton('close', 'no');
+      
+      no.appendChild(noContents);
+      no.setAttribute('color', '#ffffff');
+      no.toggleAttribute('noshadow');
+      no.onClick(async e => {
+        await sleep(200);
+        buttons.forEach(button => button.setAttribute('disabled', 1));
+        await dialog.close();
+        dialog.remove();
+      });
 
-      // file download progress (hidden untill download begins)
-      const bar = ce('audiosync-progress');
-      [
-        title,
-        percent
-      ].forEach(el => bar.appendChild(el));
-      bar.id = `${url}-bar`;
-      bar.style.opacity = 0;
-      bar.style.display = 'none';
+      [loader,text,yes,no].forEach(el => dialog.appendChild(el));
+      qs('body').appendChild(dialog);
+      await sleep(20);
+      dialog.open();
+    });
+    
+    const svg = await svgIcon("check", 'green');
+    svg.style.opacity = 0;
 
-      // push content to UI
-      [
-        wrapper,
-        bar
-      ].forEach(el => this.container.appendChild(el));
-    }).catch(error => console.error('Error fetching XML:', error));
+    // wrapper for title and checkmark
+    const wrapper = ce('div');
+    [
+      podcastTitle,
+      svg
+    ].forEach(el => wrapper.appendChild(el));
+    wrapper.classList.add('wrapper');
+    wrapper.id = url;
+
+    // show remove button on mouse over
+    wrapper.onmouseenter = _ => {
+      if (qs('#refresh', this.shadowRoot).classList.contains('spinning')) return;
+      wrapper.appendChild(removeButton);
+      fadeIn(removeButton);
+    };
+
+    // hide remove button when mouse leaves element
+    wrapper.onmouseleave = async _ => {
+      await fadeOut(removeButton);
+      removeButton.remove();
+    };
+
+    // will be filled with podcast episode filename
+    const title = ce('div');
+    title.id = 'title';
+
+    // download percentage
+    const percent = ce('div');
+    percent.id = 'percent';
+
+    // file download progress (hidden untill download begins)
+    const bar = ce('audiosync-progress');
+    [
+      title,
+      percent
+    ].forEach(el => bar.appendChild(el));
+    bar.id = `${url}-bar`;
+    bar.style.opacity = 0;
+    bar.style.display = 'none';
+
+    // push content to UI
+    [
+      wrapper,
+      bar
+    ].forEach(el => this.container.appendChild(el));
   }
 }
 customElements.define('audiosync-podcasts', AudioSyncPodcasts);
