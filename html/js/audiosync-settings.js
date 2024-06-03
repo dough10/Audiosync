@@ -28,7 +28,7 @@ class AudioSyncSettings extends HTMLElement {
       },
       header: {
         height: "65px",
-        "background-color": "#ffffff"
+        "background-color": "var(--main-color)"
       },
       ".header-content": {
         "padding": "12px",
@@ -66,7 +66,7 @@ class AudioSyncSettings extends HTMLElement {
         background: "var(--background-color)"
       },
       ".card": {
-        color: "#333333",
+        color: "var(--text-color)",
         "max-width": "675px",
         "min-width": "280px",
         padding: "8px",
@@ -79,7 +79,7 @@ class AudioSyncSettings extends HTMLElement {
         "text-align": "center"
       },
       "audiosync-small-button": {
-        color: "red"
+        color: "var(--close-red)"
       }
     };
 

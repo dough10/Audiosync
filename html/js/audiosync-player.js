@@ -23,9 +23,9 @@ class AudioPlayer extends HTMLElement {
         left: 0,
         right: 0,
         height: '72px',
+        background: 'var(--main-color)',
         transform: 'translateY(100%)',
-        'background-color': '#ffffff',
-        color: '#333333',
+        color: 'var(--text-color)',
         'z-index': 1
       },
       '#fbg': {
@@ -34,13 +34,13 @@ class AudioPlayer extends HTMLElement {
         'flex-direction': 'row',
         'justify-content': 'center',
         'align-items': "center",
-        bottom: '72px',
+        bottom: 0,
         left: 0,
         right: 0,
-        top: '65px',
+        top: 0,
         transform: 'translateY(100%)',
-        'background-color': 'rgba(255,255,255,0.9)',
-        color: '#333333'
+        'background-color': 'rgba(var(--main-rgb),0.9)',
+        color: 'var(--text-color)'
       },
       '#fbg > .img-wrapper': {
         'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',        
@@ -91,8 +91,8 @@ class AudioPlayer extends HTMLElement {
       '.popup': {
         height:`451px`,
         width: `450px`,
-        background: 'rgba(255,255,255,0.4)',
-        color: '#333333',
+        background: 'rgba(var(--main-rgb),0.4)',
+        color: 'var(--text-color)',
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
         position: 'fixed',
@@ -104,7 +104,7 @@ class AudioPlayer extends HTMLElement {
         display: 'flex',
         'flex-direction': 'row',
         "text-transform": "uppercase",
-        "border-bottom": "1px solid #3333333d",
+        "border-bottom": "var(--seperator-line)",
         'will-change': 'background',
         transition: 'var(--button-bg-animation)'
       },
@@ -183,7 +183,7 @@ class AudioPlayer extends HTMLElement {
       },
       '#favorite': {
         position:'fixed',
-        top: '20px',
+        top: '90px',
         right: '20px',
         transition: 'color 500ms ease'
       }
@@ -334,10 +334,14 @@ class AudioPlayer extends HTMLElement {
       this._changeSrc();
     });
     
+
+    const playIcon = await svgIcon('pause');
+    qs('path', playIcon).id = 'playIcon';
+
     // play button
     const play = ce('audiosync-small-button');
     play.id = 'play';
-    play.appendChild(await svgIcon('pause'));
+    play.appendChild(playIcon);
     play.onClick(_ => {
       // toggle playback
       if (this.player.paused) {
@@ -523,7 +527,7 @@ class AudioPlayer extends HTMLElement {
     // playlist fab
     const listButton = ce('audiosync-fab');
     listButton.appendChild(await svgIcon('list'));
-    listButton.position({bottom: '60px', right: '15px'});
+    listButton.position({bottom: '130px', right: '15px'});
     listButton.onClick(ev => this._playlistPopup(ev));
     listButton.setAttribute('color', this.palette.fab);
     listButton.title = 'Playlist';
@@ -600,7 +604,7 @@ class AudioPlayer extends HTMLElement {
     const popup = qs('.popup', this.shadowRoot);
     if (popup) {
       qs('img', this.shadowRoot).style.removeProperty('filter');
-      await animateElement(popup, 'scale3d(0,0,0)', 50);
+      await animateElement(popup, 'scale3d(0,0,0)', 100);
       popup.remove();
     }
     const fab = qs('audiosync-fab', qs('#fbg', this.shadowRoot));
@@ -618,7 +622,7 @@ class AudioPlayer extends HTMLElement {
    * @param {Number} ndx *optional*
    */
   playAlbum(albumInfo, ndx) {
-    // reset index
+    // reset / set index
     this.playing = ndx || 0;
     if (!ndx) this.library.playlistCleared();
     // set playlist * clone array to prevent album info issue on <music-library>
@@ -710,6 +714,7 @@ class AudioPlayer extends HTMLElement {
       // hex value
       const hex = convertToHex(`rgb(${rgbstring})`);
 
+      // color palette
       this.palette = {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
@@ -718,11 +723,19 @@ class AudioPlayer extends HTMLElement {
         contrast: getContrastColor(hex) // contrasting color to color used to top of gradient
       };
 
-      // update colors if fullscreen
+      // fullscreen player element
       const fullscreen = qs('#fbg', this.shadowRoot);
+
+      // update colors if fullscreen
       if (fullscreen) {
+
+        // set colors for gradient
         fullscreen.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
+        
+        // set action button color
         qs('audiosync-fab', fullscreen).setAttribute('color', this.palette.fab);
+        
+        // favorite button
         const favButton = qs('#favorite', fullscreen);
         favButton.setAttribute('color', this.palette.contrast);
         if (this.isFavorite) {
@@ -881,7 +894,7 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   async _onPause() {
-    const icon = qs('path', qs('#play', this.shadowRoot));
+    const icon = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
     if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
     icon.setAttribute('d', this.playIcon);
@@ -894,7 +907,7 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onPlaying(ev) {
-    const icon = qs('path', qs('#play', this.shadowRoot));
+    const icon = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
     if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
     icon.setAttribute('d', this.pauseIcon);

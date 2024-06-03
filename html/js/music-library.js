@@ -57,7 +57,7 @@ class MusicLibrary extends HTMLElement {
       },
       ".artist": {
         position: "relative",
-        "border-top": "1px solid #3333333d",
+        "border-top": "var(--seperator-line)",
         cursor: "pointer",
         padding: "12px",
         "font-size": "17px",
@@ -70,7 +70,7 @@ class MusicLibrary extends HTMLElement {
       },
       ".album": {
         position: "relative",
-        "border-top": "1px solid #3333333d",
+        "border-top": "var(--seperator-line)",
         cursor: "pointer",
         padding: "8px",
         "font-size": "13px",
@@ -114,18 +114,11 @@ class MusicLibrary extends HTMLElement {
         width: '16px',
         opacity: 1
       },
-      '.album[playing]': {
-        color: 'var(--pop-color)',
-
-      },      
-      '.album[playing][selected]': {
-        color: '#ffffff'
-      },
       ".album[selected]": {
-        "background-color": "rgba(100, 100, 100, 0.582)"
+        "background-color": "var(--selected-color)"
       },
       ".album[selected]:hover": {
-        "background-color": "#00000044"
+        "background-color": "var(--selected-hover-color)"
       },
       ".blank": {
         height: "550px",
@@ -134,7 +127,7 @@ class MusicLibrary extends HTMLElement {
         "justify-content": "center"
       },
       '.a-z': {
-        border: "1px solid rgba(51,51,51,0.2)",
+        border: "var(--seperator-line)",
         'border-radius': '5px',
         position: 'fixed',
         right: 0,
@@ -142,8 +135,8 @@ class MusicLibrary extends HTMLElement {
         display: 'flex',
         'flex-direction': 'column',
         "text-transform": "uppercase",
-        color: '#333333',
-        background: 'rgba(255,255,255,0.5)',
+        color: 'var(--text-color)',
+        background: 'rgba(var(--main-rgb),0.5)',
         transition: 'opacity 0.45s ease',
         transform: 'translate(-50%, -50%)',
         opacity: '0.1'
@@ -152,7 +145,7 @@ class MusicLibrary extends HTMLElement {
         opacity:1
       },
       '.a-z > a': {
-        color: '#333333',
+        color: 'var(--text-color)',
         'text-decoration': 'none',
         padding: '4px',
         transition: 'color 0.3s ease'
@@ -160,12 +153,11 @@ class MusicLibrary extends HTMLElement {
       '.a-z > a:hover': {
         color: 'var(--pop-color)',
         'text-decoration': 'underline',
-        cursor: 'pointer',
-        background: 'radial-gradient(circle, var(--disabled-color), #ffffff)'
+        cursor: 'pointer'
       },
       '.popup': {
-        background: '#ffffff',
-        color: '#333333',
+        background: 'var(--main-color)',
+        color: 'var(--text-color)',
         'border-radius': '5px',
         "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
         position: 'fixed',
@@ -177,7 +169,7 @@ class MusicLibrary extends HTMLElement {
         padding: '8px',
         cursor: 'pointer',
         'text-transform': 'uppercase',
-        "border-bottom": "1px solid #3333333d",
+        "border-bottom": "var(--seperator-line)",
         transition: 'var(--button-bg-animation)',
         display:'flex',
         'flex-direction': 'row',
@@ -755,7 +747,6 @@ class MusicLibrary extends HTMLElement {
     });
 
     const favbutton = ce('audiosync-small-button');
-    favbutton.setAttribute('color', '#ffffff');
     favbutton.classList.add('fav');
     favbutton.appendChild(await svgIcon('favorite'));
     if (!album.favorite) {
@@ -779,7 +770,6 @@ class MusicLibrary extends HTMLElement {
 
     const addtoplaylist = ce('audiosync-small-button');
     addtoplaylist.classList.add('add');
-    addtoplaylist.setAttribute('color', '#ffffff');
     addtoplaylist.appendChild(await svgIcon('add'));
     if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('inlist')) addtoplaylist.style.display = 'none';
     addtoplaylist.onClick(async _ => {

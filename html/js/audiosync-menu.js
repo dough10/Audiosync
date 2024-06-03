@@ -49,7 +49,7 @@ class AudioSyncMenu extends HTMLElement {
         height: "128px",
         "background-color": "var(--main-color)",
         color: "var(--text-color)",
-        "will-change": "auto"
+        "box-shadow": "0px 5px 6px 0px rgba(0,0,0,0.4)"
       },
       ".header-content": {
         padding: "12px",
@@ -57,24 +57,13 @@ class AudioSyncMenu extends HTMLElement {
         "justify-content": "space-between",
         "align-items": "center"
       },
-      ".header-shadow": {
-        height: "6px",
-        "box-shadow": "inset 0px 5px 6px -3px rgba(0,0,0,0.4)",
-        position: "absolute",
-        "will-change": "auto",
-        top: "128px",
-        left: 0,
-        right: 0,
-        "pointer-events": "none",
-        "z-index": 1
-      },
       ".menu": {
         position: "absolute",
         top: 0,
         bottom: 0,
         left: 0,
         width: "300px",
-        "background-color": "#ffffff",
+        "background-color": "var(--background-color)",
         color: "var(--text-color)",
         "z-index": 2,
         'will-change': 'transform',
@@ -94,11 +83,11 @@ class AudioSyncMenu extends HTMLElement {
       ".menu-button": {
         padding: "12px",
         display: "flex",
-        color: "#333333",
+        color: "var(--text-color)",
         "justify-content": "space-between",
         "align-items": "center",
         "font-size": "16px",
-        "border-top": "1px solid #3333333d",
+        "border-top": "var(--seperator-line)",
         position: "relative",
         overflow: "hidden"
       },
@@ -111,8 +100,7 @@ class AudioSyncMenu extends HTMLElement {
       },
       svg: {
         width: "24px",
-        height: "24px",
-        color: 'var(--pop-color)'
+        height: "24px"
       }
     };
 
@@ -133,9 +121,6 @@ class AudioSyncMenu extends HTMLElement {
     const header = ce('header'); 
     header.appendChild(headerContent);
     
-    const headerShadow = ce('div');
-    headerShadow.classList.add('header-shadow')
-    
     //  scrollable section 
     const wrapper = ce('div');
     wrapper.classList.add('wrapper');
@@ -150,7 +135,6 @@ class AudioSyncMenu extends HTMLElement {
 
     [
       header,
-      headerShadow,
       wrapper,
       this.foot
     ].forEach(el => this.menu.appendChild(el));

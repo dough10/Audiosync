@@ -54,8 +54,8 @@ class SmallButton extends HTMLElement {
    * element connected to DOM
    */
   connectedCallback() {
-    const textColor = convertToHex(window.getComputedStyle(this.button).color); 
-    this._color(textColor);
+    // const textColor = convertToHex(window.getComputedStyle(this.button).color); 
+    // this._color(textColor);
     this.button.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);

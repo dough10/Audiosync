@@ -38,7 +38,7 @@ class FloatingActionButton extends HTMLElement {
         "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
         position: "fixed",
         "z-index": 2,
-        bottom: "5px",
+        bottom: "20px",
         right: "20px",
         transition: 'var(--button-bg-animation)',
         transform: "translateY(300px)",

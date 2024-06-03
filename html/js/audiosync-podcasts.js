@@ -23,7 +23,7 @@ class AudioSyncPodcasts extends HTMLElement {
         "flex-direction": "row",
         "justify-content": "space-between",
         "align-items": "center",
-        "border-top": "1px solid #3333333d",
+        "border-top": "var(--seperator-line)",
         padding: "8px",
         "font-size": "14px",
         "font-weight": "bold",

@@ -13,13 +13,18 @@ class AudioSyncHeader extends HTMLElement {
         left: 0,
         right: 0,
         height: "var(--header-height)",
-        "background-color": "var(--main-color)",
         color: "var(--text-color)",
-        "will-change": "auto"
+        'z-index': 1
       },
       ".header-content": {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom:0,
         padding: "12px",
         display: "flex",
+        "background-color": "var(--main-color)",
         "justify-content": "space-between",
         "align-items": "center"
       },
