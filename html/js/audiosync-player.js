@@ -91,7 +91,7 @@ class AudioPlayer extends HTMLElement {
       '.popup': {
         height:`451px`,
         width: `450px`,
-        background: 'rgba(255,255,255,0.35)',
+        background: 'rgba(255,255,255,0.4)',
         color: '#333333',
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
@@ -159,7 +159,6 @@ class AudioPlayer extends HTMLElement {
         bottom: '5px',
         right: '10px',
         'font-size': '11px',
-        padding: '4px',
         cursor:'pointer'
       },
       '#duration > *': {
@@ -175,8 +174,7 @@ class AudioPlayer extends HTMLElement {
         'max-height': '14px',
         'max-width': '300px',
         'white-space': 'nowrap',
-        'text-overflow': 'ellipsis',
-        padding: '4px'
+        'text-overflow': 'ellipsis'      
       },
       '#expand': {
         position: 'fixed',
