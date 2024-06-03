@@ -6,15 +6,35 @@
     <meta http-equiv="Cache-control" content="public">
     <style>
       :root {
-        --header-height: 65px;
-        --switch-rgb: 35, 58, 125;
-        --main-color: rgb(86,96,96);
-        --pop-color: rgb(var(--switch-rgb));
-        --disabled-color: #c1bebe; 
-        --background-color: rgb(229, 229, 229);
-        --hover-color: #7994e344;
         --font-family: 'Roboto', 'Noto', sans-serif;
-        --button-bg-animation: 'background 500ms ease'
+
+        --header-height: 65px;
+        
+        --main-rgb: 255,255,255;
+
+        --main-color: rgb(var(--main-rgb));
+        
+        --disabled-color: #c1bebe; 
+        
+        --background-color: rgb(229, 229, 229);
+        
+        --hover-color: #7994e344;
+        
+        --text-color: #333333;
+        
+        --switch-rgb: 51, 51, 51;
+        
+        --pop-color: rgb(var(--switch-rgb));
+
+        --selected-color: rgba(100, 100, 100, 0.582);
+
+        --selected-hover-color:#00000044;
+
+        --button-bg-animation: 'background 500ms ease';
+
+        --seperator-line: 1px solid rgba(51,51,51,0.2);
+
+        --close-red: red;
       }
       html {
         scroll-behavior: smooth;
@@ -37,7 +57,6 @@
         align-items: center;
         padding:0;
         margin:0;
-        color:#ffffff;
       }
       svg {
         width:24px;
@@ -68,11 +87,11 @@
         color: yellow;
       }
       .card {
-        color: #333333;
+        color: var(--text-color);
         max-width: 675px;
         min-width: 280px;
         padding: 0px;
-        background: #fff;
+        background: var(--main-color);
         position: relative;
         margin: auto;
         border-radius: 3px;
@@ -130,10 +149,10 @@
       }
       .tab[disabled]:active, .tab[disabled]:hover, .tab[disabled]:active:hover {
         box-shadow: none;
-        background-color: rgba(0, 0, 0, 0.178)
+        background-color: var(--disabled-color)
       }
       .tab.selected {
-        background-color: #ffffff;
+        background-color: var(--main-color);
         cursor: auto;
         box-shadow: none;
       }
