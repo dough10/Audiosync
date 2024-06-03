@@ -39,7 +39,6 @@ import {
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
       document.documentElement.style.setProperty('--switch-rgb', palette.variable);
-      qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', palette.fab));
       [
         qs('audiosync-button', qs('sync-ui').shadowRoot),
         qs('audiosync-fab', qs('scroll-element').shadowRoot)
@@ -195,8 +194,6 @@ import {
     if (!conf.podcast) {
       qs('sync-ui').hideBar('#podcasts-bar');
     }
-
-    qsa('audiosync-menu-button').forEach(button => button.setAttribute('color', getCSSVariableValue('--pop-color')));
 
     // reset .lrc UI
     const rm_lrc_el = qs('#remove-lrc');
