@@ -88,17 +88,18 @@
       }
       .card {
         color: var(--text-color);
-        max-width: 675px;
+        max-width: 900px;
         min-width: 280px;
         padding: 0px;
         background: var(--main-color);
         position: relative;
         margin: auto;
-        border-radius: 3px;
+        border-radius: 20px;
         margin-bottom: 8px;
         box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
         text-align: center;
         margin-bottom: 100px;
+        overflow: hidden;
       }
       @keyframes spin {
         from {
@@ -133,8 +134,8 @@
         color: #333333;
         cursor: pointer;
         text-transform: uppercase;
-        border-top-left-radius: 5px;
-        border-top-right-radius: 5px;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
         background-color: var(--background-color);
         overflow: hidden;
         position: relative;
@@ -413,15 +414,6 @@
           </svg>
           <div>
             Sync
-          </div>
-        </audiosync-menu-button>
-
-        <audiosync-menu-button id='close' color="var(--close-red)">
-          <svg viewBox="0 0 24 24">
-            <path fill="currentColor"  d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-          </svg>
-          <div>
-            close
           </div>
         </audiosync-menu-button>
       </audiosync-menu>

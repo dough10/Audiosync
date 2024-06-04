@@ -88,14 +88,6 @@ import {
       qs('audiosync-menu').open();
     });
 
-    qs('#close').onClick(_ => {
-      if (qs('sync-ui').syncing) {
-        new Toast('Sync running. please wait')
-        return;
-      }
-      pywebview.api.close();
-    });
-
     // header gear icon
     qs('#settings').onClick(_ => qs('audiosync-settings').open());
 
