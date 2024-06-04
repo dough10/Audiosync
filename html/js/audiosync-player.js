@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex} from './helpers.js';
+import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -26,7 +26,8 @@ class AudioPlayer extends HTMLElement {
         background: 'var(--main-color)',
         transform: 'translateY(100%)',
         color: 'var(--text-color)',
-        'z-index': 1
+        'z-index': 1,
+        overflow: 'hidden'
       },
       '#fbg': {
         position: 'fixed',
@@ -186,6 +187,20 @@ class AudioPlayer extends HTMLElement {
         top: '90px',
         right: '20px',
         transition: 'color 500ms ease'
+      },
+      '#playlist': {
+        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
+        position: 'absolute',
+        'z-index': 1,
+        transform: 'translateY(250px)'
+      },
+      '@media screen and (min-width: 1200px)': {
+        '.background': {
+          left: "300px"
+        },
+        '#fbg': {
+          left: "300px"
+        }
       }
     };
 
@@ -505,10 +520,7 @@ class AudioPlayer extends HTMLElement {
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
 
-    const fab = qs('audiosync-fab', qs('scroll-element').shadowRoot);
-    if (fab.hasAttribute('onscreen')) {
-      fab.offScreen();
-    }
+    qs('scroll-element').offScreen();
 
     // art
     const img = ce('img');
@@ -526,12 +538,14 @@ class AudioPlayer extends HTMLElement {
 
     // playlist fab
     const listButton = ce('audiosync-fab');
+    listButton.id = 'playlist';
     listButton.appendChild(await svgIcon('list'));
-    listButton.position({bottom: '130px', right: '15px'});
     listButton.onClick(ev => this._playlistPopup(ev));
     listButton.setAttribute('color', this.palette.fab);
     listButton.title = 'Playlist';
-    
+    this.fab = listButton;  
+
+
     const favButton = ce('audiosync-small-button');
     favButton.setButtonOpacity = _ => {
       if (this.isFavorite) {
@@ -552,7 +566,7 @@ class AudioPlayer extends HTMLElement {
       // pass favorite to library
       this.library.favoriteAlbum(this.artist, this.albumTitle);
     });
-
+    
     // push to dom
     [
       imgwrapper,
@@ -561,11 +575,55 @@ class AudioPlayer extends HTMLElement {
     ].forEach(el => bg.appendChild(el));
     this.shadowRoot.appendChild(bg);
     
-    // animate onscreen
     await sleep(100);
+
+    const postionFab = _ => {
+      const offset = 190;
+      const centerX = elementWidth(bg) / 2;
+      const centerY = elementHeight(bg) / 2;
+      const newPositionX = centerX + offset;
+      const newPositionY = centerY + offset;
+  
+      listButton.style.left = newPositionX + 'px';
+      listButton.style.top = newPositionY + 'px';
+    };
+
+    postionFab();
+    window.addEventListener('resize', _ => postionFab());
+
+    // animate onscreen
     await animateElement(bg, 'translateY(0%)', 300);
     this.toggleAttribute('fullscreen');
-    listButton.onScreen();
+    this.onScreen();
+  }
+
+  /**
+   * animate action button visable on screen
+   */
+  onScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.style.transform = 'translateY(0)');
+      console.log(this.fab);
+    });
+  }
+  
+  /**
+   * animate action button off screen
+   */
+  offScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.style.removeProperty('transform'));
+    });
   }
 
   /**
@@ -607,8 +665,7 @@ class AudioPlayer extends HTMLElement {
       await animateElement(popup, 'scale3d(0,0,0)', 100);
       popup.remove();
     }
-    const fab = qs('audiosync-fab', qs('#fbg', this.shadowRoot));
-    await fab.offScreen();
+    await this.offScreen();
     await animateElement(bg, 'translateY(100%)', 300);
     await sleep(100);
     bg.remove();

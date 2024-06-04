@@ -36,14 +36,7 @@ class FloatingActionButton extends HTMLElement {
         width: "56px",
         "-webkit-tap-highlight-color": "transparent",
         "box-shadow": "0 4px 5px 0 rgba(0,0,0,0.14),0 1px 10px 0 rgba(0,0,0,0.12),0 2px 4px -1px rgba(0,0,0,0.4)",
-        position: "fixed",
-        "z-index": 2,
-        bottom: "20px",
-        right: "20px",
-        transition: 'var(--button-bg-animation)',
-        transform: "translateY(300px)",
-        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
-        margin: "8px"
+        transition: 'var(--button-bg-animation)'
       },
       ".fab > *": {
         "pointer-events": "none"
@@ -96,9 +89,6 @@ class FloatingActionButton extends HTMLElement {
         "border-radius": "50%",
         background: hexToRgba(contrast),
         animation: "ripple-animation 0.7s linear"
-      },
-      '.onscreen':{
-        transform: "translateY(0)"
       }
     };
 
@@ -124,47 +114,6 @@ class FloatingActionButton extends HTMLElement {
       styles,
       this.fab
     ].forEach(el => this.shadowRoot.appendChild(el));
-  }
-
-  /**
-   * animate action button visable on screen
-   */
-  onScreen() {
-    return new Promise(resolve => {
-      const tend = _ => {
-        this.fab.removeEventListener('transitionend', tend);
-        resolve();
-      }
-      this.fab.addEventListener('transitionend', tend);
-      requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
-    });
-  }
-  
-  /**
-   * animate action button off screen
-   */
-  offScreen() {
-    return new Promise(resolve => {
-      const tend = _ => {
-        this.fab.removeEventListener('transitionend', tend);
-        resolve();
-      }
-      this.fab.addEventListener('transitionend', tend);
-      requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
-    });
-  }
-
-  /**
-   * sets the position of the fab
-   * 
-   * @param {Object} pos CSS Object
-   */
-  position(pos) {
-    const styles = parseCSS(qs('style', this.shadowRoot).textContent);
-    for (const property in pos) {
-      styles['.fab'][property] = pos[property];
-    }
-    qs('style', this.shadowRoot).textContent = objectToCSS(styles);
   }
 
   /**

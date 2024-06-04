@@ -45,6 +45,11 @@ class ScrollElement extends HTMLElement {
         background: "var(--background-color)",
         "scroll-behavior": "smooth"
       },
+      '@media screen and (min-width: 1200px)': {
+        '.wrapper': {
+          left: "300px"
+        }
+      },
       ".wrapper::-webkit-scrollbar": {
         width: 0
       },
@@ -52,6 +57,17 @@ class ScrollElement extends HTMLElement {
         width: "24px",
         height: "24px",
         display: "flex"
+      },
+      'audiosync-fab': {
+        transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
+        position: 'fixed',
+        bottom: '25px',
+        right: '20px',
+        'z-index': 1,
+        transform: 'translateY(85px)'
+      },
+      '.onscreen': {
+        transform: 'translateY(0)'
       }
     };
 
@@ -59,9 +75,9 @@ class ScrollElement extends HTMLElement {
     sheet.textContent = objectToCSS(cssObj);
 
     // floating action button
-    const fab = ce('audiosync-fab');
-    svgIcon("up").then(svg => fab.appendChild(svg));
-    fab.onClick(this.animateScroll);
+    this.fab = ce('audiosync-fab');
+    svgIcon("up").then(svg => this.fab.appendChild(svg));
+    this.fab.onClick(this.animateScroll);
 
     // content body
     this.content = ce('div');
@@ -78,15 +94,43 @@ class ScrollElement extends HTMLElement {
     // fill container
     [
       scrollTarget,
-      fab,
       this.content
     ].forEach(el => this.container.appendChild(el));
-
+    
     // fill shadow dom
     [
       sheet,
+      this.fab,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
+  }
+
+  /**
+   * animate action button visable on screen
+   */
+  onScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
+    });
+  }
+  
+  /**
+   * animate action button off screen
+   */
+  offScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
+    });
   }
 
   /**
@@ -103,11 +147,11 @@ class ScrollElement extends HTMLElement {
     // control action button
     const scrollTop = this.container.scrollTop;
     if (scrollTop < this._lastTop) {
-      fab.offScreen();
+      this.offScreen();
     } else if (scrollTop != 0) {
-      fab.onScreen();
+      this.onScreen();
     } else {
-      fab.offScreen();
+      this.offScreen();
     }
       this._lastTop = scrollTop;
   }
