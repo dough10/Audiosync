@@ -34,12 +34,13 @@ class AudioSyncMenu extends HTMLElement {
         top: "128px",
         left: 0,
         right: 0,
-        height: "595px",
+        height: "100%",
         overflow: "auto",
         "overflow-x": "hidden",
         padding: "0px",
         "-webkit-overflow-scrolling": "touch",
-        "text-align": "center"
+        "text-align": "center",
+        'border-right': 'var(--seperator-line)'
       },
       "header": {
         position: "absolute",
@@ -48,14 +49,24 @@ class AudioSyncMenu extends HTMLElement {
         right: 0,
         height: "128px",
         "background-color": "var(--main-color)",
-        color: "var(--text-color)",
-        "box-shadow": "0px 5px 6px 0px rgba(0,0,0,0.4)"
+        color: "var(--text-color)"
       },
       ".header-content": {
         padding: "12px",
         display: "flex",
         "justify-content": "space-between",
         "align-items": "center"
+      },
+      ".header-shadow": {
+        height: "6px",
+        "box-shadow": "inset 0px 5px 6px -3px rgba(0,0,0,0.4)",
+        position: "absolute",
+        "will-change": "auto",
+        top: "128px",
+        left: 0,
+        right: 0,
+        "pointer-events": "none",
+        "z-index": 1
       },
       ".menu": {
         position: "absolute",
@@ -84,12 +95,14 @@ class AudioSyncMenu extends HTMLElement {
         padding: "12px",
         display: "flex",
         color: "var(--text-color)",
+        background: 'var(--background-color)',
         "justify-content": "space-between",
         "align-items": "center",
         "font-size": "16px",
         "border-top": "var(--seperator-line)",
         position: "relative",
-        overflow: "hidden"
+        overflow: "hidden",
+        'border-right': 'var(--seperator-line)'
       },
       ".menu-button div": {
         width: "100%",
@@ -101,6 +114,22 @@ class AudioSyncMenu extends HTMLElement {
       svg: {
         width: "24px",
         height: "24px"
+      },
+      '@media screen and (min-width: 1200px)': {
+        ".menu": {
+          transition: 'none',
+          transform: "translateX(0)",
+          "box-shadow": "none"
+        },
+        'header':{
+          height: 'var(--header-height)'
+        },
+        '.header-shadow':{
+          top: 'var(--header-height)'
+        },
+        '.wrapper': {
+          top: 'var(--header-height)'
+        }
       }
     };
 
@@ -121,6 +150,9 @@ class AudioSyncMenu extends HTMLElement {
     const header = ce('header'); 
     header.appendChild(headerContent);
     
+    const headerShadow = ce('div');
+    headerShadow.classList.add('header-shadow');
+
     //  scrollable section 
     const wrapper = ce('div');
     wrapper.classList.add('wrapper');
@@ -135,6 +167,7 @@ class AudioSyncMenu extends HTMLElement {
 
     [
       header,
+      headerShadow,
       wrapper,
       this.foot
     ].forEach(el => this.menu.appendChild(el));

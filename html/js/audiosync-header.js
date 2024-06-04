@@ -29,6 +29,7 @@ class AudioSyncHeader extends HTMLElement {
         "align-items": "center"
       },
       ".header-shadow": {
+        transition: 'left 300ms cubic-bezier(.33,.17,.85,1.1)',
         height: "6px",
         "box-shadow": "inset 0px 5px 6px -3px rgba(0,0,0,0.4)",
         position: "absolute",
@@ -38,6 +39,17 @@ class AudioSyncHeader extends HTMLElement {
         right: 0,
         "pointer-events": "none",
         "z-index": 1
+      },
+      '@media screen and (min-width: 1200px)': {
+        'header': {
+          left: "300px"
+        },
+        ".header-content": {
+          "justify-content": "right"
+        },
+        ".header-shadow": {
+          left: '300px'
+        }
       }
     };
 

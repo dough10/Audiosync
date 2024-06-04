@@ -35,10 +35,10 @@ class AudioPlayer extends HTMLElement {
         'flex-direction': 'row',
         'justify-content': 'center',
         'align-items': "center",
-        bottom: 0,
+        bottom: '72px',
         left: 0,
         right: 0,
-        top: 0,
+        top: 'var(--header-height)',
         transform: 'translateY(100%)',
         'background-color': 'rgba(var(--main-rgb),0.9)',
         color: 'var(--text-color)'
@@ -184,7 +184,7 @@ class AudioPlayer extends HTMLElement {
       },
       '#favorite': {
         position:'fixed',
-        top: '90px',
+        top: '20px',
         right: '20px',
         transition: 'color 500ms ease'
       },
@@ -775,8 +775,8 @@ class AudioPlayer extends HTMLElement {
       this.palette = {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
-        top: `rgba(${rgbstring},0.97)`, // player art gradient top color
-        bottom: `rgba(${c[bottomNdx][0]},${c[bottomNdx][1]},${c[bottomNdx][2]},0.97)`, // player bg gradient bottom color
+        top: `rgb(${rgbstring})`, // player art gradient top color
+        bottom: `rgb(${c[bottomNdx][0]},${c[bottomNdx][1]},${c[bottomNdx][2]})`, // player bg gradient bottom color
         contrast: getContrastColor(hex) // contrasting color to color used to top of gradient
       };
 
