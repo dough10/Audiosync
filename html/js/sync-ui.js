@@ -23,8 +23,9 @@ class SyncUI extends HTMLElement {
       ".summary": {
         "margin-top": "16px",
         "margin-bottom": "24px",
-        height: "50px",
-        "font-size": "16px"
+        height: "75px",
+        "font-size": "16px",
+        'max-width': '457px'
       },
       svg: {
         height: "24px",

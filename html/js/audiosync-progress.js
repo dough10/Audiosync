@@ -17,18 +17,15 @@ class AudioSyncProgress extends HTMLElement {
         display: "flex",
         "justify-content": "space-between",
         "align-items": "center",
-        "max-width": "600px"
+        padding: '4px'
       },
       ".wrapper": {
         position: "relative",
         height: "12px",
-        width: "100%",
         "background-color": "var(--background-color)",
-        "margin-top": "4px",
         "margin-bottom": "4px",
         border: "1px solid rgb(51 51 51 / 10%)",
-        overflow: "hidden",
-        "max-width": "600px"
+        overflow: "hidden"
       },
       ".bar": {
         position: "absolute",
