@@ -436,7 +436,7 @@ function animateHeight(el, height, time) {
 }
 
 /**
- * returns the height of the heml element
+ * returns the height of the html element
  * 
  * @param {Element} el - html 
  * 
@@ -447,6 +447,20 @@ function elementHeight(el) {
   elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-top'));
   elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-bottom'));
   return elHeight;
+}
+
+/**
+ * returns the width of the html element
+ * 
+ * @param {Element} el - html 
+ * 
+ * @returns {Number} width of the given element
+ */
+function elementWidth(el) {
+  let elWidth = el.offsetWidth;
+  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-left'));
+  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-right'));
+  return elWidth;
 }
 
 /**
@@ -721,23 +735,23 @@ function parseKeyframes(keyframesString) {
   
   // Iterate over each line
   for (const line of lines) {
-      // Check if the line contains a keyframe name
-      if (line.includes('{')) {
-          // Extract the keyframe name
-          const keyframeName = line.trim().replace('{', '').trim();
-          // Initialize an object for this keyframe
-          keyframes[keyframeName] = {};
-          // Set currentKeyframe for the following properties
-          currentKeyframe = keyframeName;
-      } else if (line.includes('}')) {
-          // If line contains '}', reset currentKeyframe to null
-          currentKeyframe = null;
-      } else {
-          // Split the property by ':'
-          const [key, value] = line.split(':').map(str => str.trim());
-          // Add the property to the appropriate keyframe object
-          keyframes[currentKeyframe][key] = value.replace(';','');
-      }
+    // Check if the line contains a keyframe name
+    if (line.includes('{')) {
+      // Extract the keyframe name
+      const keyframeName = line.trim().replace('{', '').trim();
+      // Initialize an object for this keyframe
+      keyframes[keyframeName] = {};
+      // Set currentKeyframe for the following properties
+      currentKeyframe = keyframeName;
+    } else if (line.includes('}')) {
+      // If line contains '}', reset currentKeyframe to null
+      currentKeyframe = null;
+    } else {
+      // Split the property by ':'
+      const [key, value] = line.split(':').map(str => str.trim());
+      // Add the property to the appropriate keyframe object
+      keyframes[currentKeyframe][key] = value.replace(';','');
+    }
   }
   
   return keyframes;
@@ -769,7 +783,7 @@ function parseCSS(cssString) {
     } else if (char === '}') {
       braceCount--;
       if (braceCount === 0) {
-        if (currentSelector.startsWith('@keyframes')) {
+        if (currentSelector.startsWith('@keyframes') || currentSelector.startsWith('@media')) {
           cssObject[currentSelector] = parseKeyframes(buffer);
         } else {
           cssObject[currentSelector] = parseProperties(buffer);
@@ -816,7 +830,7 @@ function objectToCSS(cssObject) {
 
   for (const selector in cssObject) {
     if (cssObject.hasOwnProperty(selector)) {
-      if (selector.startsWith('@keyframes')) {
+      if (selector.startsWith('@keyframes') || selector.startsWith('@media')) {
         cssString += `${selector} {\n`;
         const keyframes = cssObject[selector];
 
@@ -949,6 +963,7 @@ export {
   Timer,
   Toast,
   elementHeight,
+  elementWidth,
   animateElement,
   animateHeight,
   fadeIn,
