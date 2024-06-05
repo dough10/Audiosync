@@ -1,4 +1,4 @@
-import {qs, ce, sleep, fadeIn, fadeOut, elementHeight, animateHeight} from './helpers.js';
+import {qs, ce, sleep, fadeIn, fadeOut, getCSSVariableValue, elementHeight, animateHeight} from './helpers.js';
 
 /**
  * pages
@@ -30,7 +30,7 @@ class AudioSyncPages extends HTMLElement {
    */
   async attributeChangedCallback(name, oldVal, newVal) {
     const sleepTime = 20;
-
+    
     // when run without lib_data.json one if not both values will be null
     // this gives music-library proirity 
     if (oldVal === null) {
@@ -39,6 +39,8 @@ class AudioSyncPages extends HTMLElement {
       await sleep(sleepTime);
     }
     
+    if (qs('scroll-element')) qs('scroll-element').top();
+
     // elements in the customelement "slot"
     const assignedElements = qs('slot', this.shadowRoot).assignedElements({flatten: true}).filter(node => node.nodeType === Node.ELEMENT_NODE);
     if (assignedElements[newVal] && assignedElements[oldVal]) {
@@ -60,8 +62,11 @@ class AudioSyncPages extends HTMLElement {
       const fromHeight = elementHeight(from);
       const toHeight = elementHeight(to);
 
+      const headerHeight = Number(getCSSVariableValue('--header-height').replace('px',''));
+      const windowHeight = window.innerHeight - headerHeight;
+
       // animate height if the content is small enough to see the bottom of the card
-      if (toHeight < 700 || fromHeight < 700) {
+      if (toHeight < windowHeight || fromHeight < windowHeight) {
 
         // set height of new content before hiding old content
         to.style.height = `${fromHeight}px`;
