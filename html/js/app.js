@@ -66,6 +66,8 @@ import {
      */
 
     qs('#music').onClick(async _ => {
+      await sleep(20);
+      await qs('audiosync-menu').close();
       if (player.hasAttribute('fullscreen')) {
         await player.minimize();
       }
@@ -74,6 +76,8 @@ import {
     });
 
     qs('#casts').onClick(async _ => {
+      await sleep(20);
+      await qs('audiosync-menu').close();
       if (player.hasAttribute('fullscreen')) {
         await player.minimize();
       }
