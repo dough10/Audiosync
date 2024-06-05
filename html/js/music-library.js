@@ -42,6 +42,15 @@ class MusicLibrary extends HTMLElement {
           opacity: 0
         }
       },
+      '.content': {
+        padding: '8px'
+      },
+      '.head': {
+        display:'flex',
+        'flex-direction': 'row',
+        'justify-content':'space-between',
+        'align-items': 'center'
+      },
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
@@ -193,6 +202,8 @@ class MusicLibrary extends HTMLElement {
     style.textContent = objectToCSS(cssObj);
 
     this.content = ce('div');
+    this.content.classList.add('content');
+
     [
       style, 
       this.content
@@ -208,6 +219,7 @@ class MusicLibrary extends HTMLElement {
     ];
     await fadeOut(this.content);
     this.content.innerHTML = '';
+    this._header();
     const library = await pywebview.api.lib_data();
     this.libSize = library.lib_size || '0 b';
     delete library.lib_size;
@@ -315,6 +327,119 @@ class MusicLibrary extends HTMLElement {
       });
       qs('.a-z', this.shadowRoot).style.removeProperty('display');
     }
+  }
+
+  /**
+   * favorites an album with the given artist and album name
+   * 
+   * @param {String} artist 
+   * @param {String} album 
+   */
+  favoriteAlbum(artist, album) {
+    
+    // the album to be favorited
+    const albumContainer = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+    
+    // toggle the favorite attribute
+    albumContainer.toggleAttribute('favorite');
+    
+    // get all album elements with the favirote attribute
+    const favs = this._getFavorites();
+    
+    // save to  file
+    pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
+    
+    // favorited artist element
+    const artistContainer = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
+    if (albumContainer.hasAttribute('favorite') && !artistContainer.hasAttribute('favorite')) {
+      artistContainer.toggleAttribute('favorite');
+    } else if (!albumContainer.hasAttribute('favorite')) {
+      artistContainer.removeAttribute('favorite');
+    }
+
+
+    // cleanup when unfavoriting an ablum while displaying favorites
+    if (this.hasAttribute('favorites')) {
+
+      // list all albums
+      const albums = qsa('.album', this.shadowRoot);
+
+      // hide all elements that are not favirotes
+      albums.forEach(async el => {
+        if (!el.hasAttribute('favorite')) {
+          await fadeOut(el);
+          el.style.display = 'none';
+        } else {
+          el.style.removeProperty('display');
+          fadeIn(el);
+        }
+      });
+    }
+  }
+
+  /**
+   * update library scan progress bar
+   * 
+   * @param {Number} ndx - current position
+   * @param {Number} length - total 
+   */
+  async updateBar(ndx, length) {
+    const percent = ((ndx + 1) / length) * 100;
+    if (this.bar) this.bar.setAttribute('percent', percent);
+    if (this.percent) this.percent.textContent = `${percent.toFixed(1)}%`;
+
+    // emit event to update the button with progress
+    const ev = new CustomEvent('library-scan', {
+      detail:{percent: percent}
+    });
+    this.dispatchEvent(ev);
+
+    await sleep(1000);
+
+    if (percent === 100) {
+      await fadeOut(this.bar);
+      await sleep(100);
+      await this.go();
+    }
+  }
+
+
+  /**
+   * player playlist cleared and we need to clean up inlist attributes
+   */
+  playlistCleared() {
+    const albums = qsa('.album', this.shadowRoot);
+    albums.forEach(albumElement => {
+      albumElement.removeAttribute('inlist');
+    });
+  }
+
+  /**
+   * creates a header element with buttons and callbacks
+   */
+  async _header() {
+
+    const scan = ce('audiosync-small-button');
+    scan.id = 'scan';
+    scan.title = 'Scan Library';
+    scan.appendChild(await svgIcon('scan'));
+    scan.onClick(_ => {
+      scan.toggleAttribute('disabled');
+      pywebview.api.create_json();
+      new Toast('Library scan started');
+    });
+
+    const fav = ce('audiosync-small-button');
+    fav.title = 'Favorites';
+    fav.appendChild(await svgIcon('favorite'));
+    fav.onClick(_ => this.favorites());
+
+    const bar = ce('div');
+    bar.classList.add('head');
+    [
+      scan,fav
+    ].forEach(el => bar.appendChild(el));
+    this.content.appendChild(bar);
   }
 
   /**
@@ -470,32 +595,6 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
-   * update library scan progress bar
-   * 
-   * @param {Number} ndx - current position
-   * @param {Number} length - total 
-   */
-  async updateBar(ndx, length) {
-    const percent = ((ndx + 1) / length) * 100;
-    if (this.bar) this.bar.setAttribute('percent', percent);
-    if (this.percent) this.percent.textContent = `${percent.toFixed(1)}%`;
-
-    // emit event to update the button with progress
-    const ev = new CustomEvent('library-scan', {
-      detail:{percent: percent}
-    });
-    this.dispatchEvent(ev);
-
-    await sleep(1000);
-
-    if (percent === 100) {
-      await fadeOut(this.bar);
-      await sleep(100);
-      await this.go();
-    }
-  }
-
-  /**
    * gets favorites from ui and returns as an JSON object
    * 
    * @returns {Object}
@@ -544,54 +643,6 @@ class MusicLibrary extends HTMLElement {
       array[i].art = `music${path}/cover.jpg`;
       array[i].path = `music${path}/${array[i].file}`;
       delete array[i].file;
-    }
-  }
-
-  /**
-   * favorites an album with the given artist and album name
-   * 
-   * @param {String} artist 
-   * @param {String} album 
-   */
-  favoriteAlbum(artist, album) {
-    
-    // the album to be favorited
-    const albumContainer = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
-    
-    // toggle the favorite attribute
-    albumContainer.toggleAttribute('favorite');
-    
-    // get all album elements with the favirote attribute
-    const favs = this._getFavorites();
-    
-    // save to  file
-    pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
-    
-    // favorited artist element
-    const artistContainer = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
-    if (albumContainer.hasAttribute('favorite') && !artistContainer.hasAttribute('favorite')) {
-      artistContainer.toggleAttribute('favorite');
-    } else if (!albumContainer.hasAttribute('favorite')) {
-      artistContainer.removeAttribute('favorite');
-    }
-
-
-    // cleanup when unfavoriting an ablum while displaying favorites
-    if (this.hasAttribute('favorites')) {
-
-      // list all albums
-      const albums = qsa('.album', this.shadowRoot);
-
-      // hide all elements that are not favirotes
-      albums.forEach(async el => {
-        if (!el.hasAttribute('favorite')) {
-          await fadeOut(el);
-          el.style.display = 'none';
-        } else {
-          el.style.removeProperty('display');
-          fadeIn(el);
-        }
-      });
     }
   }
 
@@ -696,16 +747,6 @@ class MusicLibrary extends HTMLElement {
     this.shadowRoot.appendChild(wrapper);
     await sleep(20);
     requestAnimationFrame(_ => wrapper.style.transform = 'scale3d(1,1,1)');
-  }
-
-  /**
-   * player playlist cleared and we need to clean up inlist attributes
-   */
-  playlistCleared() {
-    const albums = qsa('.album', this.shadowRoot);
-    albums.forEach(albumElement => {
-      albumElement.removeAttribute('inlist');
-    });
   }
 
   /**
