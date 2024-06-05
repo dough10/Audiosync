@@ -232,7 +232,6 @@ class SyncUI extends HTMLElement {
       qs(id, this.shadowRoot).setAttribute('percent', 0);
       qs(`${id}-text`, this.shadowRoot).textContent = '0%';
     });
-    qs('#scan').removeAttribute('disabled');
   }
 }
 customElements.define('sync-ui', SyncUI);
