@@ -40,29 +40,6 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
       directory = html_path
     return os.path.join(directory, path.lstrip('/'))
 
-  def send_head(self):
-    path = self.translate_path(self.path)
-    if os.path.isdir(path):
-      return self.list_directory(path)
-    else:
-      f = None
-      try:
-        f = open(path, 'rb')
-      except IOError:
-        self.send_error(404, "File not found")
-        return None
-      
-      fs = os.fstat(f.fileno())
-      content_length = fs[6]
-      self.send_response(200)
-      self.send_header('Accepted-Ranges', 'bytes')
-      self.send_header("Content-Type", self.guess_type(path))
-      self.send_header("Content-Length", str(content_length))
-      self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
-      self.send_header("Content-Range", f"bytes 0-{str(content_length)}/{str(content_length)}")
-      self.end_headers()
-      return f
-
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
     self.send_header('Access-Control-Allow-Methods', 'GET')
