@@ -40,10 +40,34 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
       directory = html_path
     return os.path.join(directory, path.lstrip('/'))
 
+  def send_head(self):
+    path = self.translate_path(self.path)
+    if os.path.isdir(path):
+      return self.list_directory(path)
+    else:
+      f = None
+      try:
+        f = open(path, 'rb')
+      except IOError:
+        self.send_error(404, "File not found")
+        return None
+      
+      fs = os.fstat(f.fileno())
+      content_length = fs[6]
+      self.send_response(200)
+      self.send_header('Accepted-Ranges', 'bytes')
+      self.send_header("Content-Type", self.guess_type(path))
+      self.send_header("Content-Length", str(content_length))
+      self.send_header("Last-Modified", self.date_time_string(fs.st_mtime))
+      self.send_header("Content-Range", f"bytes 0-{str(content_length)}/{str(content_length)}")
+      self.end_headers()
+      return f
+
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
     self.send_header('Access-Control-Allow-Methods', 'GET')
     self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+    self.send_header('Access-Control-Allow-Headers', 'Content-Length')
     return super().end_headers()
 
 def run_combined_server():
@@ -171,5 +195,5 @@ if __name__ == '__main__':
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=False, height=800, width=550, background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 700), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
