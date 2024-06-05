@@ -252,6 +252,205 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * callback for <music-library> favorite added event
+   * 
+   * @param {Object} data 
+   * @returns {void}
+   */
+  favorite(data) {
+    // if favorited album is the currently playing ablum
+    if (this.artist === data.artist && this.albumTitle === data.title) {
+      // toggle state
+      this.isFavorite = data.favorite;
+
+      // update UI
+      const favButton = qs('#favorite', this.shadowRoot);
+      if (!favButton) return;
+      if (this.isFavorite) {
+        favButton.title = 'Unfavorite';
+        favButton.style.opacity = 1;
+      } else {  
+        favButton.title = 'Favorite';
+        favButton.style.opacity = 0.2;
+      }
+    }
+  }
+
+  /**
+   * animate action button visable on screen
+   */
+  onScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.style.transform = 'translateY(0)');
+    });
+  }
+  
+  /**
+   * animate action button off screen
+   */
+  offScreen() {
+    return new Promise(resolve => {
+      const tend = _ => {
+        this.fab.removeEventListener('transitionend', tend);
+        resolve();
+      }
+      this.fab.addEventListener('transitionend', tend);
+      requestAnimationFrame(_ => this.fab.style.removeProperty('transform'));
+    });
+  }
+
+  /**
+   * minimize the album art overlay
+   * 
+   * @returns {void}
+   */
+  async minimize() {
+    const bg = qs('#fbg', this.shadowRoot);
+    if (!bg) return;
+    const popup = qs('.popup', this.shadowRoot);
+    if (popup) {
+      qs('img', this.shadowRoot).style.removeProperty('filter');
+      await animateElement(popup, 'scale3d(0,0,0)', 100);
+      popup.remove();
+    }
+    await this.offScreen();
+    animateElement(qs('#expand', this.shadowRoot), 'rotate(0deg)', 300);
+    await animateElement(bg, 'translateY(100%)', 300);
+    await sleep(100);
+    bg.remove();
+    this.removeAttribute('fullscreen');
+  }
+
+  /**
+   * opens the album art overlay
+   * 
+   * @returns {void}
+   */
+  async fullScreen() {
+    if (qs('#fbg', this.shadowRoot)) return;
+
+    qs('scroll-element').offScreen();
+
+    animateElement(qs('#expand', this.shadowRoot), 'rotate(180deg)', 300);
+
+    // art
+    const img = ce('img');
+    img.id = 'fsart';
+    img.src = this.art;
+
+    const imgwrapper = ce('div');
+    imgwrapper.classList.add('img-wrapper');
+    imgwrapper.appendChild(img);
+    
+    // background 
+    const bg = ce('div');
+    bg.id = 'fbg';
+    bg.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
+
+    // playlist fab
+    const listButton = ce('audiosync-fab');
+    listButton.id = 'playlist';
+    listButton.appendChild(await svgIcon('list'));
+    listButton.onClick(ev => this._playlistPopup(ev));
+    listButton.setAttribute('color', this.palette.fab);
+    listButton.title = 'Playlist';
+    this.fab = listButton;  
+
+
+    const favButton = ce('audiosync-small-button');
+    favButton.setButtonOpacity = _ => {
+      if (this.isFavorite) {
+        favButton.title = 'Unfavorite';
+        favButton.style.opacity = 1;
+      } else {  
+        favButton.title = 'Favorite';
+        favButton.style.opacity = 0.2;
+      }
+    };
+    favButton.id = 'favorite';
+    favButton.setButtonOpacity()
+    favButton.appendChild(await svgIcon('favorite'));
+    favButton.setAttribute('color', this.palette.contrast);
+    favButton.onClick(_ => {
+      this.isFavorite = !this.isFavorite;
+      favButton.setButtonOpacity();
+      // pass favorite to library
+      this.library.favoriteAlbum(this.artist, this.albumTitle);
+    });
+    
+    // push to dom
+    [
+      imgwrapper,
+      listButton,
+      favButton
+    ].forEach(el => bg.appendChild(el));
+    this.shadowRoot.appendChild(bg);
+    
+    await sleep(100);
+
+    const postionFab = _ => {
+      const offset = 190;
+      const centerX = elementWidth(bg) / 2;
+      const centerY = elementHeight(bg) / 2;
+      const newPositionX = centerX + offset;
+      const newPositionY = centerY + offset;
+  
+      listButton.style.left = newPositionX + 'px';
+      listButton.style.top = newPositionY + 'px';
+    };
+
+    postionFab();
+    window.addEventListener('resize', _ => postionFab());
+
+    // animate onscreen
+    await animateElement(bg, 'translateY(0%)', 300);
+    this.toggleAttribute('fullscreen');
+    this.onScreen();
+  }
+
+  /**
+   * play a specific playlist index number
+   * 
+   * @param {Number} ndx 
+   */
+  playNdx(ndx) {
+    this.playing = ndx;
+    this._changeSrc();
+  }
+
+  /**
+   * add an albums tracks to playlist and play it from beginning
+   * 
+   * @param {Object} albumInfo 
+   * @param {Number} ndx *optional*
+   */
+  playAlbum(albumInfo, ndx) {
+    // reset / set index
+    this.playing = ndx || 0;
+    if (!ndx) this.library.playlistCleared();
+    // set playlist * clone array to prevent album info issue on <music-library>
+    this.playlist = albumInfo.tracks.slice();
+    if (!this.playlist.length) return;
+    this._changeSrc();
+  }
+
+  /**
+   * add an albums tracks to the playlist
+   * 
+   * @param {Object} albumInfo 
+   */
+  addToPlaylist(albumInfo) {
+    // clone array to prevent album info issue on <music-library>
+    const addedTracks = albumInfo.tracks.slice();
+    addedTracks.forEach(track => this.playlist.push(track));
+  }
+
+  /**
    * move buffered progress car
    * 
    * @returns {void}
@@ -328,11 +527,9 @@ class AudioPlayer extends HTMLElement {
     fsButton.onClick(_ => {
       if (this.hasAttribute('fullscreen')) {
         this.minimize();
-        animateElement(fsButton, 'rotate(0deg)', 300);
         return;
       }
       this.fullScreen();
-      animateElement(fsButton, 'rotate(180deg)', 300);
     });
 
     // previous track button 
@@ -404,16 +601,6 @@ class AudioPlayer extends HTMLElement {
       next
     ].forEach(el => bg.appendChild(el));
     return bg;
-  }
-
-  /**
-   * play a specific playlist index number
-   * 
-   * @param {Number} ndx 
-   */
-  playNdx(ndx) {
-    this.playing = ndx;
-    this._changeSrc();
   }
 
   /**
@@ -510,193 +697,6 @@ class AudioPlayer extends HTMLElement {
     // ensure currently playing is in view
     const playing = qs('div[playing]', popup);
     playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  /**
-   * opens the album art overlay
-   * 
-   * @returns {void}
-   */
-  async fullScreen() {
-    if (qs('#fbg', this.shadowRoot)) return;
-
-    qs('scroll-element').offScreen();
-
-    // art
-    const img = ce('img');
-    img.id = 'fsart';
-    img.src = this.art;
-
-    const imgwrapper = ce('div');
-    imgwrapper.classList.add('img-wrapper');
-    imgwrapper.appendChild(img);
-    
-    // background 
-    const bg = ce('div');
-    bg.id = 'fbg';
-    bg.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
-
-    // playlist fab
-    const listButton = ce('audiosync-fab');
-    listButton.id = 'playlist';
-    listButton.appendChild(await svgIcon('list'));
-    listButton.onClick(ev => this._playlistPopup(ev));
-    listButton.setAttribute('color', this.palette.fab);
-    listButton.title = 'Playlist';
-    this.fab = listButton;  
-
-
-    const favButton = ce('audiosync-small-button');
-    favButton.setButtonOpacity = _ => {
-      if (this.isFavorite) {
-        favButton.title = 'Unfavorite';
-        favButton.style.opacity = 1;
-      } else {  
-        favButton.title = 'Favorite';
-        favButton.style.opacity = 0.2;
-      }
-    };
-    favButton.id = 'favorite';
-    favButton.setButtonOpacity()
-    favButton.appendChild(await svgIcon('favorite'));
-    favButton.setAttribute('color', this.palette.contrast);
-    favButton.onClick(_ => {
-      this.isFavorite = !this.isFavorite;
-      favButton.setButtonOpacity();
-      // pass favorite to library
-      this.library.favoriteAlbum(this.artist, this.albumTitle);
-    });
-    
-    // push to dom
-    [
-      imgwrapper,
-      listButton,
-      favButton
-    ].forEach(el => bg.appendChild(el));
-    this.shadowRoot.appendChild(bg);
-    
-    await sleep(100);
-
-    const postionFab = _ => {
-      const offset = 190;
-      const centerX = elementWidth(bg) / 2;
-      const centerY = elementHeight(bg) / 2;
-      const newPositionX = centerX + offset;
-      const newPositionY = centerY + offset;
-  
-      listButton.style.left = newPositionX + 'px';
-      listButton.style.top = newPositionY + 'px';
-    };
-
-    postionFab();
-    window.addEventListener('resize', _ => postionFab());
-
-    // animate onscreen
-    await animateElement(bg, 'translateY(0%)', 300);
-    this.toggleAttribute('fullscreen');
-    this.onScreen();
-  }
-
-  /**
-   * animate action button visable on screen
-   */
-  onScreen() {
-    return new Promise(resolve => {
-      const tend = _ => {
-        this.fab.removeEventListener('transitionend', tend);
-        resolve();
-      }
-      this.fab.addEventListener('transitionend', tend);
-      requestAnimationFrame(_ => this.fab.style.transform = 'translateY(0)');
-      console.log(this.fab);
-    });
-  }
-  
-  /**
-   * animate action button off screen
-   */
-  offScreen() {
-    return new Promise(resolve => {
-      const tend = _ => {
-        this.fab.removeEventListener('transitionend', tend);
-        resolve();
-      }
-      this.fab.addEventListener('transitionend', tend);
-      requestAnimationFrame(_ => this.fab.style.removeProperty('transform'));
-    });
-  }
-
-  /**
-   * callback for <music-library> favorite added event
-   * 
-   * @param {Object} data 
-   * @returns {void}
-   */
-  favorite(data) {
-    // if favorited album is the currently playing ablum
-    if (this.artist === data.artist && this.albumTitle === data.title) {
-      // toggle state
-      this.isFavorite = data.favorite;
-
-      // update UI
-      const favButton = qs('#favorite', this.shadowRoot);
-      if (!favButton) return;
-      if (this.isFavorite) {
-        favButton.title = 'Unfavorite';
-        favButton.style.opacity = 1;
-      } else {  
-        favButton.title = 'Favorite';
-        favButton.style.opacity = 0.2;
-      }
-    }
-  }
-
-  /**
-   * minimize the album art overlay
-   * 
-   * @returns {void}
-   */
-  async minimize() {
-    const bg = qs('#fbg', this.shadowRoot);
-    if (!bg) return;
-    const popup = qs('.popup', this.shadowRoot);
-    if (popup) {
-      qs('img', this.shadowRoot).style.removeProperty('filter');
-      await animateElement(popup, 'scale3d(0,0,0)', 100);
-      popup.remove();
-    }
-    await this.offScreen();
-    await animateElement(bg, 'translateY(100%)', 300);
-    await sleep(100);
-    bg.remove();
-    this.removeAttribute('fullscreen');
-  }
-
-  /**
-   * add an albums tracks to playlist and play it from beginning
-   * 
-   * @param {Object} albumInfo 
-   * @param {Number} ndx *optional*
-   */
-  playAlbum(albumInfo, ndx) {
-    // reset / set index
-    this.playing = ndx || 0;
-    if (!ndx) this.library.playlistCleared();
-    // set playlist * clone array to prevent album info issue on <music-library>
-    this.playlist = albumInfo.tracks.slice();
-    if (!this.playlist.length) return;
-    this._changeSrc();
-  }
-
-  /**
-   * add an albums tracks to the playlist
-   * 
-   * @param {Object} albumInfo 
-   */
-  addToPlaylist(albumInfo) {
-    // clone array to prevent album info issue on <music-library>
-    const addedTracks = albumInfo.tracks.slice();
-    addedTracks.forEach(track => this.playlist.push(track));
   }
 
   /**
