@@ -212,12 +212,12 @@ class Playlist_manager:
     playlist_path = os.path.join(playlist_folder, 'new_files.m3u8')
     
     # generate list of files "modified" over the last month
-    new_files = list_of_new_files(dir)
+    new_files = sorted(list_of_new_files(dir))
     
     # early return if no files in list
     if len(new_files) == 0:
       return
-    
+
     # save new files playlist for playlist_path
     with open(playlist_path, 'w') as playlist:
       for file in tqdm(new_files, desc='Creating new files playlist', unit='file'):
