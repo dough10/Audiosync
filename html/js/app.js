@@ -28,13 +28,13 @@ import {
 
     const debouneTime = 100;
     let last = 0;
-    /**
-     * data change in an element
-     */
 
     const player = qs('audiosync-player');
     const musicLib = qs('music-library');
-    
+    const pages = qs('audiosync-pages');
+    const updateButton = qs('#update');
+    const scrollElement = qs('scroll-element');
+
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
@@ -45,29 +45,19 @@ import {
       ].forEach(el => el.setAttribute('color', palette.fab));
     });
     
-    const scanButton = qs('#scan');
     musicLib.addEventListener('library-scan', async e => {
-      if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
-      if (!qs('#update').hasAttribute('disabled')) qs('#update').toggleAttribute('disabled');
-      scanButton.setAttribute('percent', e.detail.percent);
+      if (!updateButton.hasAttribute('disabled')) updateButton.toggleAttribute('disabled');
+      updateButton.setAttribute('percent', e.detail.percent);
       if (e.detail.percent === 100) {
         await sleep(500);
-        scanButton.setAttribute('percent', 0);
-        scanButton.removeAttribute('disabled');
-        qs('#update').removeAttribute('disabled');
+        updateButton.setAttribute('percent', 0);
+        updateButton.removeAttribute('disabled');
         new Toast('Scan complete')
       }
     });
 
-
-    // change page when tab is selected
-    qs('audiosync-tabs').addEventListener('selected-change', e => {
-      const selected = e.detail.selected;
-      qs('audiosync-pages').setAttribute('selected', selected);
-    });
-
     qs('sync-ui').addEventListener('total-progress', e => {
-      qs('#update').setAttribute('percent', e.detail.percent);
+      updateButton.setAttribute('percent', e.detail.percent);
     });
 
 
@@ -75,12 +65,20 @@ import {
      * button / switch interactions
      */
 
-    scanButton.onClick(async _ => {
-      if (qs('sync-ui.scanning')) return;
-      await sleep(20);
-      await qs('audiosync-menu').close();
-      pywebview.api.create_json();
-      new Toast('Library scan started')
+    qs('#music').onClick(async _ => {
+      if (player.hasAttribute('fullscreen')) {
+        await player.minimize();
+      }
+      if (pages.getAttribute('selected') === '0') return;
+      pages.setAttribute('selected', 0);
+    });
+
+    qs('#casts').onClick(async _ => {
+      if (player.hasAttribute('fullscreen')) {
+        await player.minimize();
+      }
+      if (pages.getAttribute('selected') === '1') return;
+      pages.setAttribute('selected', 1);
     });
 
     // header hamburger icon
@@ -91,19 +89,8 @@ import {
     // header gear icon
     qs('#settings').onClick(_ => qs('audiosync-settings').open());
 
-    // toggle filter for music-library by favorites
-    qs("#fav").onClick(async _ => {
-      await sleep(20);
-      await qs('audiosync-menu').close();
-      if (player.hasAttribute('fullscreen')) {
-        await player.minimize();
-      }
-      musicLib.favorites();
-    });
-
     // menu drawer refresh / update icon
-    qs('#update').onClick(async _ => {
-      if (!scanButton.hasAttribute('disabled')) scanButton.toggleAttribute('disabled');
+    updateButton.onClick(async _ => {
       await sleep(20);
       await qs('audiosync-menu').close();
       if (qs('sync-ui').syncing) {
@@ -111,9 +98,13 @@ import {
         qs('sync-ui').open();
         return;
       }
+      const scan = qs('#scan', qs('music-library').shadowRoot);
+      const addButton = qs('#add', qs('audiosync-podcasts').shadowRoot);
+      if (!scan.hasAttribute('disabled')) scan.toggleAttribute('disabled');
+      if (!addButton.hasAttribute('disabled')) addButton.toggleAttribute('disabled');
       qs('sync-ui').startSync();
       await pywebview.api.run_sync();
-      scanButton.removeAttribute('disabled');
+      addButton.removeAttribute('disabled');
     });
 
     // top of screen alert
