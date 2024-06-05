@@ -106,6 +106,13 @@ class ScrollElement extends HTMLElement {
   }
 
   /**
+   * force container to snap to top position
+   */
+  top() {
+    this.container.scrollTop = 0;
+  }
+
+  /**
    * animate action button visable on screen
    */
   onScreen() {
@@ -131,6 +138,17 @@ class ScrollElement extends HTMLElement {
       this.fab.addEventListener('transitionend', tend);
       requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
     });
+  }
+
+  /**
+   * animate scroll to top of the page
+   * moves content down the page and when content reaches what would be the top position the page snaps back into original position
+   * 
+   * @returns {Promise<Void>} Nothing
+   */
+  animateScroll() {
+    const target= qs('#top', this.shadowRoot);
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
@@ -169,17 +187,6 @@ class ScrollElement extends HTMLElement {
    */
   _mapRange(value, low1, high1, low2, high2) {
     return low2 + (high2 - low2) * (value - low1) / (high1 - low1);
-  }
-
-  /**
-   * animate scroll to top of the page
-   * moves content down the page and when content reaches what would be the top position the page snaps back into original position
-   * 
-   * @returns {Promise<Void>} Nothing
-   */
-  animateScroll() {
-    const target= qs('#top', this.shadowRoot);
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 }
 customElements.define('scroll-element', ScrollElement);
