@@ -24,7 +24,6 @@ class AudioSyncPodcasts extends HTMLElement {
         "justify-content": "space-between",
         "align-items": "center",
         "border-top": "var(--seperator-line)",
-        padding: "8px",
         "font-size": "14px",
         "font-weight": "bold",
         "min-height": "44px"
@@ -72,6 +71,7 @@ class AudioSyncPodcasts extends HTMLElement {
   _generateHead() {    
     // wrappper for plus icon
     const addButton = ce('audiosync-small-button');
+    addButton.id = 'add';
     svgIcon('add').then(addIcon => addButton.appendChild(addIcon));
     addButton.onClick(_ => this._openAddPodcastDialog());
 
@@ -79,8 +79,7 @@ class AudioSyncPodcasts extends HTMLElement {
     const refresh = ce('audiosync-small-button');
     svgIcon('refresh').then(svg => refresh.appendChild(svg));
     const buttons = [addButton, refresh];
-    const menuButtons = [qs('#fav'),qs('#update')];
-    qsa('.tab').forEach(el => menuButtons.push(el));
+    const menuButtons = [qs('#update')];
     refresh.id ='refresh';
     refresh.onClick(async e => {
       await sleep(100);
@@ -304,8 +303,7 @@ class AudioSyncPodcasts extends HTMLElement {
     // get title from xml URL
     podcastTitle.textContent = 'Loading'
     pywebview.api.xmlProxy(url).then(async xmlString => {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlString, 'text/xml');
+      this.xmlData = xmlString;
       podcastTitle.textContent = xmlString.rss.channel.title;
     }).catch(error => {
       podcastTitle.textContent = url;
@@ -355,6 +353,7 @@ class AudioSyncPodcasts extends HTMLElement {
         await sleep(200);
         await dialog.close();
         this.listPodcasts();
+        await sleep(350);
         dialog.remove();
       });
 
@@ -367,6 +366,7 @@ class AudioSyncPodcasts extends HTMLElement {
         await sleep(200);
         buttons.forEach(button => button.setAttribute('disabled', 1));
         await dialog.close();
+        await sleep(350);
         dialog.remove();
       });
 
