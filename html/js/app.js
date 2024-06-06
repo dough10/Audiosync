@@ -7,8 +7,7 @@ import {
   createRipple,
   alertUser,
   fadeIn,
-  fadeOut,
-  getCSSVariableValue
+  fadeOut
 } from './helpers.js';
 
 (_ => {
@@ -41,7 +40,7 @@ import {
       document.documentElement.style.setProperty('--switch-rgb', palette.variable);
       [
         qs('audiosync-button', qs('sync-ui').shadowRoot),
-        qs('audiosync-fab', qs('scroll-element').shadowRoot)
+        qs('audiosync-fab', scrollElement.shadowRoot)
       ].forEach(el => el.setAttribute('color', palette.fab));
     });
     
@@ -52,14 +51,13 @@ import {
         await sleep(500);
         updateButton.setAttribute('percent', 0);
         updateButton.removeAttribute('disabled');
-        new Toast('Scan complete')
+        new Toast('Scan complete');
       }
     });
 
     qs('sync-ui').addEventListener('total-progress', e => {
       updateButton.setAttribute('percent', e.detail.percent);
     });
-
 
     /**
      * button / switch interactions
