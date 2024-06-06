@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex} from './helpers.js';
+import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex, parseCSS} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -192,7 +192,27 @@ class AudioPlayer extends HTMLElement {
         transition: 'transform 300ms cubic-bezier(.33,.17,.85,1.1)',
         position: 'absolute',
         'z-index': 1,
-        transform: 'translateY(250px)'
+        transform: `translateY(${(window.innerHeight / 2) - 190}px)`
+      },
+      '@media screen and (min-height: 750px) and (min-width: 620px)': {
+        '#fbg > .img-wrapper': {
+          height: '550px',
+          width: '550px'
+        },
+        '.popup': {
+          height: '550px',
+          width: '550px'
+        }
+      },
+      '@media screen and (min-height: 850px) and (min-width: 720px)': {
+        '#fbg > .img-wrapper': {
+          height: '650px',
+          width: '650px'
+        },
+        '.popup': {
+          height: '650px',
+          width: '650px'
+        }
       },
       '@media screen and (min-width: 1200px)': {
         '.background': {
@@ -243,6 +263,13 @@ class AudioPlayer extends HTMLElement {
 
     // always check buffered ammount
     setInterval(this._checkBuffered, 100);
+
+    // change position of action button when window resized
+    window.addEventListener('resize', _ => {
+      const css = parseCSS(qs('style', this.shadowRoot).textContent);
+      css['#playlist'].transform = `translateY(${(window.innerHeight / 2) - 190}px)`;
+      qs('style', this.shadowRoot).textContent = objectToCSS(css);
+    });
 
     // populate shadow DOM
     [
@@ -361,7 +388,6 @@ class AudioPlayer extends HTMLElement {
     listButton.title = 'Playlist';
     this.fab = listButton;  
 
-
     const favButton = ce('audiosync-small-button');
     favButton.setButtonOpacity = _ => {
       if (this.isFavorite) {
@@ -394,7 +420,12 @@ class AudioPlayer extends HTMLElement {
     await sleep(100);
 
     const postionFab = _ => {
-      const offset = 190;
+      let offset = 190;
+
+      if (window.innerHeight > 750 && window.innerWidth > 620) offset += 50;
+
+      if (window.innerHeight > 850 && window.innerWidth > 720) offset += 50;
+
       const centerX = elementWidth(bg) / 2;
       const centerY = elementHeight(bg) / 2;
       const newPositionX = centerX + offset;
