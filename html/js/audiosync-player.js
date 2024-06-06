@@ -92,7 +92,7 @@ class AudioPlayer extends HTMLElement {
       '.popup': {
         height:`451px`,
         width: `450px`,
-        background: 'rgba(var(--main-rgb),0.4)',
+        background: 'rgba(var(--main-rgb),0.5)',
         color: 'var(--text-color)',
         'transform-origin': 'bottom right',
         transform: 'scale3d(0,0,0)',
@@ -770,7 +770,7 @@ class AudioPlayer extends HTMLElement {
     img.src = url;
     img.onload = _ => {
       const thief = new ColorThief();
-      const c = thief.getPalette(img);
+      const c = thief.getPalette(img, 20);
 
       // default to the first color in returned palette
       let r = c[0][0];
@@ -787,7 +787,7 @@ class AudioPlayer extends HTMLElement {
       for (let i = 0; i < c.length; i++) {
         if (i !== topNdx || i !== bottomNdx) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
-          if (luminence < 0.75 && luminence > 0.2) {
+          if (luminence < 0.65 && luminence > 0.5) {
             r = c[i][0];
             g = c[i][1]; 
             b = c[i][2];
