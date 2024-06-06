@@ -1,6 +1,7 @@
 import os
 import json
 import webview
+import glob
 import threading
 import http.server
 import socketserver
@@ -112,6 +113,20 @@ class Api:
   def close(self):
     window.destroy()
 
+  def get_themes(self):
+    themes = []
+    for theme_location in glob.glob(os.path.join(script_folder, 'themes', '*.json')):
+      name = os.path.splitext(os.path.basename(theme_location))[0]
+      themes.append({'name':name,'path':theme_location})
+    return themes
+
+  def load_theme(self, path):
+    try:
+      with open(path, 'r') as j:
+        return json.load(j)
+    except:
+      return {}
+
   def load_favorites(self):
     try:
       with open(os.path.join(script_folder, 'favorites.json'), 'r') as j:
@@ -174,5 +189,5 @@ if __name__ == '__main__':
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 700), background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
