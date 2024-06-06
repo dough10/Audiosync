@@ -16,7 +16,7 @@ class AudioSyncSwitch extends HTMLElement {
         "z-index": 0,
         "position": "relative",
         "display": "inline-block",
-        "color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.87)",
+        "color": "var(--text-color)",
         "font-family": "var(--font-family)",
         "font-size": "16px",
         "line-height": 1.5,
@@ -69,19 +69,19 @@ class AudioSyncSwitch extends HTMLElement {
         "border-radius": "50%",
         "width": "20px",
         "height": "20px",
-        "background-color": "rgb(var(--pure-material-onprimary-rgb, 255, 255, 255))",
+        "background-color": "rgb(var(--pure-material-onprimary-rgb, var(--main-rgb)))",
         "box-shadow": "0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12)",
         "transition": "background-color 0.2s, transform 0.2s"
       },
       ".audiosync-switch > input:checked": {
         "right": "-10px",
-        "background-color": "rgb(var(--switch-rgb, 33, 150, 243))"
+        "background-color": "rgb(var(--pop-rgb, 33, 150, 243))"
       },
       ".audiosync-switch > input:checked + span::before": {
-        "background-color": "rgba(var(--switch-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
       },
       ".audiosync-switch > input:checked + span::after": {
-        "background-color": "rgb(var(--switch-rgb, 33, 150, 243))",
+        "background-color": "rgb(var(--pop-rgb, 33, 150, 243))",
         "transform": "translateX(16px)"
       },
       ".audiosync-switch:hover > input": {
@@ -99,7 +99,7 @@ class AudioSyncSwitch extends HTMLElement {
         "transition": "transform 0s, opacity 0s"
       },
       ".audiosync-switch > input:active + span::before": {
-        "background-color": "rgba(var(--switch-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
       },
       ".audiosync-switch > input:checked:active + span::before": {
         "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)"
@@ -116,7 +116,7 @@ class AudioSyncSwitch extends HTMLElement {
         "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)"
       },
       ".audiosync-switch > input:checked:disabled + span::before": {
-        "background-color": "rgba(var(--switch-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
       }
     };
 
