@@ -376,7 +376,7 @@ class AudioSyncPodcasts extends HTMLElement {
       dialog.open();
     });
     
-    const svg = await svgIcon("check", 'green');
+    const svg = await svgIcon("check");
     svg.style.opacity = 0;
 
     // wrapper for title and checkmark
