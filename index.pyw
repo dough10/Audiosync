@@ -79,6 +79,8 @@ class Api:
       return json.load(file)
     except FileNotFoundError:
       return {}
+    except UnicodeDecodeError:
+      return {}
 
   #  get sync.json data
   def sync_file(self):
