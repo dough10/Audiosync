@@ -165,6 +165,7 @@ class MusicLibrary extends HTMLElement {
         cursor: 'pointer'
       },
       '.popup': {
+        overflow:'hidden',
         background: 'var(--main-color)',
         color: 'var(--text-color)',
         'border-radius': '5px',
@@ -676,12 +677,12 @@ class MusicLibrary extends HTMLElement {
     const y = ev.pageY;
 
     const wrapper = ce('div');
-    if (y > 500) {
+    if (y > (window.innerHeight / 2)) {
       wrapper.style.top = `${y - this.popupHeight}px`;
     } else {
       wrapper.style.top = `${y}px`;
     }
-    if (x > 300) {
+    if (x > (window.innerWidth / 2)) {
       wrapper.style.left = `${x - this.popupWidth}px`;
     } else {
       wrapper.style.left = `${x}px`;
@@ -863,6 +864,18 @@ class MusicLibrary extends HTMLElement {
 
     const tracklist = ce('div');
     tracklist.classList.add('tracklist');
+    const header = ce('div');
+    header.classList.add('album-head')
+    const artistName = ce('div');
+    artistName.textContent = artist;
+    const albumTitle = ce('div');
+    albumTitle.textContent = album.title;
+    [
+      artistName,
+      albumTitle
+    ].forEach(el => header.appendChild(el));
+    tracklist.appendChild(header);
+
     album.tracks.forEach((track, ndx) => {
 
       // shortened path to playing file
