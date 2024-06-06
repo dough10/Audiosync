@@ -18,13 +18,13 @@
         
         --background-color: rgb(229, 229, 229);
         
-        --hover-color: #7994e344;
+        --hover-color: rgba(var(--pop-rgb),0.4);
         
         --text-color: #333333;
         
-        --switch-rgb: 51, 51, 51;
+        --pop-rgb: 51, 51, 51;
         
-        --pop-color: rgb(var(--switch-rgb));
+        --pop-color: rgb(var(--pop-rgb));
 
         --selected-color: rgba(100, 100, 100, 0.582);
 
@@ -121,7 +121,7 @@
       .ripple-effect {
         position: absolute;
         border-radius: 50%;
-        background: rgba(51, 51, 51, 0.4);
+        background: var(--text-color);
         animation: ripple-animation 0.7s linear;
       }
       .tab {
@@ -268,9 +268,14 @@
         margin-top: 24px;
         margin-bottom: 24px;
       }
+      audiosync-dialog {
+        margin: auto 16px;
+      }
       audiosync-dialog > .img-wrapper {
+        overflow: hidden;
         height: 450px;
         width: 450px;
+        border-radius: 10px;
         box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
       }
       audiosync-dialog > .img-wrapper > img {
@@ -280,19 +285,37 @@
       audiosync-dialog > .img-wrapper > .img-placeholder {
         height: 100%;
         width: 100%;
-        background-color: var(--disabled-color);
+        background-color: var(--main-color);
         display: flex;
         justify-content: center;
         align-items: center;
       }
       audiosync-dialog > .tracklist {
-        max-height: 200px;
+        max-height: 245px;
         display: flex;
         flex-direction: column;
         overflow-y: auto;
       }
-      .tracklist::-webkit-scrollbar {
-        width: 0
+      audiosync-dialog > .tracklist::-webkit-scrollbar {
+        width: 0;
+      }
+      audiosync-dialog > .tracklist > .album-head {
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        border-bottom: var(--seperator-line);
+      }
+      audiosync-dialog > .tracklist > .album-head > div {
+        max-width: 400px;
+        display: flex;
+        align-items: start;
+        margin-left: 7px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+      audiosync-dialog > .tracklist > .album-head > div:first-child {
+        font-size: 24px;
       }
       audiosync-dialog > .tracklist > .track:hover {
         background: var(--hover-color);
@@ -300,7 +323,7 @@
       audiosync-dialog > .tracklist > .track {
         display: flex;
         flex-direction: row;
-        border-bottom: 1px solid #3333333d;
+        border-bottom: var(--seperator-line);
         max-width: 450px;
         transition: var(--button-bg-animation);
         cursor: pointer;
@@ -315,7 +338,8 @@
       }
       audiosync-dialog > .tracklist > .track > div:nth-child(2) {
         padding: 8px;
-        width: 100%;
+        width: 70%;
+        margin: auto;
         overflow: hidden;
         transform: translateX(-15px);
         white-space: nowrap;
@@ -331,6 +355,111 @@
         top:10px;
         left:10px;
       }
+
+      select {
+        color: var(--text-color);
+        background: var(--main-color);
+        padding: 8px;
+      }
+      option {
+        background-color: var(--main-color);
+        color: var(--text-color);
+      }
+
+      .select {
+        font-family: var(--font-family);
+        position: relative;
+        width: 350px;
+        margin: 20px auto;
+      }
+
+      .select-text {
+        position: relative;
+        font-family: inherit;
+        background-color: transparent;
+        width: 350px;
+        padding: 10px 10px 10px 0;
+        font-size: 18px;
+        border-radius: 0;
+        border: none;
+        border-bottom: 1px solid var(--text-color);
+      }
+
+      .select-text:focus {
+        outline: none;
+        border-bottom: 1px solid var(--text-color);
+      }
+
+      .select .select-text {
+        appearance: none;
+        -webkit-appearance:none
+      }
+
+      .select:after {
+        position: absolute;
+        top: 18px;
+        right: 10px;
+        width: 0;
+        height: 0;
+        padding: 0;
+        content: '';
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 6px solid var(--text-color);
+        pointer-events: none;
+      }
+      .select-label {
+        color: var(--text-color);
+        font-size: 18px;
+        font-weight: normal;
+        position: absolute;
+        pointer-events: none;
+        left: 0;
+        top: 10px;
+        transition: 0.2s ease all;
+      }
+      .select-text:focus ~ .select-label, .select-text:valid ~ .select-label {
+        color: var(--text-color);
+        top: -20px;
+        transition: 0.2s ease all;
+        font-size: 14px;
+      }
+      .select-bar {
+        position: relative;
+        display: block;
+        width: 350px;
+      }
+      .select-bar:before, .select-bar:after {
+        content: '';
+        height: 2px;
+        width: 0;
+        bottom: 1px;
+        position: absolute;
+        background: var(--pop-color);
+        transition: 0.2s ease all;
+      }
+
+      .select-bar:before {
+        left: 50%;
+      }
+
+      .select-bar:after {
+        right: 50%;
+      }
+
+      .select-text:focus ~ .select-bar:before, .select-text:focus ~ .select-bar:after {
+        width: 50%;
+      }
+      .select-highlight {
+        position: absolute;
+        height: 60%;
+        width: 100px;
+        top: 25%;
+        left: 0;
+        pointer-events: none;
+        opacity: 0.5;
+      }
+
       @media screen and (min-width: 1200px) {
         #menu-button {
           display: none;
@@ -439,6 +568,12 @@
         <audiosync-switch id="podcast">
           Import podcast
         </audiosync-switch>
+        <div class="select">
+					<select class="select-text" required></select>
+					<span class="select-highlight"></span>
+					<span class="select-bar"></span>
+					<label class="select-label">Theme</label>
+				</div>
       </audiosync-settings>
     </div>
     

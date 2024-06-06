@@ -1,32 +1,57 @@
 import {
   Toast,
   animateElement,
+  ce,
   qs,
   qsa,
   sleep,
   createRipple,
   alertUser,
   fadeIn,
-  fadeOut
+  fadeOut,
+  parseCSS,
+  objectToCSS
 } from './helpers.js';
 
 (_ => {
   
   let _loadTimer = 0
   
+  async function loadTheme(theme) {
+    const body = qs('body');
+    await fadeOut(body);
+    const css = parseCSS(qs('style').textContent);
+    for (const key in theme) {
+      css[':root'][key] = theme[key];
+    }
+    qs('style').textContent = objectToCSS(css);
+    await sleep(200);
+    fadeIn(body, 300);
+  }
   
   /**
    * setup listeners and fetch data
   */
- async function load_app(e) {
+  async function load_app(e) {
 
     if (_loadTimer) {
       clearTimeout(_loadTimer);
       _loadTimer = 0;
     }
 
-    const debouneTime = 100;
-    let last = 0;
+    const dropdown = qs('.select-text');
+    dropdown.addEventListener('change', async e => {
+      const theme = await pywebview.api.load_theme(dropdown.value);
+      loadTheme(theme);
+      pywebview.api.update_config({"theme": dropdown.selectedIndex});
+    });
+    const themes = await pywebview.api.get_themes();
+    themes.forEach(theme => {
+      const option = ce('option');
+      option.value = theme.path;
+      option.textContent = theme.name;
+      dropdown.appendChild(option);
+    });
 
     const player = qs('audiosync-player');
     const musicLib = qs('music-library');
@@ -37,7 +62,7 @@ import {
     // set --pop-color elements the new accent color
     player.addEventListener('image-loaded', e => {
       const palette = e.detail.palette;
-      document.documentElement.style.setProperty('--switch-rgb', palette.variable);
+      document.documentElement.style.setProperty('--pop-rgb', palette.variable);
       [
         qs('audiosync-button', qs('sync-ui').shadowRoot),
         qs('audiosync-fab', scrollElement.shadowRoot)
@@ -163,6 +188,9 @@ import {
 
     // get settings from config.json
     const conf = await pywebview.api.get_config();
+
+    dropdown.selectedIndex = conf.theme;
+    loadTheme(await pywebview.api.load_theme(dropdown.value));
 
     // playlist import ui
     qs('#cues').setState(conf.import_cues);
