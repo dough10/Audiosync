@@ -228,6 +228,10 @@ class MusicLibrary extends HTMLElement {
     this._compareData(syncData);
     const favs = await pywebview.api.load_favorites();
     this._loadFavorites(favs);
+    if (this.hasAttribute('favorites')) {
+      this.toggleAttribute('favorites');
+      this.favorites();
+    }
     fadeIn(this.content);
     const ev = new CustomEvent('lib_size_updated', {
       detail:{lib_size: this.libSize}
@@ -443,23 +447,6 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
-   * toggle favirote state for the elements passed in the passed in object
-   * 
-   * @param {Object} favs 
-   */
-  _loadFavorites(favs) {
-    for (const artist in favs) {
-      const ael = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
-      if (ael) ael.toggleAttribute('favorite');
-      favs[artist].forEach(album => {
-        const el = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
-        if (!el) return;
-        el.toggleAttribute('favorite');
-      });
-    }
-  }
-
-  /**
    * fill in page with data
    * 
    * @param {Object} data artists and albums list from lib_data.json *required*
@@ -620,6 +607,22 @@ class MusicLibrary extends HTMLElement {
     return favList;
   }
 
+  /**
+   * toggle favirote state for the elements passed in the passed in object
+   * 
+   * @param {Object} favs 
+   */
+  _loadFavorites(favs) {
+    for (const artist in favs) {
+      const ael = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
+      if (ael) ael.toggleAttribute('favorite');
+      favs[artist].forEach(album => {
+        const el = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+        if (!el) return;
+        el.toggleAttribute('favorite');
+      });
+    }
+  }
 
   /**
    * replace \\ for / 
@@ -777,7 +780,6 @@ class MusicLibrary extends HTMLElement {
    * 
    */
   async _albumInfoDialog(artist, album, albumContainer) {
-    // console.log(album)
     const dialog = ce('audiosync-dialog');
     dialog.id = 'album-info';
     dialog.toggleAttribute('nopad');
@@ -930,7 +932,7 @@ class MusicLibrary extends HTMLElement {
     this._fixPaths(album.tracks);
     let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
-    albumContainer.dataset.album = album['title'];
+    albumContainer.dataset.album = album.title;
     albumContainer.classList.add('album');
     albumContainer.addEventListener('click', this._makeSelection);
     albumContainer.addEventListener('contextmenu', ev => this._openContexMenu(ev, albumContainer, artist, album));
