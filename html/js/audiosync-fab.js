@@ -12,7 +12,7 @@ class FloatingActionButton extends HTMLElement {
     this.attachShadow({mode: "open"});
     // color higherarchy 
     // color attribute > css '--main-color' variable > white
-    const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--pop-color') || '#ffffff');
+    const color = convertToHex(getCSSVariableValue('--pop-color'));
     
     // contrasting text color 
     const contrast = getContrastColor(color);
@@ -21,7 +21,7 @@ class FloatingActionButton extends HTMLElement {
       ".fab": {
         overflow: "hidden",
         color: contrast,
-        background: color,
+        background: 'var(--pop-color)',
         display: "flex",
         "flex-direction": "column",
         "align-items": "center",
