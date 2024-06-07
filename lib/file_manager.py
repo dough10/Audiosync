@@ -81,7 +81,7 @@ class File_manager:
 
   def rename_images(self, directory_path):
 
-    def rename_image(filename):
+    def process_image(filename):
       # resize
       try:
         img = Image.open(filename)
@@ -109,9 +109,9 @@ class File_manager:
           self.changes["images_renamed"] += 1
 
 
-    with ThreadPoolExecutor(max_workers=5) as executor:  # Adjust max_workers as needed
+    with ThreadPoolExecutor(max_workers=2) as executor:
       for root, dirs, files in os.walk(directory_path):
-        list(executor.map(rename_image, files))
+        list(executor.map(process_image, files))
 
   def save_lrc_file(self, lrc, artist, title):
     """
