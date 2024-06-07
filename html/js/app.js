@@ -18,17 +18,17 @@ import {
   let _loadTimer = 0
   
   async function loadTheme(theme) {
-    const body = qs('body');
-    await fadeOut(body);
     const css = parseCSS(qs('style').textContent);
     for (const key in theme) {
       css[':root'][key] = theme[key];
     }
     qs('style').textContent = objectToCSS(css);
-    await sleep(200);
-    fadeIn(body, 300);
   }
   
+  function isDarkMode() {
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
   /**
    * setup listeners and fetch data
   */
@@ -45,6 +45,7 @@ import {
       loadTheme(theme);
       pywebview.api.update_config({"theme": dropdown.selectedIndex});
     });
+    
     const themes = await pywebview.api.get_themes();
     themes.forEach(theme => {
       const option = ce('option');
@@ -189,7 +190,13 @@ import {
     // get settings from config.json
     const conf = await pywebview.api.get_config();
 
-    dropdown.selectedIndex = conf.theme;
+    let theme = 0;
+
+    if (isDarkMode()) {
+      theme = 1;
+    }
+
+    dropdown.selectedIndex = theme;
     loadTheme(await pywebview.api.load_theme(dropdown.value));
 
     // playlist import ui
