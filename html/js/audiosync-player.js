@@ -220,6 +220,9 @@ class AudioPlayer extends HTMLElement {
         },
         '#fbg': {
           left: "300px"
+        },
+        '#info': {
+          'max-width': '450px'
         }
       }
     };
@@ -787,7 +790,8 @@ class AudioPlayer extends HTMLElement {
       for (let i = 0; i < c.length; i++) {
         if (i !== topNdx || i !== bottomNdx) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
-          if (luminence < 0.65 && luminence > 0.5) {
+          if (luminence < 0.7 && luminence > 0.5) {
+            console.log(luminence)
             r = c[i][0];
             g = c[i][1]; 
             b = c[i][2];
