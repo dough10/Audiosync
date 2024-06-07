@@ -15,7 +15,8 @@ import {
   getColorAtPoint,
   getContrastColor,
   areElementsPresent,
-  indexOfElement
+  indexOfElement,
+  containsNumber
 } from './helpers.js';
 
 /**
@@ -267,22 +268,22 @@ class MusicLibrary extends HTMLElement {
     // find the album that is playing
     const newPlaying = qs(`[data-artist="${details.artist}"][data-album="${details.album}"]`, this.shadowRoot);
     
-    // mark it as playing
+    // mark it
     newPlaying.toggleAttribute('playing');
 
     // unhide the quick link now playing link
     link.style.removeProperty('display');
 
-    // get the album info dialog
+    // check for album info dialog
     const albumDialog = qs('#album-info');
 
     //  return if the dialog isn't present
     if (!albumDialog) return;
 
-    // get all tracks in the open 
+    // get all tracks if open 
     const tracks = qsa('.track', albumDialog);
 
-    // check each track to see if it is playing
+    // check each to see if it is the playing track
     tracks.forEach(track => {
       track.removeAttribute('playing');
       const isPlaying = this._arePathsTheSame(track.dataset.src, details.path);
@@ -987,8 +988,14 @@ class MusicLibrary extends HTMLElement {
 
     // first char isn't included in the list of chars
     if (!this._usedChars.includes(firstChar)) {
-      // ignore all numbers
-      if (Number(firstChar)) return;
+      // add first number encountered to array and drop all others
+      if (Number(firstChar) && !containsNumber(this._usedChars)) {
+        this._usedChars.push(firstChar);
+        artistContainer.id = 'number';
+        return;
+      } else if (Number(firstChar)) {
+        return
+      }
       
       // add the char
       this._usedChars.push(firstChar);

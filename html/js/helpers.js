@@ -959,6 +959,17 @@ function indexOfElement(arr, element) {
   return -1; 
 }
 
+/**
+ * check if any number is in a given array
+ * 
+ * @param {Array} array 
+ * 
+ * @returns {Boolean}
+ */
+function containsNumber(array) {
+  return array.some(value => Number(value));
+}
+
 export {
   Timer,
   Toast,
@@ -988,5 +999,6 @@ export {
   getIcon,
   getColorAtPoint,
   areElementsPresent,
-  indexOfElement
+  indexOfElement,
+  containsNumber
 }
