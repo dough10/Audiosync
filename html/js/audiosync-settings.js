@@ -78,9 +78,6 @@ class AudioSyncSettings extends HTMLElement {
         "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)",
         "text-align": "center",
         overflow: 'hidden'
-      },
-      "audiosync-small-button": {
-        color: "var(--close-red)"
       }
     };
 
@@ -89,6 +86,7 @@ class AudioSyncSettings extends HTMLElement {
 
     const close = ce('audiosync-small-button');
     svgIcon('close').then(svg => close.appendChild(svg));
+    close.setAttribute('color', 'var(--close-red)');
     close.onClick(async _ => {
       await sleep(200);
       this.close();
