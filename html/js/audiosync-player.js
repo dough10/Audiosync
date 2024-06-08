@@ -762,6 +762,12 @@ class AudioPlayer extends HTMLElement {
     divs[this.playing].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  _isGrey(r, g, b) {
+    // Check if RGB values are approximately equal
+    const threshold = 15; // Adjust as needed
+    return Math.abs(r - g) < threshold && Math.abs(r - b) < threshold && Math.abs(g - b) < threshold;
+  }
+
   /**
    * loads an image and gets a palette from the image
    * 
@@ -773,28 +779,25 @@ class AudioPlayer extends HTMLElement {
     img.src = url;
     img.onload = _ => {
       const thief = new ColorThief();
-      const c = thief.getPalette(img, 20);
+      const c = thief.getPalette(img, 15);
 
       // default to the first color in returned palette
       let r = c[0][0];
       let g = c[0][1];
       let b = c[0][2];
 
-      // for selecting top color for cradient
+      // for selecting top color for gradient
       const topNdx = 1;
-
-      // for selecting bottom gradient color
-      const bottomNdx = c.length - 3;
 
       // loop through colors for goldie locks color to use for --pop-color
       for (let i = 0; i < c.length; i++) {
-        if (i !== topNdx || i !== bottomNdx) {
+        if (i !== topNdx) {
           const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
-          if (luminence < 0.7 && luminence > 0.5) {
-            console.log(luminence)
+          if (!this._isGrey(c[i][0], c[i][2], c[i][2]) && luminence < 0.7 && luminence > 0.3) {
             r = c[i][0];
             g = c[i][1]; 
             b = c[i][2];
+            console.log(r,g,b,i);
             break;
           }
         }
@@ -811,8 +814,8 @@ class AudioPlayer extends HTMLElement {
         fab: `rgb(${r},${g},${b})`, // fab / accent color
         variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
         top: `rgb(${rgbstring})`, // player art gradient top color
-        bottom: `rgb(${c[bottomNdx][0]},${c[bottomNdx][1]},${c[bottomNdx][2]})`, // player bg gradient bottom color
-        contrast: getContrastColor(hex) // contrasting color to color used to top of gradient
+        bottom: `var(--background-color)`, // player bg gradient bottom color
+        contrast: getContrastColor(hex) // contrasting color to color used on buttons at top of gradient
       };
 
       // fullscreen player element
