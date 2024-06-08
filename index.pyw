@@ -46,12 +46,14 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
     self.send_header('Access-Control-Allow-Methods', 'GET')
     self.send_header('Access-Control-Allow-Headers', 'Content-Type')
     self.send_header('Access-Control-Allow-Headers', 'Content-Length')
+    self.send_header('Access-Control-Allow-Headers', 'Content-Range')
+    self.send_header("Accept-Ranges", "bytes")
     return super().end_headers()
 
 def run_combined_server():
   handler = CustomRequestHandler
-  httpd = socketserver.TCPServer(("localhost", 8000), handler)
-  httpd.serve_forever()
+  with socketserver.ThreadingTCPServer(("", 8080), handler) as httpd:
+    httpd.serve_forever()
   
 # save config file
 def save_config():
@@ -189,5 +191,5 @@ if __name__ == '__main__':
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8000/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8080/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
