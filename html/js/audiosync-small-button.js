@@ -71,11 +71,13 @@ class SmallButton extends HTMLElement {
     //  capture styles
     const styles = parseCSS(qs('style', this.shadowRoot).textContent);
 
+    const hex = convertToHex(color);
+
     // create / update css styles
     styles['.new-color'] = {
-      'color': convertToHex(color)
+      'color': hex
     };
-    styles['.ripple-effect'].background = hexToRgba(color);
+    styles['.ripple-effect'].background = hexToRgba(hex);
 
     // apply styles
     qs('style', this.shadowRoot).textContent = objectToCSS(styles);
