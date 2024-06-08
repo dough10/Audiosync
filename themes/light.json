@@ -2,7 +2,7 @@
   "--font-family": "'Roboto', 'Noto', sans-serif",
   "--main-rgb": "255,255,255",
   "--disabled-color": "#c1bebe",
-  "--background-color": "rgb(229, 229, 229)",
+  "--background-color": "rgb(213, 213, 213)",
   "--hover-color": "rgba(var(--pop-rgb),0.4)",
   "--text-color": "#333333",
   "--pop-rgb": "166, 136, 250",
