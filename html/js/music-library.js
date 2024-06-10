@@ -23,6 +23,9 @@ import {
  * displays the music library in a selectable form
 */
 class MusicLibrary extends HTMLElement {
+  static get observedAttributes() {
+    return ['view'];
+  }
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -36,7 +39,7 @@ class MusicLibrary extends HTMLElement {
     this._displayArtist = this._displayArtist.bind(this);
     this._openContexMenu = this._openContexMenu.bind(this)
 
-    const cssObj = {
+    const CSS_OBJECT = {
       "@keyframes ripple-animation": {
         to: {
           transform: "scale(2)",
@@ -200,16 +203,28 @@ class MusicLibrary extends HTMLElement {
       }
     };
 
-    const style = ce('style');
-    style.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.content = ce('div');
     this.content.classList.add('content');
 
     [
-      style, 
+      ELEMENT_STYLES, 
       this.content
     ].forEach(el => this.shadowRoot.appendChild(el));
+  }
+
+
+  /**
+   * attribute has changed 
+   * 
+   * @param {String} name
+   * @param {Number} oldVal
+   * @param {Number} newVal
+   */
+  attributeChangedCallback(name, oldVal, newVal) {
+    console.log(newVal);
   }
 
   /**
@@ -221,24 +236,23 @@ class MusicLibrary extends HTMLElement {
     ];
     await fadeOut(this.content);
     this.content.innerHTML = '';
-    this._header();
-    const library = await pywebview.api.lib_data();
-    this.libSize = library.lib_size || '0 b';
-    delete library.lib_size;
-    this._displayData(library);
-    const syncData = await pywebview.api.sync_file();
-    this._compareData(syncData);
-    const favs = await pywebview.api.load_favorites();
-    this._loadFavorites(favs);
+    const MUSIC_LIBRARY_DATA = await pywebview.api.lib_data();
+    this.libSize = MUSIC_LIBRARY_DATA.lib_size || '0 b';
+    delete MUSIC_LIBRARY_DATA.lib_size;
+    this._displayData(MUSIC_LIBRARY_DATA);
+    const SYNC_JSON = await pywebview.api.sync_file();
+    this._compareData(SYNC_JSON);
+    const FAVORITES = await pywebview.api.load_favorites();
+    this._loadFavorites(FAVORITES);
     if (this.hasAttribute('favorites')) {
       this.toggleAttribute('favorites');
       this.favorites();
     }
     fadeIn(this.content);
-    const ev = new CustomEvent('lib_size_updated', {
+    const CUSTOM_EVENT = new CustomEvent('lib_size_updated', {
       detail:{lib_size: this.libSize}
     });
-    this.dispatchEvent(ev);
+    this.dispatchEvent(CUSTOM_EVENT);
   }
 
   /**
@@ -249,10 +263,10 @@ class MusicLibrary extends HTMLElement {
    */
   nowPlaying(details) {
     // selecte now playing link in quick links
-    const link = qs('a[title="Playing"]', this.shadowRoot);
+    const PLAYING_QUICK_LINK = qs('a[title="Playing"]', this.shadowRoot);
 
     // hide the link
-    link.style.display = 'none';
+    PLAYING_QUICK_LINK.style.display = 'none';
 
     // blanket unmark all albums as playing
     qsa('.album', this.shadowRoot).forEach(el => {
@@ -266,28 +280,28 @@ class MusicLibrary extends HTMLElement {
     }
 
     // find the album that is playing
-    const newPlaying = qs(`[data-artist="${details.artist}"][data-album="${details.album}"]`, this.shadowRoot);
+    const ALBUM_PLAYING_NOW = qs(`[data-artist="${details.artist}"][data-album="${details.album}"]`, this.shadowRoot);
     
     // mark it
-    newPlaying.toggleAttribute('playing');
+    ALBUM_PLAYING_NOW.toggleAttribute('playing');
 
     // unhide the quick link now playing link
-    link.style.removeProperty('display');
+    PLAYING_QUICK_LINK.style.removeProperty('display');
 
     // check for album info dialog
-    const albumDialog = qs('#album-info');
+    const OPENED_ALBUM_DIALOG = qs('#album-info');
 
     //  return if the dialog isn't present
-    if (!albumDialog) return;
+    if (!OPENED_ALBUM_DIALOG) return;
 
     // get all tracks if open 
-    const tracks = qsa('.track', albumDialog);
+    const TRACKLIST = qsa('.track', OPENED_ALBUM_DIALOG);
 
     // check each to see if it is the playing track
-    tracks.forEach(track => {
+    TRACKLIST.forEach(track => {
       track.removeAttribute('playing');
-      const isPlaying = this._arePathsTheSame(track.dataset.src, details.path);
-      if (isPlaying) {
+      const IS_PLAYING = this._arePathsTheSame(track.dataset.src, details.path);
+      if (IS_PLAYING) {
         track.toggleAttribute('playing');
         track.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
@@ -303,18 +317,18 @@ class MusicLibrary extends HTMLElement {
     this.toggleAttribute('favorites');
 
     // get all artist & album elements
-    const artists = qsa('.artist', this.shadowRoot);
-    const albums = qsa('.album', this.shadowRoot);
+    const ARTIST_ELEMENTS = qsa('.artist', this.shadowRoot);
+    const ALBUM_ELEMENTS = qsa('.album', this.shadowRoot);
 
     if (this.hasAttribute('favorites')) {
       // hide all non favorited albums
-      artists.forEach(async el => {
+      ARTIST_ELEMENTS.forEach(async el => {
         if (!el.hasAttribute('favorite')) {
           await fadeOut(el);
           el.style.display = 'none'
         }
       });
-      albums.forEach(async el => {
+      ALBUM_ELEMENTS.forEach(async el => {
         if (!el.hasAttribute('favorite')) {
           await fadeOut(el);
           el.style.display = 'none';
@@ -323,11 +337,11 @@ class MusicLibrary extends HTMLElement {
       qs('.a-z', this.shadowRoot).style.display = 'none';
     } else {
       // unhide all elements
-      artists.forEach(el => {
+      ARTIST_ELEMENTS.forEach(el => {
         el.style.removeProperty('display');
         fadeIn(el);
       });
-      albums.forEach(el => {
+      ALBUM_ELEMENTS.forEach(el => {
         el.style.removeProperty('display');
         fadeIn(el);
       });
@@ -344,23 +358,23 @@ class MusicLibrary extends HTMLElement {
   favoriteAlbum(artist, album) {
     
     // the album to be favorited
-    const albumContainer = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+    const ALBUM_ELEMENTS = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
     
     // toggle the favorite attribute
-    albumContainer.toggleAttribute('favorite');
+    ALBUM_ELEMENTS.toggleAttribute('favorite');
     
     // get all album elements with the favirote attribute
-    const favs = this._getFavorites();
+    const FAVORITES = this._getFavorites();
     
     // save to  file
-    pywebview.api.save_favorites(JSON.stringify(favs, null, 2));
+    pywebview.api.save_favorites(JSON.stringify(FAVORITES, null, 2));
     
     // favorited artist element
-    const artistContainer = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
-    if (albumContainer.hasAttribute('favorite') && !artistContainer.hasAttribute('favorite')) {
-      artistContainer.toggleAttribute('favorite');
-    } else if (!albumContainer.hasAttribute('favorite')) {
-      artistContainer.removeAttribute('favorite');
+    const ARTIST_ELEMENT = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
+    if (ALBUM_ELEMENTS.hasAttribute('favorite') && !ARTIST_ELEMENT.hasAttribute('favorite')) {
+      ARTIST_ELEMENT.toggleAttribute('favorite');
+    } else if (!ALBUM_ELEMENTS.hasAttribute('favorite')) {
+      ARTIST_ELEMENT.removeAttribute('favorite');
     }
 
 
@@ -368,10 +382,10 @@ class MusicLibrary extends HTMLElement {
     if (this.hasAttribute('favorites')) {
 
       // list all albums
-      const albums = qsa('.album', this.shadowRoot);
+      const ALBUM_ELEMENTS = qsa('.album', this.shadowRoot);
 
       // hide all elements that are not favirotes
-      albums.forEach(async el => {
+      ALBUM_ELEMENTS.forEach(async el => {
         if (!el.hasAttribute('favorite')) {
           await fadeOut(el);
           el.style.display = 'none';
@@ -390,19 +404,19 @@ class MusicLibrary extends HTMLElement {
    * @param {Number} length - total 
    */
   async updateBar(ndx, length) {
-    const percent = ((ndx + 1) / length) * 100;
-    if (this.bar) this.bar.setAttribute('percent', percent);
-    if (this.percent) this.percent.textContent = `${percent.toFixed(1)}%`;
+    const PERCENTAGE = ((ndx + 1) / length) * 100;
+    if (this.bar) this.bar.setAttribute('percent', PERCENTAGE);
+    if (this.percent) this.percent.textContent = `${PERCENTAGE.toFixed(1)}%`;
 
     // emit event to update the button with progress
-    const ev = new CustomEvent('library-scan', {
-      detail:{percent: percent}
+    const CUSTOM_EVENT = new CustomEvent('library-scan', {
+      detail:{percent: PERCENTAGE}
     });
-    this.dispatchEvent(ev);
+    this.dispatchEvent(CUSTOM_EVENT);
 
     await sleep(1000);
 
-    if (percent === 100) {
+    if (PERCENTAGE === 100) {
       await fadeOut(this.bar);
       await sleep(100);
       await this.go();
@@ -414,38 +428,10 @@ class MusicLibrary extends HTMLElement {
    * player playlist cleared and we need to clean up inlist attributes
    */
   playlistCleared() {
-    const albums = qsa('.album', this.shadowRoot);
-    albums.forEach(albumElement => {
+    const ALBUM_ELEMENTS = qsa('.album', this.shadowRoot);
+    ALBUM_ELEMENTS.forEach(albumElement => {
       albumElement.removeAttribute('inlist');
     });
-  }
-
-  /**
-   * creates a header element with buttons and callbacks
-   */
-  async _header() {
-
-    const scan = ce('audiosync-small-button');
-    scan.id = 'scan';
-    scan.title = 'Scan Library';
-    scan.appendChild(await svgIcon('scan'));
-    scan.onClick(_ => {
-      scan.toggleAttribute('disabled');
-      pywebview.api.create_json();
-      new Toast('Library scan started');
-    });
-
-    const fav = ce('audiosync-small-button');
-    fav.title = 'Favorites';
-    fav.appendChild(await svgIcon('favorite'));
-    fav.onClick(_ => this.favorites());
-
-    const bar = ce('div');
-    bar.classList.add('head');
-    [
-      scan,fav
-    ].forEach(el => bar.appendChild(el));
-    this.content.appendChild(bar);
   }
 
   /**
@@ -472,30 +458,30 @@ class MusicLibrary extends HTMLElement {
     if (this._usedChars.length < 10) return;
 
     //  create quick links element
-    const alphabet = ce('div');
-    this.content.appendChild(alphabet);
-    alphabet.classList.add('a-z');
+    const QUCICK_LINKS_CONTAINER = ce('div');
+    this.content.appendChild(QUCICK_LINKS_CONTAINER);
+    QUCICK_LINKS_CONTAINER.classList.add('a-z');
 
     // create an link for each char in the array
     this._usedChars.forEach(char => {
-      const link = ce('a');
-      alphabet.appendChild(link);
+      const LINK = ce('a');
+      QUCICK_LINKS_CONTAINER.appendChild(LINK);
 
       // determine the behavior of the link
       if (Number(char)) {
-        link.textContent = '#';
-        link.title = '#';
+        LINK.textContent = '#';
+        LINK.title = '#';
       } else if (char === '>') {
-        link.title = 'Playing';
-        link.textContent = char;
-        link.style.display = 'none';
+        LINK.title = 'Playing';
+        LINK.textContent = char;
+        LINK.style.display = 'none';
       } else {
-        link.title = char.toLocaleUpperCase();
-        link.textContent = char;
+        LINK.title = char.toLocaleUpperCase();
+        LINK.textContent = char;
       }
 
       // scroll the desired element into view
-      link.addEventListener('click', e => {
+      LINK.addEventListener('click', e => {
         e.preventDefault();
         let target = '';
         if (Number(char)) {
@@ -519,68 +505,69 @@ class MusicLibrary extends HTMLElement {
     alertUser('Click the Scan button to load library');
     
     // UI buttons that will be disabled
-    const buttons = [
+    const HEADER_BUTTONS = [
       '#menu-button',
-      '#settings',
-      'audiosync-tabs'
+      '#settings'
     ]
-    buttons.forEach(id => qs(id).setAttribute('disabled', 1));
+    HEADER_BUTTONS.forEach(id => {
+      if (qs(id) && !qs(id).hasAttribute('disabled')) qs(id).toggleAttribute('disabled');
+    });
       
     const buttonContents = fillButton('scan', 'scan music');
 
     // scan library button
-    const button = ce('audiosync-button');
-    button.appendChild(buttonContents);
+    const BEGIN_SCAN_BUTTON = ce('audiosync-button');
+    BEGIN_SCAN_BUTTON.appendChild(buttonContents);
     
     // wrapper to place content
-    const wrapper = ce('div');
-    wrapper.classList.add('blank');
-    wrapper.appendChild(button);
+    const LIBRARY_WRAPPER = ce('div');
+    LIBRARY_WRAPPER.classList.add('blank');
+    LIBRARY_WRAPPER.appendChild(BEGIN_SCAN_BUTTON);
 
-    button.onClick(async _ => {
+    BEGIN_SCAN_BUTTON.onClick(async _ => {
 
       new Toast('Scan can take some time to complete', 10);
       // hide the button
-      await fadeOut(button);
+      await fadeOut(BEGIN_SCAN_BUTTON);
 
       // remove the button once hidden
-      wrapper.innerHTML = '';
+      LIBRARY_WRAPPER.innerHTML = '';
 
       // progress bar label
-      const label = ce('div');
-      label.textContent = 'Building Library';
+      const LABEL = ce('div');
+      LABEL.textContent = 'Building Library';
 
       //  progress percentage text
-      const percent = ce('div');
-      percent.textContent = '0%';
+      const PERCENT_TEXT = ce('div');
+      PERCENT_TEXT.textContent = '0%';
 
       // create progress bar
       this.bar = ce('audiosync-progress');
       this.bar.style.opacity = 0;
       this.bar.style.width = '90%';
       [
-        label,
-        percent
+        LABEL,
+        PERCENT_TEXT
       ].forEach(el => this.bar.appendChild(el));
 
       // add the bar to the UI in a hidden state
-      wrapper.appendChild(this.bar);
-      this.percent = percent;
+      LIBRARY_WRAPPER.appendChild(this.bar);
+      this.percent = PERCENT_TEXT;
       await sleep(10);
 
       //  uphide the progress bar
       await fadeIn(this.bar);
-      const t = new Timer('Initial Scan');
+      const SCAN_TIMER = new Timer('Initial Scan');
 
       // do the scan actual in python
       await pywebview.api.create_json();
 
       // scan finished
-      buttons.forEach(id => qs(id).removeAttribute('disabled'));
-      const s = t.endString();
+      HEADER_BUTTONS.forEach(id => qs(id).removeAttribute('disabled'));
+      const s = SCAN_TIMER.endString();
       new Toast(s);
     });
-    this.content.appendChild(wrapper);
+    this.content.appendChild(LIBRARY_WRAPPER);
   }
 
   /**
@@ -590,23 +577,23 @@ class MusicLibrary extends HTMLElement {
    */
   _getFavorites() {
     // container for favorites
-    const favList = {}
+    const FAVORITES_LIST = {}
 
     // get elements with favorite attribute
-    const favorites = qsa('.album[favorite]', this.shadowRoot);
+    const FAVORITED_ALBUMS = qsa('.album[favorite]', this.shadowRoot);
 
     // build from the elements and return result
-    favorites.forEach(favorite => {
-      const artistName = favorite.dataset.artist;
-      if (!(artistName in favList)) {
-        favList[artistName] = [];
+    FAVORITED_ALBUMS.forEach(album => {
+      const ARTIST_NAME = album.dataset.artist;
+      if (!(ARTIST_NAME in FAVORITES_LIST)) {
+        FAVORITES_LIST[ARTIST_NAME] = [];
       } 
-      const albumName = favorite.dataset.album;
-      if (!(albumName in favList[artistName]) && albumName != null) {
-        favList[artistName].push(albumName);
+      const ALBUM_TITLE = album.dataset.album;
+      if (!(ALBUM_TITLE in FAVORITES_LIST[ARTIST_NAME]) && ALBUM_TITLE !== null) {
+        FAVORITES_LIST[ARTIST_NAME].push(ALBUM_TITLE);
       }
     });
-    return favList;
+    return FAVORITES_LIST;
   }
 
   /**
@@ -614,14 +601,15 @@ class MusicLibrary extends HTMLElement {
    * 
    * @param {Object} favs 
    */
-  _loadFavorites(favs) {
-    for (const artist in favs) {
-      const ael = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
-      if (ael) ael.toggleAttribute('favorite');
-      favs[artist].forEach(album => {
-        const el = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
-        if (!el) return;
-        el.toggleAttribute('favorite');
+  _loadFavorites(favorites) {
+    for (const ARTIST in favorites) {
+      const ARTIST_ELEMENT = qs(`.artist[data-artist="${ARTIST}"]`, this.shadowRoot);
+      if (ARTIST_ELEMENT) ARTIST_ELEMENT.toggleAttribute('favorite');
+      favorites[ARTIST].forEach(album => {
+        const ALBUM_ELEMENT = qs(`[data-artist="${ARTIST}"][data-album="${album}"]`, this.shadowRoot);
+        if (ALBUM_ELEMENT && !ALBUM_ELEMENT.hasAttribute('diabled')) {
+          ALBUM_ELEMENT.toggleAttribute('favorite');
+        }
       });
     }
   }
@@ -644,9 +632,9 @@ class MusicLibrary extends HTMLElement {
    */
   _fixPaths(array) {
     for (let i = 0; i < array.length; i++) {
-      const path = this._fixSlashes(array[i].path);
-      array[i].art = `music${path}/cover.jpg`;
-      array[i].path = `music${path}/${array[i].file}`;
+      const FIXED_PATH = this._fixSlashes(array[i].path);
+      array[i].art = `music${FIXED_PATH}/cover.jpg`;
+      array[i].path = `music${FIXED_PATH}/${array[i].file}`;
       delete array[i].file;
     }
   }
@@ -674,52 +662,52 @@ class MusicLibrary extends HTMLElement {
     }
     
     // set popup & set position
-    const x = ev.pageX;
-    const y = ev.pageY;
+    const X = ev.pageX;
+    const Y = ev.pageY;
 
-    const wrapper = ce('div');
-    if (y > (window.innerHeight / 2)) {
-      wrapper.style.top = `${y - this.popupHeight}px`;
+    const POPUP_CONTAINER = ce('div');
+    if (Y > (window.innerHeight / 2)) {
+      POPUP_CONTAINER.style.top = `${Y - this.popupHeight}px`;
     } else {
-      wrapper.style.top = `${y}px`;
+      POPUP_CONTAINER.style.top = `${Y}px`;
     }
-    if (x > (window.innerWidth / 2)) {
-      wrapper.style.left = `${x - this.popupWidth}px`;
+    if (X > (window.innerWidth / 2)) {
+      POPUP_CONTAINER.style.left = `${X - this.popupWidth}px`;
     } else {
-      wrapper.style.left = `${x}px`;
+      POPUP_CONTAINER.style.left = `${X}px`;
     }
-    wrapper.classList.add('popup');
+    POPUP_CONTAINER.classList.add('popup');
 
     // any click to close the popup
     // closes and cleans up the popup element
     qs('body').addEventListener('click', _ => {
       this.content.style.removeProperty('pointer-events');
-      wrapper.addEventListener('transitionend', async _ => {
+      POPUP_CONTAINER.addEventListener('transitionend', async _ => {
         await sleep(500);
-        wrapper.remove();
+        POPUP_CONTAINER.remove();
       });
-      wrapper.style.removeProperty('transform');
+      POPUP_CONTAINER.style.removeProperty('transform');
     });
 
     // popup play button
-    const play = fillButton('play', 'play');
-    play.classList.add('option');
+    const POPUP_PLAY_BUTTON = fillButton('play', 'play');
+    POPUP_PLAY_BUTTON.classList.add('option');
 
     // play the album
-    play.addEventListener('click', _ => {
+    POPUP_PLAY_BUTTON.addEventListener('click', _ => {
       this.player.playAlbum(album);
       albumContainer.toggleAttribute('inlist');
     });
     
-    const playlistAdd = fillButton('add', 'playlist');
-    playlistAdd.classList.add('option');
-    playlistAdd.addEventListener('click', _ => {
+    const POPUP_PLAYLIST_BUTTON = fillButton('add', 'playlist');
+    POPUP_PLAYLIST_BUTTON.classList.add('option');
+    POPUP_PLAYLIST_BUTTON.addEventListener('click', _ => {
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
       albumContainer.toggleAttribute('inlist');
     });
     if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('playing') || albumContainer.hasAttribute('inlist')) {
-      playlistAdd.style.display = 'none';
+      POPUP_PLAYLIST_BUTTON.style.display = 'none';
     }
 
     // popup favorite button (toggles function, text & icon)
@@ -738,20 +726,20 @@ class MusicLibrary extends HTMLElement {
     });
 
     // display album info dialog (eventualy)
-    const info = fillButton('list', 'info');
-    info.classList.add('option');
-    info.addEventListener('click', _ => this._albumInfoDialog(artist, album, albumContainer));
+    const ALBUM_INFO_BUTTON = fillButton('list', 'info');
+    ALBUM_INFO_BUTTON.classList.add('option');
+    ALBUM_INFO_BUTTON.addEventListener('click', _ => this._openAlbumInfoDialog(artist, album, albumContainer));
 
     [
-      play,
-      playlistAdd,
+      POPUP_PLAY_BUTTON,
+      POPUP_PLAYLIST_BUTTON,
       fav,
-      info
-    ].forEach(el => wrapper.appendChild(el));
+      ALBUM_INFO_BUTTON
+    ].forEach(el => POPUP_CONTAINER.appendChild(el));
     
-    this.shadowRoot.appendChild(wrapper);
+    this.shadowRoot.appendChild(POPUP_CONTAINER);
     await sleep(20);
-    requestAnimationFrame(_ => wrapper.style.transform = 'scale3d(1,1,1)');
+    requestAnimationFrame(_ => POPUP_CONTAINER.style.transform = 'scale3d(1,1,1)');
   }
 
   /**
@@ -763,15 +751,15 @@ class MusicLibrary extends HTMLElement {
    */
   _arePathsTheSame(path1, path2) {
     // Decode URL-encoded parts of the paths
-    const decodedPath1 = decodeURIComponent(path1);
-    const decodedPath2 = decodeURIComponent(path2);
+    const DECODED_PATH1 = decodeURIComponent(path1);
+    const DECODED_PATH2 = decodeURIComponent(path2);
     
     // Normalize the paths to ensure consistent formatting
-    const normalizedPath1 = decodedPath1.replace(/\\/g, '/');
-    const normalizedPath2 = decodedPath2.replace(/\\/g, '/');
+    const NORMALIZED_PATH1 = DECODED_PATH1.replace(/\\/g, '/');
+    const NORMALIZED_PATH2 = DECODED_PATH2.replace(/\\/g, '/');
 
     // Compare the decoded and normalized paths
-    return normalizedPath1 === normalizedPath2;
+    return NORMALIZED_PATH1 === NORMALIZED_PATH2;
   }
 
   /**
@@ -781,7 +769,7 @@ class MusicLibrary extends HTMLElement {
    * @param {Object} album
    * 
    */
-  async _albumInfoDialog(artist, album, albumContainer) {
+  async _openAlbumInfoDialog(artist, album, albumContainer) {
     const dialog = ce('audiosync-dialog');
     dialog.id = 'album-info';
     dialog.toggleAttribute('nopad');
@@ -803,7 +791,11 @@ class MusicLibrary extends HTMLElement {
       // mark / unmark in the library UI 
       this.favoriteAlbum(artist, album.title);
       // mark / unmark in the audio player
-      this.player.favorite({artist: artist, title: album.title, favorite: album.favorite});
+      this.player.favorite({
+        artist: artist, 
+        title: album.title, 
+        favorite: album.favorite
+      });
       if (album.favorite) {
         favbutton.style.opacity = 1;
         favbutton.title = 'Unfavorite';
