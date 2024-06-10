@@ -817,7 +817,7 @@ class AudioPlayer extends HTMLElement {
     IMG.src = url;
     IMG.onload = _ => {
       const THIEF = new ColorThief();
-      const STOLEN_PALETTE = THIEF.getPalette(IMG);
+      const STOLEN_PALETTE = THIEF.getPalette(IMG, 15);
 
       // safe range where should look decent in either dark or light mode
       let brightnessLimit = 0.7; 
@@ -854,6 +854,8 @@ class AudioPlayer extends HTMLElement {
           }
         }
       }
+
+      // console.log(popNdx, topNdx);
 
       // --pop-color rgb string
       const POP_RGB_STRING = `${STOLEN_PALETTE[popNdx][0]},${STOLEN_PALETTE[popNdx][1]},${STOLEN_PALETTE[popNdx][2]}`;
