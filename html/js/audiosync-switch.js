@@ -11,7 +11,7 @@ class AudioSyncSwitch extends HTMLElement {
   constructor() {
     super();
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".audiosync-switch": {
         "z-index": 0,
         "position": "relative",
@@ -36,7 +36,7 @@ class AudioSyncSwitch extends HTMLElement {
         "border-radius": "50%",
         "width": "40px",
         "height": "40px",
-        "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)",
+        "background-color": "rgba(0, 0, 0, 0.38)",
         "outline": "none",
         "opacity": 0,
         "transform": "scale(1)",
@@ -57,7 +57,7 @@ class AudioSyncSwitch extends HTMLElement {
         "border-radius": "7px",
         "width": "36px",
         "height": "14px",
-        "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)",
+        "background-color": "rgba(0, 0, 0, 0.38)",
         "vertical-align": "top",
         "transition": "background-color 0.2s, opacity 0.2s"
       },
@@ -69,7 +69,7 @@ class AudioSyncSwitch extends HTMLElement {
         "border-radius": "50%",
         "width": "20px",
         "height": "20px",
-        "background-color": "rgb(var(--pure-material-onprimary-rgb, var(--main-rgb)))",
+        "background-color": "rgb(var(--main-rgb))",
         "box-shadow": "0 3px 1px -2px rgba(0, 0, 0, 0.2), 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12)",
         "transition": "background-color 0.2s, transform 0.2s"
       },
@@ -78,7 +78,7 @@ class AudioSyncSwitch extends HTMLElement {
         "background-color": "rgb(var(--pop-rgb, 33, 150, 243))"
       },
       ".audiosync-switch > input:checked + span::before": {
-        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb), 0.6)"
       },
       ".audiosync-switch > input:checked + span::after": {
         "background-color": "rgb(var(--pop-rgb, 33, 150, 243))",
@@ -99,10 +99,10 @@ class AudioSyncSwitch extends HTMLElement {
         "transition": "transform 0s, opacity 0s"
       },
       ".audiosync-switch > input:active + span::before": {
-        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb), 0.6)"
       },
       ".audiosync-switch > input:checked:active + span::before": {
-        "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)"
+        "background-color": "rgba(0, 0, 0, 0.38)"
       },
       ".audiosync-switch > input:disabled": {
         "opacity": 0
@@ -113,43 +113,43 @@ class AudioSyncSwitch extends HTMLElement {
         "cursor": "default"
       },
       ".audiosync-switch > input:disabled + span::before": {
-        "background-color": "rgba(var(--pure-material-onsurface-rgb, 0, 0, 0), 0.38)"
+        "background-color": "rgba(0, 0, 0, 0.38)"
       },
       ".audiosync-switch > input:checked:disabled + span::before": {
-        "background-color": "rgba(var(--pop-rgb, 33, 150, 243), 0.6)"
+        "background-color": "rgba(var(--pop-rgb), 0.6)"
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.input = ce('input');
     this.input.type = 'checkbox';
 
-    const span = ce('span');
-    span.appendChild(ce('slot'));
+    const SPAN_ELEMENT = ce('span');
+    SPAN_ELEMENT.appendChild(ce('slot'));
 
-    const label = ce('label');
-    label.classList.add('audiosync-switch');
+    const LABEL_TEXT = ce('label');
+    LABEL_TEXT.classList.add('audiosync-switch');
     [
       this.input,
-      span
-    ].forEach(el => label.appendChild(el));
+      SPAN_ELEMENT
+    ].forEach(el => LABEL_TEXT.appendChild(el));
     
     this.attachShadow({mode: "open"});
     [
-      sheet,
-      label
+      ELEMENT_STYLES,
+      LABEL_TEXT
     ].forEach(el => this.shadowRoot.appendChild(el));
 
     this.input.onchange = async _ => {
 
       this.setAttribute(this.input.checked, Number(this.input.checked));
 
-      const ev = new CustomEvent('statechange', {
+      const CUSTOM_EVENT = new CustomEvent('statechange', {
         detail:{id: this.id, state: Number(this.input.checked)}
       });
-      this.dispatchEvent(ev);
+      this.dispatchEvent(CUSTOM_EVENT);
 
     };
   }

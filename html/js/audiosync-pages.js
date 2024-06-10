@@ -29,61 +29,61 @@ class AudioSyncPages extends HTMLElement {
    * @param {Number} newVal
    */
   async attributeChangedCallback(name, oldVal, newVal) {
-    const sleepTime = 20;
+    const SLEEP_TIME = 20;
     
     // when run without lib_data.json one if not both values will be null
     // this gives music-library proirity 
     if (oldVal === null) {
       oldVal = 1;
       newVal = 0;
-      await sleep(sleepTime);
+      await sleep(SLEEP_TIME);
     }
     
     if (qs('scroll-element')) qs('scroll-element').top();
 
     // elements in the customelement "slot"
-    const assignedElements = qs('slot', this.shadowRoot).assignedElements({flatten: true}).filter(node => node.nodeType === Node.ELEMENT_NODE);
-    if (assignedElements[newVal] && assignedElements[oldVal]) {
+    const PAGE_ELEMENTS = qs('slot', this.shadowRoot).assignedElements({flatten: true}).filter(node => node.nodeType === Node.ELEMENT_NODE);
+    if (PAGE_ELEMENTS[newVal] && PAGE_ELEMENTS[oldVal]) {
 
       // transition to this page
-      const to = assignedElements[newVal];
+      const TRANSITION_TO_PAGE = PAGE_ELEMENTS[newVal];
 
       // tansition from this page
-      const from = assignedElements[oldVal];
+      const TRANSITION_FROM_PAGE = PAGE_ELEMENTS[oldVal];
 
       // hide content we are animating from 
-      await fadeOut(from, this.animationTime);
-      await sleep(sleepTime);
+      await fadeOut(TRANSITION_FROM_PAGE, this.animationTime);
+      await sleep(SLEEP_TIME);
 
       // enable display of content to be animated into view
-      to.style.display = 'block';
+      TRANSITION_TO_PAGE.style.display = 'block';
 
       // capture element heights
-      const fromHeight = elementHeight(from);
-      const toHeight = elementHeight(to);
+      const HEIGHT_OF_FROM_PAGE = elementHeight(TRANSITION_FROM_PAGE);
+      const HEIGHT_OF_TO_PAGE = elementHeight(TRANSITION_TO_PAGE);
 
-      const headerHeight = Number(getCSSVariableValue('--header-height').replace('px',''));
-      const windowHeight = window.innerHeight - headerHeight;
+      const HEADER_HEIGHT = Number(getCSSVariableValue('--header-height').replace('px',''));
+      const WINDOW_HEIGHT = window.innerHeight - HEADER_HEIGHT;
 
       // animate height if the content is small enough to see the bottom of the card
-      if (toHeight < windowHeight || fromHeight < windowHeight) {
+      if (HEIGHT_OF_TO_PAGE < WINDOW_HEIGHT || HEIGHT_OF_FROM_PAGE < WINDOW_HEIGHT) {
 
         // set height of new content before hiding old content
-        to.style.height = `${fromHeight}px`;
-        from.style.display = 'none';
+        TRANSITION_TO_PAGE.style.height = `${HEIGHT_OF_FROM_PAGE}px`;
+        TRANSITION_FROM_PAGE.style.display = 'none';
 
         // let changes "settle" before triggering animations
-        await sleep(sleepTime);
+        await sleep(SLEEP_TIME);
 
         // animate height of the element to new height
-        await animateHeight(to, `${toHeight}px`, this.animationTime);
-        await sleep(sleepTime);
-        to.style.removeProperty('height');
+        await animateHeight(TRANSITION_TO_PAGE, `${HEIGHT_OF_TO_PAGE}px`, this.animationTime);
+        await sleep(SLEEP_TIME);
+        TRANSITION_TO_PAGE.style.removeProperty('height');
       } else {
-        from.style.display = 'none';
+        TRANSITION_FROM_PAGE.style.display = 'none';
       }
-      await sleep(sleepTime);
-      fadeIn(to, this.animationTime);
+      await sleep(SLEEP_TIME);
+      fadeIn(TRANSITION_TO_PAGE, this.animationTime);
     } else {
       console.error(newVal, oldVal);
     }

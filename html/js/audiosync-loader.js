@@ -8,7 +8,7 @@ class AudioSyncLoader extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
     
-    const cssObj = {
+    const CSS_OBJECT = {
       ".load": {
         position: "absolute",
         top: 0,
@@ -32,8 +32,8 @@ class AudioSyncLoader extends HTMLElement {
         transform: 'translateY(-100%)'
       }
     }
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.loader = ce('div');
     this.loader.classList.add('load')
@@ -42,7 +42,7 @@ class AudioSyncLoader extends HTMLElement {
 
 
     [
-      sheet,
+      ELEMENT_STYLES,
       this.loader
     ].forEach(el => this.shadowRoot.appendChild(el));
   }

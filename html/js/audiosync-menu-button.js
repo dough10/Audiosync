@@ -8,7 +8,7 @@ class MenuButton extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    const cssJSON = {
+    const CSS_OBJECT = {
       ".menu-button": {
         padding: "12px",
         cursor: "pointer",
@@ -38,7 +38,7 @@ class MenuButton extends HTMLElement {
         "background-color": "var(--hover-color)"
       },
       ".menu-button[disabled]": {
-        background: "rgba(218, 218, 218, 0.4)",
+        background: "rgba(218, 218, 218, 0.2)",
         color: 'var(--disabled-color)',
         cursor: "none",
         "pointer-events": "none"
@@ -55,7 +55,7 @@ class MenuButton extends HTMLElement {
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
-        background: "rgba(51, 51, 51, 0.4)",
+        background: "rgba(var(--pop-rgb), 0.4)",
         animation: "ripple-animation 0.7s linear"
       },
       '.prog_wrapper': {
@@ -78,30 +78,31 @@ class MenuButton extends HTMLElement {
         background: 'var(--disabled-color)'
       }
     };
+
     this.bar = ce('div');
     this.bar.classList.add('prog_bar');
 
-    const wrapper = ce('div');
-    wrapper.classList.add('prog_wrapper');
-    wrapper.appendChild(this.bar);
+    const PROGRESS_WRAPPER = ce('div');
+    PROGRESS_WRAPPER.classList.add('prog_wrapper');
+    PROGRESS_WRAPPER.appendChild(this.bar);
 
-    const button = ce('div');
-    button.classList.add('menu-button');
-    button.addEventListener('click', e => {
+    const BUTTON_ELEMENT = ce('div');
+    BUTTON_ELEMENT.classList.add('menu-button');
+    BUTTON_ELEMENT.addEventListener('click', e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
     });
     [
       ce('slot'),
-      wrapper
-    ].forEach(el => button.appendChild(el));
+      PROGRESS_WRAPPER
+    ].forEach(el => BUTTON_ELEMENT.appendChild(el));
     
-    const style = ce('style');
-    style.textContent = objectToCSS(cssJSON);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     [
-      style,
-      button
+      ELEMENT_STYLES,
+      BUTTON_ELEMENT
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
@@ -111,13 +112,9 @@ class MenuButton extends HTMLElement {
    * modifys document css to fix style of elements nested in the custom element
    */
   connectedCallback() {
-    // capture document styles
-    const styles = qs('style').textContent;
+    const DOCUMENT_STYLES = parseCSS(qs('style').textContent);
 
-    // convert css string to an object
-    const css = parseCSS(styles);
-
-    css['audiosync-menu-button > div'] = {
+    DOCUMENT_STYLES['audiosync-menu-button > div'] = {
       width: '100%',
       display: 'flex',
       'justify-content': 'center',
@@ -125,7 +122,7 @@ class MenuButton extends HTMLElement {
       'text-transform': 'uppercase'
     };
 
-    qs('style').textContent = objectToCSS(css);
+    qs('style').textContent = objectToCSS(DOCUMENT_STYLES);
   }
 
   /**
@@ -140,33 +137,33 @@ class MenuButton extends HTMLElement {
     }
 
     // ensure the color is hex code
-    color = convertToHex(color);
+    const HEX_COLOR = convertToHex(color);
 
     // <body> change the icon color
     // parse string to object
-    const css = parseCSS(qs('style').textContent);
+    const DOCUMENT_STYLES = parseCSS(qs('style').textContent);
     
     // create / update styles
-    css[`#${this.id} > svg`] = {
-      color: color
+    DOCUMENT_STYLES[`#${this.id} > svg`] = {
+      color: HEX_COLOR
     };
-    css[`#${this.id}[disabled] > svg`] = {
+    DOCUMENT_STYLES[`#${this.id}[disabled] > svg`] = {
       color: 'var(--disabled-color)'
     };
     
     // apply new styles
-    qs('style').textContent = objectToCSS(css);
+    qs('style').textContent = objectToCSS(DOCUMENT_STYLES);
     
     // <custom-element> change the click ripple color
     //  capture styles
-    const shadowCss = parseCSS(qs('style', this.shadowRoot).textContent);
+    const SHADOW_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
 
     // update ripple styles
-    shadowCss['.ripple-effect'].background = hexToRgba(color);
-    shadowCss['.prog_bar'].background = color;
+    SHADOW_STYLES['.ripple-effect'].background = hexToRgba(HEX_COLOR);
+    SHADOW_STYLES['.prog_bar'].background = HEX_COLOR;
 
     // apply updated styles. 
-    qs('style', this.shadowRoot).textContent = objectToCSS(shadowCss);
+    qs('style', this.shadowRoot).textContent = objectToCSS(SHADOW_STYLES);
   }
 
   /**

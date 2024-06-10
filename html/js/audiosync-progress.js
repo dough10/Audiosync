@@ -12,7 +12,7 @@ class AudioSyncProgress extends HTMLElement {
     
     this.attachShadow({mode: "open"});
  
-    const cssObj = {
+    const CSS_OBJECT = {
       ".label": {
         display: "flex",
         "justify-content": "space-between",
@@ -38,24 +38,24 @@ class AudioSyncProgress extends HTMLElement {
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
-    const label = ce('div');
-    label.classList.add('label');
-    label.appendChild(ce('slot'));
+    const LABEL = ce('div');
+    LABEL.classList.add('label');
+    LABEL.appendChild(ce('slot'));
 
     this.bar = ce('div');
     this.bar.classList.add('bar');
 
-    const wrapper = ce('div');
-    wrapper.classList.add('wrapper');
-    wrapper.appendChild(this.bar);
+    const PROGRESS_WRAPPER = ce('div');
+    PROGRESS_WRAPPER.classList.add('wrapper');
+    PROGRESS_WRAPPER.appendChild(this.bar);
 
     [
-      sheet,
-      label,
-      wrapper
+      ELEMENT_STYLES,
+      LABEL,
+      PROGRESS_WRAPPER
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
@@ -76,10 +76,10 @@ class AudioSyncProgress extends HTMLElement {
   attributeChangedCallback(name, oldVal, newVal) {
     this.bar.style.transform = `translateX(-${100 - newVal}%)`;
 
-    const ev = new CustomEvent('percent-changed', {
+    const CUSTOM_EVENT = new CustomEvent('percent-changed', {
       detail:{id: this.id, percent: Number(newVal)}
     });
-    this.dispatchEvent(ev);
+    this.dispatchEvent(CUSTOM_EVENT);
   }
 }
 customElements.define('audiosync-progress', AudioSyncProgress);

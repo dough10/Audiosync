@@ -11,7 +11,7 @@ class AudioSyncMenu extends HTMLElement {
 
     this.attachShadow({mode: "open"});
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".allow-clicks": {
         "pointer-events": "none",
         opacity:0
@@ -133,8 +133,8 @@ class AudioSyncMenu extends HTMLElement {
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     // blocks clicks from background elements
     this.blocker = ce('div');
@@ -144,19 +144,19 @@ class AudioSyncMenu extends HTMLElement {
     this.blocker.addEventListener('click', _ => this.close());
 
     //  menu header
-    const headerContent = ce('div');
-    headerContent.classList.add('header-content');
+    const HEADER_CONTENT = ce('div');
+    HEADER_CONTENT.classList.add('header-content');
     
-    const header = ce('header'); 
-    header.appendChild(headerContent);
+    const HEADER = ce('header'); 
+    HEADER.appendChild(HEADER_CONTENT);
     
-    const headerShadow = ce('div');
-    headerShadow.classList.add('header-shadow');
+    const HEADER_SHADOW = ce('div');
+    HEADER_SHADOW.classList.add('header-shadow');
 
     //  scrollable section 
-    const wrapper = ce('div');
-    wrapper.classList.add('wrapper');
-    wrapper.appendChild(ce('slot'));
+    const MENU_CONTENT = ce('div');
+    MENU_CONTENT.classList.add('wrapper');
+    MENU_CONTENT.appendChild(ce('slot'));
     
     this.foot = ce('div');
     this.foot.classList.add('menu-foot');
@@ -166,14 +166,14 @@ class AudioSyncMenu extends HTMLElement {
     this.menu.addEventListener('transitionend', _ => this.toggleAttribute('open'));
 
     [
-      header,
-      headerShadow,
-      wrapper,
+      HEADER,
+      HEADER_SHADOW,
+      MENU_CONTENT,
       this.foot
     ].forEach(el => this.menu.appendChild(el));
 
     [
-      sheet,
+      ELEMENT_STYLES,
       this.blocker,
       this.menu
     ].forEach(el => this.shadowRoot.appendChild(el));
@@ -183,10 +183,10 @@ class AudioSyncMenu extends HTMLElement {
    * open menu drawer
    */
   async open() {
-    const tend = _ => {
-      this.blocker.removeEventListener('transitionend', tend);
+    const TRANSISTION_END = _ => {
+      this.blocker.removeEventListener('transitionend', TRANSISTION_END);
     };
-    this.blocker.addEventListener('transitionend', tend);
+    this.blocker.addEventListener('transitionend', TRANSISTION_END);
     requestAnimationFrame(_ => {
       this.menu.classList.add('open');
       this.blocker.classList.remove('allow-clicks');
@@ -198,11 +198,11 @@ class AudioSyncMenu extends HTMLElement {
    * close menu drawer
    */
   async close() {
-    const tend = _ => {
-      this.blocker.removeEventListener('transitionend', tend);
+    const TRANSITION_END = _ => {
+      this.blocker.removeEventListener('transitionend', TRANSITION_END);
       this.blocker.style.display = 'none';
     };
-    this.blocker.addEventListener('transitionend', tend);
+    this.blocker.addEventListener('transitionend', TRANSITION_END);
     requestAnimationFrame(_ => {
       this.menu.classList.remove('open');
       this.blocker.classList.add('allow-clicks');
@@ -218,19 +218,19 @@ class AudioSyncMenu extends HTMLElement {
     // empty the footer
     this.foot.innerHTML = '';
     
-    const fsText = ce('div');
-    fsText.textContent = `music: ${text}`;
+    const FILESIZE_TEXT = ce('div');
+    FILESIZE_TEXT.textContent = `music: ${text}`;
     
-    const icon = await svgIcon('data');
+    const ICON = await svgIcon('data');
 
-    const dummyButton = ce('div');
-    dummyButton.classList.add('menu-button');
+    const DUMMY_BUTTON = ce('div');
+    DUMMY_BUTTON.classList.add('menu-button');
     [
-      icon,
-      fsText
-    ].forEach(el => dummyButton.appendChild(el));
+      ICON,
+      FILESIZE_TEXT
+    ].forEach(el => DUMMY_BUTTON.appendChild(el));
               
-    this.foot.appendChild(dummyButton);
+    this.foot.appendChild(DUMMY_BUTTON);
   }
 }
 customElements.define('audiosync-menu', AudioSyncMenu);

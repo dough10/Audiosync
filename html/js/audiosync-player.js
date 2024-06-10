@@ -1,4 +1,4 @@
-import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex, parseCSS} from './helpers.js';
+import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex, parseCSS, fadeOut, fadeIn} from './helpers.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -12,7 +12,7 @@ class AudioPlayer extends HTMLElement {
     this.elapsedTime = true;
 
     // CSS object (will be converted to CSS string by objectToCSS())
-    const cssObj = {
+    const CSS_OBJECT = {
       '.background': {
         position: 'fixed',
         display: 'flex',
@@ -245,8 +245,8 @@ class AudioPlayer extends HTMLElement {
     this.addToPlaylist = this.addToPlaylist.bind(this);
 
     // push styles to <style> element
-    const styles = ce('style');
-    styles.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     // Audio player (why we are here after all)
     this.player = new Audio();
@@ -269,14 +269,14 @@ class AudioPlayer extends HTMLElement {
 
     // change position of action button when window resized
     window.addEventListener('resize', _ => {
-      const css = parseCSS(qs('style', this.shadowRoot).textContent);
-      css['#playlist'].transform = `translateY(${(window.innerHeight / 2) - 190}px)`;
-      qs('style', this.shadowRoot).textContent = objectToCSS(css);
+      const CSS = parseCSS(qs('style', this.shadowRoot).textContent);
+      CSS['#playlist'].transform = `translateY(${(window.innerHeight / 2) - 190}px)`;
+      qs('style', this.shadowRoot).textContent = objectToCSS(CSS);
     });
 
     // populate shadow DOM
     [
-      styles,
+      ELEMENT_STYLES,
       this.player
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
@@ -294,14 +294,14 @@ class AudioPlayer extends HTMLElement {
       this.isFavorite = data.favorite;
 
       // update UI
-      const favButton = qs('#favorite', this.shadowRoot);
-      if (!favButton) return;
+      const FULLSCREEN_FAVORITE_TOGGLE_BUTTON = qs('#favorite', this.shadowRoot);
+      if (!FULLSCREEN_FAVORITE_TOGGLE_BUTTON) return;
       if (this.isFavorite) {
-        favButton.title = 'Unfavorite';
-        favButton.style.opacity = 1;
+        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
+        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
       } else {  
-        favButton.title = 'Favorite';
-        favButton.style.opacity = 0.2;
+        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
+        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
       }
     }
   }
@@ -311,7 +311,7 @@ class AudioPlayer extends HTMLElement {
    */
   onScreen() {
     return new Promise(resolve => {
-      const tend = _ => {
+      let tend = _ => {
         this.fab.removeEventListener('transitionend', tend);
         resolve();
       }
@@ -325,7 +325,7 @@ class AudioPlayer extends HTMLElement {
    */
   offScreen() {
     return new Promise(resolve => {
-      const tend = _ => {
+      let tend = _ => {
         this.fab.removeEventListener('transitionend', tend);
         resolve();
       }
@@ -340,19 +340,29 @@ class AudioPlayer extends HTMLElement {
    * @returns {void}
    */
   async minimize() {
-    const bg = qs('#fbg', this.shadowRoot);
-    if (!bg) return;
-    const popup = qs('.popup', this.shadowRoot);
-    if (popup) {
+    const FULLSCREEN_BACKGROUND = qs('#fbg', this.shadowRoot);
+    if (!FULLSCREEN_BACKGROUND) return;
+    const PLAYLIST_POPUP = qs('.popup', this.shadowRoot);
+    let headerButtons;
+    if (qs('audiosync-pages').getAttribute('selected') === '0') {
+      headerButtons = qsa('.music');
+    } else {
+      headerButtons = qsa('.podcast');
+    }
+    if (PLAYLIST_POPUP) {
       qs('img', this.shadowRoot).style.removeProperty('filter');
-      await animateElement(popup, 'scale3d(0,0,0)', 100);
-      popup.remove();
+      await animateElement(PLAYLIST_POPUP, 'scale3d(0,0,0)', 100);
+      PLAYLIST_POPUP.remove();
     }
     await this.offScreen();
     animateElement(qs('#expand', this.shadowRoot), 'rotate(0deg)', 300);
-    await animateElement(bg, 'translateY(100%)', 300);
+    headerButtons.forEach(el => {
+      el.style.removeProperty('display');
+      fadeIn(el);
+    });
+    await animateElement(FULLSCREEN_BACKGROUND, 'translateY(100%)', 300);
     await sleep(100);
-    bg.remove();
+    FULLSCREEN_BACKGROUND.remove();
     this.removeAttribute('fullscreen');
   }
 
@@ -369,80 +379,85 @@ class AudioPlayer extends HTMLElement {
     animateElement(qs('#expand', this.shadowRoot), 'rotate(180deg)', 300);
 
     // art
-    const img = ce('img');
-    img.id = 'fsart';
-    img.src = this.art;
+    const IMG = ce('img');
+    IMG.id = 'fsart';
+    IMG.src = this.art;
 
-    const imgwrapper = ce('div');
-    imgwrapper.classList.add('img-wrapper');
-    imgwrapper.appendChild(img);
+    const IMAGE_WRAPPER = ce('div');
+    IMAGE_WRAPPER.classList.add('img-wrapper');
+    IMAGE_WRAPPER.appendChild(IMG);
     
     // background 
-    const bg = ce('div');
-    bg.id = 'fbg';
-    bg.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
+    const FULLSCREEN_BACKGROUND = ce('div');
+    FULLSCREEN_BACKGROUND.id = 'fbg';
+    FULLSCREEN_BACKGROUND.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
 
     // playlist fab
-    const listButton = ce('audiosync-fab');
-    listButton.id = 'playlist';
-    listButton.appendChild(await svgIcon('list'));
-    listButton.onClick(ev => this._playlistPopup(ev));
-    listButton.setAttribute('color', this.palette.fab);
-    listButton.title = 'Playlist';
-    this.fab = listButton;  
+    const PLAYLIST_BUTTON = ce('audiosync-fab');
+    PLAYLIST_BUTTON.id = 'playlist';
+    PLAYLIST_BUTTON.appendChild(await svgIcon('list'));
+    PLAYLIST_BUTTON.onClick(ev => this._playlistPopup(ev));
+    PLAYLIST_BUTTON.setAttribute('color', this.palette.fab);
+    PLAYLIST_BUTTON.title = 'Playlist';
+    this.fab = PLAYLIST_BUTTON;  
 
-    const favButton = ce('audiosync-small-button');
-    favButton.setButtonOpacity = _ => {
+    const FAVORITE_TOGGLE_BUTTON = ce('audiosync-small-button');
+    FAVORITE_TOGGLE_BUTTON.setButtonOpacity = _ => {
       if (this.isFavorite) {
-        favButton.title = 'Unfavorite';
-        favButton.style.opacity = 1;
+        FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
+        FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
       } else {  
-        favButton.title = 'Favorite';
-        favButton.style.opacity = 0.2;
+        FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
+        FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
       }
     };
-    favButton.id = 'favorite';
-    favButton.setButtonOpacity()
-    favButton.appendChild(await svgIcon('favorite'));
-    favButton.setAttribute('color', this.palette.contrast);
-    favButton.onClick(_ => {
+    FAVORITE_TOGGLE_BUTTON.id = 'favorite';
+    FAVORITE_TOGGLE_BUTTON.setButtonOpacity()
+    FAVORITE_TOGGLE_BUTTON.appendChild(await svgIcon('favorite'));
+    FAVORITE_TOGGLE_BUTTON.setAttribute('color', this.palette.contrast);
+    FAVORITE_TOGGLE_BUTTON.onClick(_ => {
       this.isFavorite = !this.isFavorite;
-      favButton.setButtonOpacity();
+      FAVORITE_TOGGLE_BUTTON.setButtonOpacity();
       // pass favorite to library
       this.library.favoriteAlbum(this.artist, this.albumTitle);
     });
     
     // push to dom
     [
-      imgwrapper,
-      listButton,
-      favButton
-    ].forEach(el => bg.appendChild(el));
-    this.shadowRoot.appendChild(bg);
+      FAVORITE_TOGGLE_BUTTON,
+      IMAGE_WRAPPER,
+      PLAYLIST_BUTTON
+    ].forEach(el => FULLSCREEN_BACKGROUND.appendChild(el));
+    this.shadowRoot.appendChild(FULLSCREEN_BACKGROUND);
     
     await sleep(100);
 
-    const postionFab = _ => {
+    let postionFab = _ => {
       let offset = 190;
 
       if (window.innerHeight > 750 && window.innerWidth > 620) offset += 50;
 
       if (window.innerHeight > 850 && window.innerWidth > 720) offset += 50;
 
-      const centerX = elementWidth(bg) / 2;
-      const centerY = elementHeight(bg) / 2;
-      const newPositionX = centerX + offset;
-      const newPositionY = centerY + offset;
+      let centerX = elementWidth(FULLSCREEN_BACKGROUND) / 2;
+      let centerY = elementHeight(FULLSCREEN_BACKGROUND) / 2;
+      let newPositionX = centerX + offset;
+      let newPositionY = centerY + offset;
   
-      listButton.style.left = newPositionX + 'px';
-      listButton.style.top = newPositionY + 'px';
+      PLAYLIST_BUTTON.style.left = newPositionX + 'px';
+      PLAYLIST_BUTTON.style.top = newPositionY + 'px';
     };
 
     postionFab();
     window.addEventListener('resize', _ => postionFab());
 
+    qsa('.music, .podcast').forEach(async el => {
+      await fadeOut(el);
+      el.style.display = 'none';
+    });
+
     // animate onscreen
-    await animateElement(bg, 'translateY(0%)', 300);
+    await animateElement(FULLSCREEN_BACKGROUND, 'translateY(0%)', 300);
     this.toggleAttribute('fullscreen');
     this.onScreen();
   }
@@ -480,8 +495,8 @@ class AudioPlayer extends HTMLElement {
    */
   addToPlaylist(albumInfo) {
     // clone array to prevent album info issue on <music-library>
-    const addedTracks = albumInfo.tracks.slice();
-    addedTracks.forEach(track => this.playlist.push(track));
+    const TRACKS_TO_ADD = albumInfo.tracks.slice();
+    TRACKS_TO_ADD.forEach(track => this.playlist.push(track));
   }
 
   /**
@@ -494,8 +509,8 @@ class AudioPlayer extends HTMLElement {
     if (!this.player.src) return;
 
     // bar may not exist no mini player created until needed
-    const bufferBar = qs('.buffered', this.shadowRoot);
-    if (!bufferBar) return;
+    const BUFFER_BAR = qs('.buffered', this.shadowRoot);
+    if (!BUFFER_BAR) return;
 
     // buffered data
     if (this.player.buffered.length > 0) {
@@ -503,10 +518,10 @@ class AudioPlayer extends HTMLElement {
       for (let i = 0; i < this.player.buffered.length; i++) {
         buffered = Math.max(buffered, this.player.buffered.end(i));
       }
-      const bufferedPercent = (buffered / this.player.duration) * 100;
-      bufferBar.style.transform = `translateX(-${100 - bufferedPercent}%)`;
+      const BUFFERED_PRECENTAGE = (buffered / this.player.duration) * 100;
+      BUFFER_BAR.style.transform = `translateX(-${100 - BUFFERED_PRECENTAGE}%)`;
     } else {
-      bufferBar.style.transform = `translateX(-100%)`;
+      BUFFER_BAR.style.transform = `translateX(-100%)`;
     }
   }
 
@@ -517,11 +532,11 @@ class AudioPlayer extends HTMLElement {
    */
   async _showMini() {
     if (qs('.background', this.shadowRoot)) return;
-    const ui = await this._miniUI();
-    this.shadowRoot.appendChild(ui);
+    const MINI_PLAYER_UI = await this._miniUI();
+    this.shadowRoot.appendChild(MINI_PLAYER_UI);
     await sleep(20);
     this.toggleAttribute('playing');
-    animateElement(ui, 'translateY(0)', 150);
+    animateElement(MINI_PLAYER_UI, 'translateY(0)', 150);
   }
 
   /**
@@ -531,34 +546,34 @@ class AudioPlayer extends HTMLElement {
    */
   async _miniUI() {
     // play progress bar
-    const progress = ce('div');
-    progress.classList.add('progress');
+    const PROGRESS_BAR = ce('div');
+    PROGRESS_BAR.classList.add('progress');
  
     // buffered amount bar
-    const buff = ce('div');
-    buff.classList.add('buffered');
+    const BUFFER_BAR = ce('div');
+    BUFFER_BAR.classList.add('buffered');
 
     // click location for scrobbeling through a track **broken on windows**
-    const clickStrip = ce('div');
-    clickStrip.classList.add('click-strip');
-    clickStrip.addEventListener('click', e => {
+    const CLICK_STRIP = ce('div');
+    CLICK_STRIP.classList.add('click-strip');
+    CLICK_STRIP.addEventListener('click', e => {
       // time left
-      const duration = this.player.duration;
+      const DURATION = this.player.duration;
       // window data
-      const rect = clickStrip.getBoundingClientRect();
+      const RECT = CLICK_STRIP.getBoundingClientRect();
       // click x
-      const relativeX = e.clientX - rect.left;
+      const RELATIVEX = e.clientX - RECT.left;
       // time in seconds to set player.currentTime
-      const newPosition = (relativeX / rect.width) * duration;
+      const NEW_POSITION = (RELATIVEX / RECT.width) * DURATION;
       // set time
-      this.player.currentTime = newPosition;
+      this.player.currentTime = NEW_POSITION;
     });
 
     // fullscreen toggle
-    const fsButton = ce('audiosync-small-button');
-    fsButton.id = 'expand';
-    fsButton.appendChild(await svgIcon('expand'));
-    fsButton.onClick(_ => {
+    const FULLSCREEN_TOGGLE_BUTTON = ce('audiosync-small-button');
+    FULLSCREEN_TOGGLE_BUTTON.id = 'expand';
+    FULLSCREEN_TOGGLE_BUTTON.appendChild(await svgIcon('expand'));
+    FULLSCREEN_TOGGLE_BUTTON.onClick(_ => {
       if (this.hasAttribute('fullscreen')) {
         this.minimize();
         return;
@@ -567,11 +582,11 @@ class AudioPlayer extends HTMLElement {
     });
 
     // previous track button 
-    const back = ce('audiosync-small-button');
-    back.id = 'back';
-    back.style.display = 'none';
-    back.appendChild(await svgIcon('previous'));
-    back.onClick(_ => {
+    const PREVIOUS_TRACK_BUTTON = ce('audiosync-small-button');
+    PREVIOUS_TRACK_BUTTON.id = 'back';
+    PREVIOUS_TRACK_BUTTON.style.display = 'none';
+    PREVIOUS_TRACK_BUTTON.appendChild(await svgIcon('previous'));
+    PREVIOUS_TRACK_BUTTON.onClick(_ => {
       // block back if beginning of playlist
       if (this.playing <= 0) return;
       // incriment this.playing index
@@ -581,14 +596,14 @@ class AudioPlayer extends HTMLElement {
     });
     
 
-    const playIcon = await svgIcon('pause');
-    qs('path', playIcon).id = 'playIcon';
+    const PLAY_PAUSE_ICON = await svgIcon('pause');
+    qs('path', PLAY_PAUSE_ICON).id = 'playIcon';
 
     // play button
-    const play = ce('audiosync-small-button');
-    play.id = 'play';
-    play.appendChild(playIcon);
-    play.onClick(_ => {
+    const PLAY_PAUSE_BUTTON = ce('audiosync-small-button');
+    PLAY_PAUSE_BUTTON.id = 'play';
+    PLAY_PAUSE_BUTTON.appendChild(PLAY_PAUSE_ICON);
+    PLAY_PAUSE_BUTTON.onClick(_ => {
       // toggle playback
       if (this.player.paused) {
         this.player.play();
@@ -598,10 +613,10 @@ class AudioPlayer extends HTMLElement {
     });
 
     // next track button
-    const next = ce('audiosync-small-button');
-    next.id = 'next';
-    next.appendChild(await svgIcon('next'));
-    next.onClick(_ => {
+    const NEXT_TRACK_BUTTON = ce('audiosync-small-button');
+    NEXT_TRACK_BUTTON.id = 'next';
+    NEXT_TRACK_BUTTON.appendChild(await svgIcon('next'));
+    NEXT_TRACK_BUTTON.onClick(_ => {
       // block next if end of playlist
       if (this.playing >= this.playlist.length) return;
       // incriment this.playing index
@@ -611,30 +626,30 @@ class AudioPlayer extends HTMLElement {
     });
 
     // elapsed time
-    const duration = ce('div');
-    duration.id = 'duration';
-    duration.addEventListener('click', _ => this.elapsedTime = !this.elapsedTime);
+    const DURATION_TEXT = ce('div');
+    DURATION_TEXT.id = 'duration';
+    DURATION_TEXT.addEventListener('click', _ => this.elapsedTime = !this.elapsedTime);
 
     // artist / title
-    const info = ce('div');
-    info.id = 'info';
-    info.textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
+    const CURRENTLY_PLAYING_TEXT = ce('div');
+    CURRENTLY_PLAYING_TEXT.id = 'info';
+    CURRENTLY_PLAYING_TEXT.textContent = `${this.playlist[this.playing].artist} - ${this.playlist[this.playing].title}`;
 
     // mini player UI background
-    const bg = ce('div');
-    bg.classList.add('background');
+    const MINI_PLAYER_UI_BACKGROUND = ce('div');
+    MINI_PLAYER_UI_BACKGROUND.classList.add('background');
     [
-      clickStrip,
-      buff,
-      progress,
-      fsButton,
-      info,
-      duration,
-      back,
-      play,
-      next
-    ].forEach(el => bg.appendChild(el));
-    return bg;
+      CLICK_STRIP,
+      BUFFER_BAR,
+      PROGRESS_BAR,
+      FULLSCREEN_TOGGLE_BUTTON,
+      CURRENTLY_PLAYING_TEXT,
+      DURATION_TEXT,
+      PREVIOUS_TRACK_BUTTON,
+      PLAY_PAUSE_BUTTON,
+      NEXT_TRACK_BUTTON
+    ].forEach(el => MINI_PLAYER_UI_BACKGROUND.appendChild(el));
+    return MINI_PLAYER_UI_BACKGROUND;
   }
 
   /**
@@ -644,30 +659,30 @@ class AudioPlayer extends HTMLElement {
     // update playlist UI 
     this._updatePlaylistUI();
 
-    const nowplaying = this.playlist[this.playing];
+    const NOW_PLAYING = this.playlist[this.playing];
 
-    this.artist = nowplaying.artist;
-    this.albumTitle = nowplaying.album;
+    this.artist = NOW_PLAYING.artist;
+    this.albumTitle = NOW_PLAYING.album;
     this.isFavorite = qs(`[data-artist="${this.artist}"][data-album="${this.albumTitle}"]`, qs('music-library').shadowRoot).hasAttribute('favorite');
-    this.art = nowplaying.art;
+    this.art = NOW_PLAYING.art;
 
     // cache art also sets opacity of favorite button to indicate favorite status
     this._cacheImage(this.art);
 
-    const playingArt = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
-    if (playingArt) playingArt.src = this.art;
+    const PLAYING_ART = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
+    if (PLAYING_ART) PLAYING_ART.src = this.art;
 
-    const info = qs('#info', this.shadowRoot);
-    if (info) info.textContent = `${nowplaying.artist} - ${nowplaying.title}`;
+    const INFO = qs('#info', this.shadowRoot);
+    if (INFO) INFO.textContent = `${NOW_PLAYING.artist} - ${NOW_PLAYING.title}`;
     
     // set src
-    this.player.src = nowplaying.path;
+    this.player.src = NOW_PLAYING.path;
     // load and play the file
     this.player.load();
     this.player.play();
 
     // update library UI
-    this.library.nowPlaying(nowplaying);
+    this.library.nowPlaying(NOW_PLAYING);
   }
 
   /**
@@ -679,72 +694,58 @@ class AudioPlayer extends HTMLElement {
     if (qs('.popup', this.shadowRoot)) return;
 
     // create playlist popup
-    const popup = ce('div');
-    popup.classList.add('popup');
+    const POPUP = ce('div');
+    POPUP.classList.add('popup');
     for (let i = 0; i < this.playlist.length; i++) {
-      const div = ce('div');
-      div.classList.add('track');
+      const TRACK_WRAPPER = ce('div');
+      TRACK_WRAPPER.classList.add('track');
       if (this.playing === i) {
-        div.toggleAttribute('playing');
+        TRACK_WRAPPER.toggleAttribute('playing');
       }
       // track number
-      const tnum = ce('div');
-      tnum.textContent = this.playlist[i].track;
+      const TRACK_NUMBER = ce('div');
+      TRACK_NUMBER.textContent = this.playlist[i].track;
       // track title
-      const ttitle = ce('div');
-      ttitle.textContent = this.playlist[i].title;
+      const TRACK_TITLE = ce('div');
+      TRACK_TITLE.textContent = this.playlist[i].title;
       [
-        tnum,
-        ttitle
-      ].forEach(el => div.appendChild(el));
+        TRACK_NUMBER,
+        TRACK_TITLE
+      ].forEach(el => TRACK_WRAPPER.appendChild(el));
 
       // clicked on a track in playlist
-      div.addEventListener('click', eve => {
+      TRACK_WRAPPER.addEventListener('click', eve => {
         if (i === this.playing) return;
         createRipple(eve)
         this.playing = i;
         this._changeSrc();
       }); 
-      popup.appendChild(div);
+      POPUP.appendChild(TRACK_WRAPPER);
     }
 
     // push to DOM
-    const bg = qs('#fbg', this.shadowRoot);
-    bg.appendChild(popup);
+    const FULLSCREEN_BACKGROUND = qs('#fbg', this.shadowRoot);
+    FULLSCREEN_BACKGROUND.appendChild(POPUP);
     await sleep(100);
 
-    
     // animate into view
-    await animateElement(popup, 'scale3d(1,1,1)', 150);
+    await animateElement(POPUP, 'scale3d(1,1,1)', 150);
     qs('img', this.shadowRoot).style.filter = 'blur(10px)';
 
     // close and remove popup
-    const clicked = async _ => {
+    const ELEMENT_CLICKED = async _ => {
       qs('img', this.shadowRoot).style.removeProperty('filter');
-      await animateElement(popup, 'scale3d(0,0,0)', 150);
-      popup.remove();
+      await animateElement(POPUP, 'scale3d(0,0,0)', 150);
+      await sleep(500);
+      POPUP.remove();
     };
     // popup.addEventListener('mouseleave', clicked);
-    bg.addEventListener('click', clicked);
+    FULLSCREEN_BACKGROUND.addEventListener('click', ELEMENT_CLICKED);
     await sleep(50);
 
     // ensure currently playing is in view
-    const playing = qs('div[playing]', popup);
-    playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-
-  /**
-   * 
-   * 
-   * @returns {void}
-   */
-  _cacheNext() {
-    const nextndx = this.playing + 1
-    if (nextndx > this.playlist.length - 1 || this.caching || !this.playlist[nextndx]) return;
-    this.caching = true;
-    const nextaudio = new Audio();
-    nextaudio.preload = true;
-    nextaudio.src = this.playlist[nextndx].path;
+    const PLAYING = qs('div[playing]', POPUP);
+    PLAYING.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
@@ -753,20 +754,57 @@ class AudioPlayer extends HTMLElement {
    * @returns {void}
    */
   async _updatePlaylistUI() {
-    const popup = qs('.popup', this.shadowRoot);
-    if (!popup) return;
-    const divs = qsa('.track', popup);
-    divs.forEach(div => div.removeAttribute('playing'));
+    const POPUP = qs('.popup', this.shadowRoot);
+    if (!POPUP) return;
+    const DIVS = qsa('.track', POPUP);
+    DIVS.forEach(div => div.removeAttribute('playing'));
     await sleep(100);
-    divs[this.playing].toggleAttribute('playing');
-    divs[this.playing].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    DIVS[this.playing].toggleAttribute('playing');
+    DIVS[this.playing].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
+  /**
+   * detect if color is grey 
+   * 
+   * @param {Number} r 
+   * @param {Number} g 
+   * @param {Number} b 
+   * 
+   * @returns {Boolean}
+   */
   _isGrey(r, g, b) {
-    // Check if RGB values are approximately equal
-    const threshold = 15; // Adjust as needed
-    return Math.abs(r - g) < threshold && Math.abs(r - b) < threshold && Math.abs(g - b) < threshold;
+    const THRESHOLD = 15;
+    return Math.abs(r - g) < THRESHOLD && Math.abs(r - b) < THRESHOLD && Math.abs(g - b) < THRESHOLD;
   }
+
+  /**
+   * brightness value 1 white 0 black
+   * 
+   * @param {Number} r 
+   * @param {Number} g 
+   * @param {Number} b
+   *  
+   * @returns {Number}
+   */
+  _getLuminence(r,g,b) {
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  }
+
+  /**
+   * trim  a file path to name only
+   * 
+   * @param {String} filePath 
+   * @returns {String}
+   */
+  _getFilenameWithoutExtension(filePath) {
+    const PARTS = filePath.split('/');
+    const FILENAME_WITH_EXTENTION = PARTS.pop();
+    const LAST_DOT_POSITION = FILENAME_WITH_EXTENTION.lastIndexOf('.');
+    if (LAST_DOT_POSITION === -1) {
+        return FILENAME_WITH_EXTENTION;
+    }
+    return FILENAME_WITH_EXTENTION.substring(0, LAST_DOT_POSITION);
+}
 
   /**
    * loads an image and gets a palette from the image
@@ -775,81 +813,96 @@ class AudioPlayer extends HTMLElement {
    */
   _cacheImage(url) {
     // cache image & color;
-    const img = ce('img');
-    img.src = url;
-    img.onload = _ => {
-      const thief = new ColorThief();
-      const c = thief.getPalette(img, 15);
+    const IMG = ce('img');
+    IMG.src = url;
+    IMG.onload = _ => {
+      const THIEF = new ColorThief();
+      const STOLEN_PALETTE = THIEF.getPalette(IMG);
 
-      // default to the first color in returned palette
-      let r = c[0][0];
-      let g = c[0][1];
-      let b = c[0][2];
+      // safe range where should look decent in either dark or light mode
+      let brightnessLimit = 0.7; 
+      let darknessLimit = 0.3;
+      
+      // default color index values
+      let popNdx = 0;
+      let topNdx = 1;
 
-      // for selecting top color for gradient
-      const topNdx = 1;
-
+      // find a color for top of gradient
+      for (let i = 1; i < STOLEN_PALETTE.length; i++) {
+        let r = STOLEN_PALETTE[i][0];
+        let g = STOLEN_PALETTE[i][1];
+        let b = STOLEN_PALETTE[i][2];
+        const LUMINENCE = this._getLuminence(r,g,b);
+        const IS_GREY = this._isGrey(r,g,b);
+        if (!IS_GREY && LUMINENCE < brightnessLimit && LUMINENCE > darknessLimit) {
+          topNdx = i;
+          break;
+        }
+      }
+      
       // loop through colors for goldie locks color to use for --pop-color
-      for (let i = 0; i < c.length; i++) {
+      for (let i = 0; i < STOLEN_PALETTE.length; i++) {
+        let r = STOLEN_PALETTE[i][0];
+        let g = STOLEN_PALETTE[i][1];
+        let b = STOLEN_PALETTE[i][2];
         if (i !== topNdx) {
-          const luminence = (0.2126 * c[i][0] + 0.7152 * c[i][1] + 0.0722 * c[i][2]) / 255;
-          if (!this._isGrey(c[i][0], c[i][2], c[i][2]) && luminence < 0.7 && luminence > 0.3) {
-            r = c[i][0];
-            g = c[i][1]; 
-            b = c[i][2];
-            console.log(r,g,b,i);
+          const LUMINENCE = this._getLuminence(r,g,b);
+          const IS_GREY = this._isGrey(r,g,b);
+          if (!IS_GREY && LUMINENCE < brightnessLimit && LUMINENCE > darknessLimit) {
+            popNdx = i;
             break;
           }
         }
       }
 
-      // rgb value string
-      const rgbstring = `${c[topNdx][0]},${c[topNdx][1]},${c[topNdx][2]}`;
-
-      // hex value
-      const hex = convertToHex(`rgb(${rgbstring})`);
+      // --pop-color rgb string
+      const POP_RGB_STRING = `${STOLEN_PALETTE[popNdx][0]},${STOLEN_PALETTE[popNdx][1]},${STOLEN_PALETTE[popNdx][2]}`;
+      const TOP_RGB_STRING = `${STOLEN_PALETTE[topNdx][0]},${STOLEN_PALETTE[topNdx][1]},${STOLEN_PALETTE[topNdx][2]}`;
+      
+      // gradient top color in hex value 
+      const HEX = convertToHex(`rgb(${TOP_RGB_STRING})`);
 
       // color palette
       this.palette = {
-        fab: `rgb(${r},${g},${b})`, // fab / accent color
-        variable: `${r},${g},${b}`, // for css variable avaliable @ --pop-color
-        top: `rgb(${rgbstring})`, // player art gradient top color
+        fab: `rgb(${POP_RGB_STRING})`, // fab / accent color
+        variable: `${POP_RGB_STRING}`, // for css variable avaliable @ --pop-color
+        top: `rgb(${TOP_RGB_STRING})`, // player art gradient top color
         bottom: `var(--background-color)`, // player bg gradient bottom color
-        contrast: getContrastColor(hex) // contrasting color to color used on buttons at top of gradient
+        contrast: getContrastColor(HEX) // contrasting color to color used on buttons at top of gradient
       };
 
       // fullscreen player element
-      const fullscreen = qs('#fbg', this.shadowRoot);
+      const FULLSCREEN = qs('#fbg', this.shadowRoot);
 
       // update colors if fullscreen
-      if (fullscreen) {
+      if (FULLSCREEN) {
 
         // set colors for gradient
-        fullscreen.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
+        FULLSCREEN.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
         
         // set action button color
-        qs('audiosync-fab', fullscreen).setAttribute('color', this.palette.fab);
+        qs('audiosync-fab', FULLSCREEN).setAttribute('color', this.palette.fab);
         
         // favorite button
-        const favButton = qs('#favorite', fullscreen);
-        favButton.setAttribute('color', this.palette.contrast);
+        const FAVORITE_BUTTON = qs('#favorite', FULLSCREEN);
+        FAVORITE_BUTTON.setAttribute('color', this.palette.contrast);
         if (this.isFavorite) {
-          favButton.title = 'Unfavorite';
-          favButton.style.opacity = 1;
+          FAVORITE_BUTTON.title = 'Unfavorite';
+          FAVORITE_BUTTON.style.opacity = 1;
         } else { 
-          favButton.title = 'Favorite';
-          favButton.style.opacity = 0.2;
+          FAVORITE_BUTTON.title = 'Favorite';
+          FAVORITE_BUTTON.style.opacity = 0.2;
         }
       }
 
       // fire event to update app ui element with new color
-      const ev = new CustomEvent('image-loaded', {
+      const EV = new CustomEvent('image-loaded', {
         detail:{palette: this.palette}
       });
-      this.dispatchEvent(ev);
+      this.dispatchEvent(EV);
 
       // destroy img element.  URL cached additional <img> elements with this url should load instant
-      img.remove();
+      IMG.remove();
       // maybe im wrong /shrug it seems to work
     };
   }
@@ -870,9 +923,9 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   _onDurationChange(ev) {
-    const bar = qs('.progress', this.shadowRoot);
-    if (!bar) return;
-    bar.style.transform = `translateX(-100%)`;
+    const BAR = qs('.progress', this.shadowRoot);
+    if (!BAR) return;
+    BAR.style.transform = `translateX(-100%)`;
   }
 
   /**
@@ -883,41 +936,41 @@ class AudioPlayer extends HTMLElement {
    */
   _onTime(ev) {
     // hide / show previous button 
-    const back = qs('#back', this.shadowRoot);
-    if (back) {
+    const BACK = qs('#back', this.shadowRoot);
+    if (BACK) {
       if (!this.playlist[this.playing - 1]) {
-        back.style.display = 'none';
+        BACK.style.display = 'none';
       } else {
-        back.style.removeProperty('display');
+        BACK.style.removeProperty('display');
       }
     }
 
     // hide / show next button
-    const next = qs('#next', this.shadowRoot);
-    if (next) {
+    const NEXT = qs('#next', this.shadowRoot);
+    if (NEXT) {
       if (!this.playlist[this.playing + 1]) {
-        next.style.display = 'none';
+        NEXT.style.display = 'none';
       } else {
-        next.style.removeProperty('display');
+        NEXT.style.removeProperty('display');
       }
     }
 
-    const player = ev.target;
-    const ct = player.currentTime;
-    const duration = player.duration - ct;
-    const mins = Math.floor(ct / 60);
-    const secs = Math.floor(ct % 60).toString().padStart(2, '0');
-    const progress = (ct / player.duration) * 100;
-    const progBar = qs('.progress', this.shadowRoot);
-    const durationtext = qs('#duration', this.shadowRoot);
+    const PLAYER = ev.target;
+    const CT = PLAYER.currentTime;
+    const DURATION = PLAYER.duration - CT;
+    const MINS = Math.floor(CT / 60);
+    const SECS = Math.floor(CT % 60).toString().padStart(2, '0');
+    const PROGRESS = (CT / PLAYER.duration) * 100;
+    const PROGRESS_BAR = qs('.progress', this.shadowRoot);
+    const DURATION_TEXT = qs('#duration', this.shadowRoot);
     // if (duration < 100) this._cacheNext();
-    if (progBar) progBar.style.transform = `translateX(-${100 - progress}%)`;
+    if (PROGRESS_BAR) PROGRESS_BAR.style.transform = `translateX(-${100 - PROGRESS}%)`;
     if (!this.elapsedTime) {
-      const dmins = Math.floor(duration / 60);
-      const dsecs = Math.floor(duration % 60).toString().padStart(2, '0');
-      if (durationtext) durationtext.textContent = `${dmins}:${dsecs}`;
+      const DMINS = Math.floor(DURATION / 60);
+      const DSECS = Math.floor(DURATION % 60).toString().padStart(2, '0');
+      if (DURATION_TEXT) DURATION_TEXT.textContent = `${DMINS}:${DSECS}`;
     } else {
-      if (durationtext) durationtext.textContent = `${mins}:${secs}`;
+      if (DURATION_TEXT) DURATION_TEXT.textContent = `${MINS}:${SECS}`;
     }
   }
 
@@ -945,7 +998,6 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onEnd(ev) {
-    this.caching = false;
     // check if end if playlist
     if (!this.playlist[this.playing + 1]) {
       this._pauseTimeOut();
@@ -974,9 +1026,9 @@ class AudioPlayer extends HTMLElement {
   async _pauseTimeOut() {
     this.library.nowPlaying();
     await this.minimize();
-    const bg = qs('.background', this.shadowRoot);
-    await animateElement(bg, 'translateY(100%)', 150);
-    bg.remove();
+    const MINI_PLAYER_UI = qs('.background', this.shadowRoot);
+    await animateElement(MINI_PLAYER_UI, 'translateY(100%)', 150);
+    MINI_PLAYER_UI.remove();
     this.removeAttribute('playing');
     this.player.src = '';
     this.playlist = [];
@@ -989,10 +1041,10 @@ class AudioPlayer extends HTMLElement {
    * @returns {Promise}
    */
   async _onPause() {
-    const icon = qs('#playIcon', qs('#play', this.shadowRoot));
+    const ICON = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
-    if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
-    icon.setAttribute('d', this.playIcon);
+    if (ICON.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
+    ICON.setAttribute('d', this.playIcon);
     this._pauseTimer = setTimeout(this._pauseTimeOut, 30000)
   }
 
@@ -1002,10 +1054,10 @@ class AudioPlayer extends HTMLElement {
    * @param {Event} ev 
    */
   _onPlaying(ev) {
-    const icon = qs('#playIcon', qs('#play', this.shadowRoot));
+    const ICON = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
-    if (icon.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
-    icon.setAttribute('d', this.pauseIcon);
+    if (ICON.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
+    ICON.setAttribute('d', this.pauseIcon);
   }
 
   /**
@@ -1015,7 +1067,7 @@ class AudioPlayer extends HTMLElement {
    */
   _onStalled(ev) {
     // error notification toast and close player window
-    // console.log(ev, this.player);
+    // console.log(ev);
   }
 
   /**
@@ -1025,7 +1077,7 @@ class AudioPlayer extends HTMLElement {
    */
   _onWaiting(ev) {
     // some kind of loading animation
-    // console.log(ev, this.player);
+    console.log(ev);
   }
 }
 customElements.define('audiosync-player', AudioPlayer);

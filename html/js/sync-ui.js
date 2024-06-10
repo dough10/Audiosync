@@ -7,7 +7,7 @@ class SyncUI extends HTMLElement {
   constructor() {
     super();
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".console-output": {
         height: "150px",
         "font-size": "15px",
@@ -35,12 +35,12 @@ class SyncUI extends HTMLElement {
 
     this.syncing = false;
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this._closeDialog = this._closeDialog.bind(this);
 
-    const bars = [
+    const PROGRESS_BAR_LIST = [
       {id:"files", text: "Copying Files"},
       {id:"podcasts", text: "Copying Podcasts"},
       {id:"playlists", text: "Creating Playlists"}
@@ -66,22 +66,22 @@ class SyncUI extends HTMLElement {
     this.dialog.blocker.addEventListener('click', _ => this.dialog.close());
 
     // style the dialog wider the normal 
-    const dstyles = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
-    dstyles[".dialog"]['min-width'] = '445px';
-    qs('style', this.dialog.shadowRoot).textContent = objectToCSS(dstyles);
+    const DIALOG_STYLES = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
+    DIALOG_STYLES[".dialog"]['min-width'] = '445px';
+    qs('style', this.dialog.shadowRoot).textContent = objectToCSS(DIALOG_STYLES);
 
     [
       this.output,
-      this._progressBar(bars[0]),
-      this._progressBar(bars[1]),
-      this._progressBar(bars[2]),
+      this._progressBar(PROGRESS_BAR_LIST[0]),
+      this._progressBar(PROGRESS_BAR_LIST[1]),
+      this._progressBar(PROGRESS_BAR_LIST[2]),
       this.summary,
       this.button
     ].forEach(el => this.dialog.appendChild(el));
 
     const shadow = this.attachShadow({mode: "open"});
     [
-      sheet,
+      ELEMENT_STYLES,
       this.dialog
     ].forEach(el => shadow.appendChild(el));
   }
@@ -94,20 +94,20 @@ class SyncUI extends HTMLElement {
    * @returns {HTMLElement} 
    */
   _progressBar(obj) {
-    const label = ce('div');
-    label.textContent = obj.text;
+    const LABEL = ce('div');
+    LABEL.textContent = obj.text;
 
-    const percent = ce('div');
-    percent.textContent = '0%';
-    percent.id = `${obj.id}-bar-text`;
+    const PERCENT_TEXT = ce('div');
+    PERCENT_TEXT.textContent = '0%';
+    PERCENT_TEXT.id = `${obj.id}-bar-text`;
 
-    const bar = ce('audiosync-progress');
-    bar.id = `${obj.id}-bar`;
+    const PROGRESS_BAR_ELEMENT = ce('audiosync-progress');
+    PROGRESS_BAR_ELEMENT.id = `${obj.id}-bar`;
     [
-      label,
-      percent
-    ].forEach(el => bar.appendChild(el));
-    return bar;
+      LABEL,
+      PERCENT_TEXT
+    ].forEach(el => PROGRESS_BAR_ELEMENT.appendChild(el));
+    return PROGRESS_BAR_ELEMENT;
   }
 
   /**
@@ -146,29 +146,27 @@ class SyncUI extends HTMLElement {
     let values = {};
     
     // Query all elements with class "audiosync-progress" within the shadow root
-    const progressElements = Array.from(qsa('audiosync-progress', this.shadowRoot));
+    const PROGRESS_ELEMENTS = Array.from(qsa('audiosync-progress', this.shadowRoot));
     
     // Function to calculate and print average percent
-    const printAveragePercent = () => {
-      const visibleProgressElements = progressElements.filter(el => el.style.display !== 'none');
-      const totalPercent = Object.values(values).reduce((acc, percent) => acc + percent, 0);
+    const PRINT_AVERAGE_PERCENTAGE = () => {
+      const VISIBLE_PROGRESS_ELEMENTS = PROGRESS_ELEMENTS.filter(el => el.style.display !== 'none');
+      const TOTAL_PERCENTAGE = Object.values(values).reduce((acc, percent) => acc + percent, 0);
       
       const ev = new CustomEvent('total-progress', {
-        detail:{percent: (totalPercent / visibleProgressElements.length)}
+        detail:{percent: (TOTAL_PERCENTAGE / VISIBLE_PROGRESS_ELEMENTS.length)}
       });
       this.dispatchEvent(ev);
     };
     
     // Event listener for "percent-changed" event
-    const percentChangedHandler = (e) => {
+    const PERCENT_CHANGED = (e) => {
       values[e.detail.id] = e.detail.percent;
-      printAveragePercent();
+      PRINT_AVERAGE_PERCENTAGE();
     };
     
     // Add event listener to each progress element
-    progressElements.forEach(el => {
-      el.addEventListener('percent-changed', percentChangedHandler);
-    });
+    PROGRESS_ELEMENTS.forEach(el => el.addEventListener('percent-changed', PERCENT_CHANGED));
   }
 
   /**
@@ -177,14 +175,14 @@ class SyncUI extends HTMLElement {
    * @param {Object} obj
    */
   async syncUpdate(obj) {
-    const div = ce('div');
-    div.style.opacity = 0;
-    div.textContent = obj.text;
+    const DIV = ce('div');
+    DIV.style.opacity = 0;
+    DIV.textContent = obj.text;
     if (!obj.summary) {
-      this.output.appendChild(div);
+      this.output.appendChild(DIV);
     } else {
       new Toast('Sync Complete');
-      this.summary.appendChild(div);
+      this.summary.appendChild(DIV);
       this.button.removeAttribute('disabled');
     }
     if (obj.toast) {
@@ -193,7 +191,7 @@ class SyncUI extends HTMLElement {
       console.log(obj.text);
     }
     await sleep(10);
-    fadeIn(div, 150);
+    fadeIn(DIV, 150);
   }
 
   /**
@@ -204,9 +202,9 @@ class SyncUI extends HTMLElement {
    * @param {Number} length
    */
   updateBar(name, ndx, length) {
-    const percent = ((ndx + 1) / length) * 100;
-    qs(name, this.shadowRoot).setAttribute('percent', percent);
-    qs(`${name}-text`, this.shadowRoot).textContent = percent.toFixed(1) + '%';
+    const PERCENT = ((ndx + 1) / length) * 100;
+    qs(name, this.shadowRoot).setAttribute('percent', PERCENT);
+    qs(`${name}-text`, this.shadowRoot).textContent = PERCENT.toFixed(1) + '%';
   }
 
   /**
@@ -232,6 +230,7 @@ class SyncUI extends HTMLElement {
       qs(id, this.shadowRoot).setAttribute('percent', 0);
       qs(`${id}-text`, this.shadowRoot).textContent = '0%';
     });
+    qs('#scan').removeAttribute('disabled');
   }
 }
 customElements.define('sync-ui', SyncUI);

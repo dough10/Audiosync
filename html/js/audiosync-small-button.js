@@ -8,7 +8,7 @@ class SmallButton extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".small-button": {
         padding: "8px",
         cursor: "pointer",
@@ -38,14 +38,14 @@ class SmallButton extends HTMLElement {
       }
     };
 
-    const style = ce('style');
-    style.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.button = ce('div');
     this.button.classList.add('small-button');
     this.button.appendChild(ce('slot'));
     [
-      style,
+      ELEMENT_STYLES,
       this.button
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
@@ -54,12 +54,13 @@ class SmallButton extends HTMLElement {
    * element connected to DOM
    */
   connectedCallback() {
-    // const textColor = convertToHex(window.getComputedStyle(this.button).color); 
-    // this._color(textColor);
-    this.button.addEventListener('click', e => {
+    const ELEMENT_CLICKED = e => {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
-    });
+    };
+    const TEXT_COLOR = convertToHex(window.getComputedStyle(this.button).color); 
+    this._color(TEXT_COLOR);
+    this.button.addEventListener('click', ELEMENT_CLICKED);
   }
 
   /**
@@ -69,18 +70,18 @@ class SmallButton extends HTMLElement {
    */
   async _color(color) {
     //  capture styles
-    const styles = parseCSS(qs('style', this.shadowRoot).textContent);
+    const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
 
-    const hex = convertToHex(color);
+    const HEX_COLOR = convertToHex(color);
 
     // create / update css styles
-    styles['.new-color'] = {
-      'color': hex
+    ELEMENT_STYLES['.new-color'] = {
+      'color': HEX_COLOR
     };
-    styles['.ripple-effect'].background = hexToRgba(hex);
+    ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(HEX_COLOR);
 
     // apply styles
-    qs('style', this.shadowRoot).textContent = objectToCSS(styles);
+    qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES);
     this.button.classList.add('new-color');
   }
 
@@ -90,10 +91,11 @@ class SmallButton extends HTMLElement {
    * @param {Function} cb callback function
    */
   onClick(cb) {
-    this.button.addEventListener('click', e => {
+    const CALLBACK = e => {
       if (this.hasAttribute('disabled')) return;
       cb(e);
-    });
+    }
+    this.button.addEventListener('click', CALLBACK);
   }
 
   /**

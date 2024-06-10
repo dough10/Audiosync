@@ -12,7 +12,7 @@ class AudioSyncDialog extends HTMLElement {
 
     this.close = this.close.bind(this);
 
-    const cssObj = {
+    const CSS_OBJECT = {
       "#click-blocker": {
         position: "absolute",
         top: 0,
@@ -50,8 +50,8 @@ class AudioSyncDialog extends HTMLElement {
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.blocker = ce('div');
     this.blocker.id = 'click-blocker';
@@ -65,24 +65,20 @@ class AudioSyncDialog extends HTMLElement {
     
     this.attachShadow({mode: "open"});
     [
-      sheet,
+      ELEMENT_STYLES,
       this.blocker,
       this.dialog
     ].forEach(el => this.shadowRoot.appendChild(el));
-  }
-
-  setOrigin(x,y) {
-    this.dialog.style.transformOrigin = `${x}px ${y}px`;
   }
 
   /**
    * open the dialog
    */
   async open() {
-    const otend = _ => {
-      this.dialog.removeEventListener('transitionend', otend);
+    const OPEN_END = _ => {
+      this.dialog.removeEventListener('transitionend', OPEN_END);
     };
-    this.dialog.addEventListener('transitionend', otend);
+    this.dialog.addEventListener('transitionend', OPEN_END);
     requestAnimationFrame(_ => {
       this.dialog.classList.add('open');
       this.blocker.classList.remove('allow-clicks');
@@ -94,11 +90,11 @@ class AudioSyncDialog extends HTMLElement {
    * close the dialog
    */
   async close() {
-    const ctend = _ => {
-      this.dialog.removeEventListener('transitionend', ctend);
+    const CLOSE_END = _ => {
+      this.dialog.removeEventListener('transitionend', CLOSE_END);
       this.blocker.style.display = 'none';
     };
-    this.dialog.addEventListener('transitionend', ctend);
+    this.dialog.addEventListener('transitionend', CLOSE_END);
     requestAnimationFrame(_ => {
       this.dialog.classList.remove('open');
       this.blocker.classList.add('allow-clicks');
@@ -114,13 +110,13 @@ class AudioSyncDialog extends HTMLElement {
    */
   attributeChangedCallback(name, oldVal, newVal) {
     if (this.hasAttribute('nopad')) {
-      const styles = parseCSS(qs('style', this.shadowRoot).textContent);
-      styles['.dialog'].padding = 0;
-      qs('style', this.shadowRoot).textContent = objectToCSS(styles); 
+      const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
+      ELEMENT_STYLES['.dialog'].padding = 0;
+      qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES); 
     } else {
-      const styles = parseCSS(qs('style', this.shadowRoot).textContent);
-      styles['.dialog'].padding = '24px';
-      qs('style', this.shadowRoot).textContent = objectToCSS(styles); 
+      const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
+      ELEMENT_STYLES['.dialog'].padding = '24px';
+      qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES); 
     }
   }
 }

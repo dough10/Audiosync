@@ -10,18 +10,18 @@ class AudioSyncButton extends HTMLElement {
 
     // color higherarchy 
     // color attribute > css '--pop-color' variable > white
-    const color = convertToHex(this.getAttribute('color') || getCSSVariableValue('--pop-color') || '#ffffff');
+    const COLOR = convertToHex(this.getAttribute('color') || getCSSVariableValue('--pop-color') || 'var(--main-color)');
     
     // contrasting text color 
-    const contrast = getContrastColor(color);
+    const CONTRAST_COLOR = getContrastColor(COLOR);
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".button": {
         display: "inline-flex",
         "min-width": "5.14em",
         margin: "0.29em 0.29em",
-        color: contrast,
-        "background-color": color,
+        color: CONTRAST_COLOR,
+        "background-color": COLOR,
         "text-align": "center",
         "text-transform": "uppercase",
         "outline-width": 0,
@@ -88,20 +88,20 @@ class AudioSyncButton extends HTMLElement {
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
-        background: hexToRgba(contrast),
+        background: hexToRgba(CONTRAST_COLOR),
         animation: "ripple-animation 0.7s linear"
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.button = ce('div');
     this.button.classList.add('button');
     this.button.appendChild(ce('slot'));
     
     [
-      sheet,
+      ELEMENT_STYLES,
       this.button
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
@@ -127,37 +127,37 @@ class AudioSyncButton extends HTMLElement {
      */
 
     // defaults to 'document'
-    let styleNode = qs('style');
+    let STYLE_NODE = qs('style');
 
     // for <music-library> initial scan
     if (qs('style', this.parentNode.parentNode.parentNode)) {
-      styleNode = qs('style', this.parentNode.parentNode.parentNode);
+      STYLE_NODE = qs('style', this.parentNode.parentNode.parentNode);
     }
 
     // for <sync-ui> 
     if (qs('style', this.parentNode.parentNode)) {
-      styleNode = qs('style', this.parentNode.parentNode);
+      STYLE_NODE = qs('style', this.parentNode.parentNode);
     }
 
     // capture styles
-    const styles = parseCSS(styleNode.textContent);
+    const CSS_STYLES = parseCSS(STYLE_NODE.textContent);
 
     // css properties
-    styles['audiosync-button > div'] = {
+    CSS_STYLES['audiosync-button > div'] = {
       display: 'flex',
       'flex-direction': 'row'
     };
-    styles['audiosync-button > div > :first-child'] = {
+    CSS_STYLES['audiosync-button > div > :first-child'] = {
       'margin-right': '16px'
     };
-    styles['audiosync-button > div > :nth-child(2)'] = {
+    CSS_STYLES['audiosync-button > div > :nth-child(2)'] = {
       display: 'flex',
       'align-items': 'center',
       'margin-right':'16px'
     };
     
     //  apply new css
-    styleNode.textContent = objectToCSS(styles);
+    STYLE_NODE.textContent = objectToCSS(CSS_STYLES);
   }
 
   /**
@@ -184,23 +184,23 @@ class AudioSyncButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = parseCSS(qs('style', this.shadowRoot).textContent);
+      const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
       
       // background-color in hex format
-      const color = convertToHex(newVal);
+      const COLOR = convertToHex(newVal);
       
       // text / ripple color
-      const contrast = getContrastColor(color);
+      const CONTRAST_COLOR = getContrastColor(COLOR);
       
       // create the new style 
-      currentStyle['.new-color'] = {
-        'background-color': color,
-        color: contrast
+      ELEMENT_STYLES['.new-color'] = {
+        'background-color': COLOR,
+        color: CONTRAST_COLOR
       };
-      currentStyle['.ripple-effect'].background = hexToRgba(contrast);
+      ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(CONTRAST_COLOR);
       
       // update styles
-      qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
+      qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES);         
       
       // set the new class
       this.button.classList.add('new-color');

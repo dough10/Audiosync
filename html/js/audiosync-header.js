@@ -6,7 +6,7 @@ class AudioSyncHeader extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({mode: "open"});
-    const cssObj = {
+    const CSS_OBJECT = {
       "header": {
         position: "absolute",
         top: 0,
@@ -53,23 +53,23 @@ class AudioSyncHeader extends HTMLElement {
       }
     };
 
-    const headerContent = ce('div');
-    headerContent.classList.add('header-content');
-    headerContent.appendChild(ce('slot'));
+    const HEADER_CONTENT = ce('div');
+    HEADER_CONTENT.classList.add('header-content');
+    HEADER_CONTENT.appendChild(ce('slot'));
 
-    const header = ce('header'); 
-    header.appendChild(headerContent);
+    const HEADER = ce('header'); 
+    HEADER.appendChild(HEADER_CONTENT);
 
-    const headerShadow = ce('div');
-    headerShadow.classList.add('header-shadow')
+    const HEADER_SHADOW = ce('div');
+    HEADER_SHADOW.classList.add('header-shadow')
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
     
     [
-      sheet, 
-      header,
-      headerShadow
+      ELEMENT_STYLES, 
+      HEADER,
+      HEADER_SHADOW
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 }

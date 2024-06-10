@@ -17,7 +17,7 @@ class ScrollElement extends HTMLElement {
 
     this.animateScroll = this.animateScroll.bind(this);
 
-    const cssObj = {
+    const CSS_OBJECT = {
       "@keyframes ripple-animation": {
         to: {
           transform: "scale(2)",
@@ -71,8 +71,8 @@ class ScrollElement extends HTMLElement {
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     // floating action button
     this.fab = ce('audiosync-fab');
@@ -88,18 +88,18 @@ class ScrollElement extends HTMLElement {
     this.container.classList.add('wrapper');
     this.container.onscroll = this._containerScrolled.bind(this);
   
-    const scrollTarget = ce('div');
-    scrollTarget.id = 'top';
+    const SCROLL_TARGET = ce('div');
+    SCROLL_TARGET.id = 'top';
 
     // fill container
     [
-      scrollTarget,
+      SCROLL_TARGET,
       this.content
     ].forEach(el => this.container.appendChild(el));
     
     // fill shadow dom
     [
-      sheet,
+      ELEMENT_STYLES,
       this.fab,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
@@ -147,8 +147,8 @@ class ScrollElement extends HTMLElement {
    * @returns {Promise<Void>} Nothing
    */
   animateScroll() {
-    const target= qs('#top', this.shadowRoot);
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const SCROLL_TARGET = qs('#top', this.shadowRoot);
+    SCROLL_TARGET.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
@@ -157,21 +157,20 @@ class ScrollElement extends HTMLElement {
    * @returns {void}
    */
   _containerScrolled() {
-    const fab = qs('audiosync-fab', this.shadowRoot);
     // no action button on podcasts (animation bug)
-    const currentPage = qs('audiosync-pages').getAttribute('selected');
-    if (currentPage > 0 ) return;
+    const CURRENT_PAGE = qs('audiosync-pages').getAttribute('selected');
+    if (CURRENT_PAGE > 0 ) return;
 
     // control action button
-    const scrollTop = this.container.scrollTop;
-    if (scrollTop < this._lastTop) {
+    const SCROLL_TOP = this.container.scrollTop;
+    if (SCROLL_TOP < this._lastTop) {
       this.offScreen();
-    } else if (scrollTop != 0) {
+    } else if (SCROLL_TOP != 0) {
       this.onScreen();
     } else {
       this.offScreen();
     }
-      this._lastTop = scrollTop;
+      this._lastTop = SCROLL_TOP;
   }
 
   /**

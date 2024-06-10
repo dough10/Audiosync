@@ -8,7 +8,7 @@ class AudioSyncSettings extends HTMLElement {
     super();
     this.attachShadow({mode: "open"});
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".settings": {
         top: 0,
         left: 0,
@@ -81,47 +81,47 @@ class AudioSyncSettings extends HTMLElement {
       }
     };
 
-    const sheet = ce('style');
-    sheet.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
-    const close = ce('audiosync-small-button');
-    svgIcon('close').then(svg => close.appendChild(svg));
-    close.setAttribute('color', 'var(--close-red)');
-    close.onClick(async _ => {
+    const CLOSE_BUTTON = ce('audiosync-small-button');
+    svgIcon('close').then(svg => CLOSE_BUTTON.appendChild(svg));
+    CLOSE_BUTTON.setAttribute('color', 'var(--close-red)');
+    CLOSE_BUTTON.onClick(async _ => {
       await sleep(200);
       this.close();
     });
 
-    const headerContent = ce('div');
-    headerContent.classList.add('header-content');
-    headerContent.appendChild(close);
+    const HEADER_CONTENT = ce('div');
+    HEADER_CONTENT.classList.add('header-content');
+    HEADER_CONTENT.appendChild(CLOSE_BUTTON);
     
-    const header = ce('header');
-    header.appendChild(headerContent);
+    const HEADER = ce('header');
+    HEADER.appendChild(HEADER_CONTENT);
     
-    const headerShadow = ce('div');
-    headerShadow.classList.add('header-shadow');
+    const HEADER_SHADOW = ce('div');
+    HEADER_SHADOW.classList.add('header-shadow');
     
-    const card = ce('div');
-    card.classList.add('card');
-    card.appendChild(ce('slot'));
+    const CARD_BACKGROUND = ce('div');
+    CARD_BACKGROUND.classList.add('card');
+    CARD_BACKGROUND.appendChild(ce('slot'));
     
-    const wrapper = ce('div');
-    wrapper.classList.add('wrapper');
-    wrapper.appendChild(card);
+    const CONTENT_WRAPPER = ce('div');
+    CONTENT_WRAPPER.classList.add('wrapper');
+    CONTENT_WRAPPER.appendChild(CARD_BACKGROUND);
     
     this.drawer = ce('div');
     this.drawer.classList.add('settings');
     this.drawer.addEventListener('transitionend', _ => this.toggleAttribute('opened'));
 
     [
-      header,
-      headerShadow,
-      wrapper
+      HEADER,
+      HEADER_SHADOW,
+      CONTENT_WRAPPER
     ].forEach(el => this.drawer.appendChild(el));
 
     [
-      sheet,
+      ELEMENT_STYLES,
       this.drawer
     ].forEach(el => this.shadowRoot.appendChild(el));
   }

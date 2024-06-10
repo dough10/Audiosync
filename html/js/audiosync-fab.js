@@ -12,15 +12,15 @@ class FloatingActionButton extends HTMLElement {
     this.attachShadow({mode: "open"});
     // color higherarchy 
     // color attribute > css '--main-color' variable > white
-    const color = convertToHex(getCSSVariableValue('--pop-color'));
+    const COLOR = convertToHex(getCSSVariableValue('--pop-color'));
     
     // contrasting text color 
-    const contrast = getContrastColor(color);
+    const CONTRAST_COLOR = getContrastColor(COLOR);
 
-    const cssObj = {
+    const CSS_OBJECT = {
       ".fab": {
         overflow: "hidden",
-        color: contrast,
+        color: CONTRAST_COLOR,
         background: 'var(--pop-color)',
         display: "flex",
         "flex-direction": "column",
@@ -87,13 +87,13 @@ class FloatingActionButton extends HTMLElement {
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
-        background: hexToRgba(contrast),
+        background: hexToRgba(CONTRAST_COLOR),
         animation: "ripple-animation 0.7s linear"
       }
     };
 
-    const styles = ce('style');
-    styles.textContent = objectToCSS(cssObj);
+    const ELEMENT_STYLES = ce('style');
+    ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
     
     this.fab = ce('div');
     this.fab.classList.add('fab');
@@ -111,7 +111,7 @@ class FloatingActionButton extends HTMLElement {
     });
     
     [
-      styles,
+      ELEMENT_STYLES,
       this.fab
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
@@ -135,23 +135,23 @@ class FloatingActionButton extends HTMLElement {
       if (newVal === null) return;
       
       // capture current styles and remove .new-color and .ripple-effect classes
-      const currentStyle = parseCSS(qs('style', this.shadowRoot).textContent);
+      const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
       
       // background-color in hex format
-      const color = convertToHex(newVal);
+      const HEX_COLOR = convertToHex(newVal);
       
       // text / ripple color
-      const contrast = getContrastColor(color);
+      const CONTRAST_COLOR = getContrastColor(HEX_COLOR);
       
       // create the new style 
-      currentStyle['.new-color'] = {
-        'background-color': color, 
-        'color': contrast
+      ELEMENT_STYLES['.new-color'] = {
+        'background-color': HEX_COLOR, 
+        'color': CONTRAST_COLOR
       };
-      currentStyle['.ripple-effect'].background = hexToRgba(contrast);
+      ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(CONTRAST_COLOR);
       
       // update styles
-      qs('style', this.shadowRoot).textContent = objectToCSS(currentStyle);         
+      qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES);         
       
       // set the new class
       this.fab.classList.add('new-color');
@@ -164,10 +164,11 @@ class FloatingActionButton extends HTMLElement {
    * @param {Function} cb callback function
    */
   onClick(cb) {
-    this.fab.addEventListener('click', e => {
+    const CALLBACK = e => {
       if (this.hasAttribute('disabled')) return;
       cb(e);
-    });
+    }
+    this.fab.addEventListener('click', CALLBACK);
   }
 
 }
