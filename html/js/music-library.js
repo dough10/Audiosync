@@ -36,7 +36,7 @@ class MusicLibrary extends HTMLElement {
     this.popupWidth = 150;
 
     this._makeSelection = this._makeSelection.bind(this);
-    this._displayArtist = this._displayArtist.bind(this);
+    this._displayArtistList = this._displayArtistList.bind(this);
     this._openContexMenu = this._openContexMenu.bind(this)
 
     const CSS_OBJECT = {
@@ -45,9 +45,6 @@ class MusicLibrary extends HTMLElement {
           transform: "scale(2)",
           opacity: 0
         }
-      },
-      '.content': {
-        padding: '8px'
       },
       '.head': {
         display:'flex',
@@ -58,7 +55,7 @@ class MusicLibrary extends HTMLElement {
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
-        background: "rgba(125, 125, 125, 0.4)",
+        background: "rgba(var(--pop-rgb), 0.4)",
         animation: "ripple-animation 0.7s linear"
       },
       "div:first-child": {
@@ -68,7 +65,12 @@ class MusicLibrary extends HTMLElement {
         height: '24px',
         width:'24px'
       },
-      ".artist": {
+      '.artist-grid': {
+        height: '150px',
+        width: '0px',
+        display: 'inline-flex'
+      },
+      ".artist-list": {
         position: "relative",
         "border-top": "var(--seperator-line)",
         cursor: "pointer",
@@ -78,10 +80,82 @@ class MusicLibrary extends HTMLElement {
         overflow: "hidden",
         transition: 'var(--button-bg-animation)'
       },
-      ".artist:hover": {
+      ".artist-list:hover": {
         "background-color": "var(--hover-color)"
       },
-      ".album": {
+      '.album-grid': {
+        height: '200px',
+        'max-width': '150px',
+        'max-height': '200px',
+        'text-align': 'justify',
+        position: "relative",
+        display: 'inline-flex',
+        'flex-direction': 'column',
+        overflow: 'hidden',
+        'border-radius': '5px',
+        margin: '8px',
+        background: 'var(--main-color)',
+        color: 'var(--text-color)',
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
+      },
+      '.album-grid > img': {
+        'border-radius': '5px',
+        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
+      },
+      '.album-grid > *': {
+        'pointer-events': 'none'
+      },
+      '.album-grid > div:nth-child(2)': {
+        'max-width': '120px',
+        padding:'4px',
+        'font-size': '16px',
+        overflow: 'hidden',
+        'white-space': 'nowrap',
+        'text-overflow': 'ellipsis'
+      },
+      '.album-grid > div:nth-child(3)': {
+        'max-width': '148px',
+        padding:'4px',
+        'font-size': '11px',
+        overflow: 'hidden',
+        'white-space': 'nowrap',
+        'text-overflow': 'ellipsis'
+      },
+      '.album-grid[selected] > img': {
+        opacity: 0.9
+      },
+      '.album-grid > svg': {
+        opacity:0,
+        position:'absolute',
+        transition: 'opacity 150ms ease'
+      },
+      '.album-grid[favorite] > .fav': {
+        bottom:'24px',
+        right:'5px',
+        opacity: 0.5
+      },
+      '.album-grid[inlist] > .listed': {
+        left: '52px',
+        transform: 'translateX(-50%)',
+        opacity: 0.6
+      },
+      '.album-grid[playing] > .playing-svg': {
+        left:'77px',
+        opacity: 0.6
+      },
+      '.album-grid[selected] > .selected': {
+        left:'50%',
+        top:'37%',
+        height:'100px',
+        width:'100px',
+        color: 'green',
+        transform: 'translate(-50%, -50%)',
+        opacity: 1
+      },
+      '.album-grid[selected]:hover > .selected': {
+        opacity:0.4
+      },
+      ".album-list": {
         position: "relative",
         "border-top": "var(--seperator-line)",
         cursor: "pointer",
@@ -94,13 +168,13 @@ class MusicLibrary extends HTMLElement {
         overflow: 'hidden',
         'min-height': '20px'
       },
-      ".album:hover": {
+      ".album-list:hover": {
         "background-color": "var(--hover-color)"
       },
-      '.album > *': {
+      '.album-list > *': {
         'pointer-events': 'none'
       },
-      '.album > svg': {
+      '.album-list > svg': {
         height: '12px',
         width: '12px',
         opacity: 0,
@@ -108,29 +182,29 @@ class MusicLibrary extends HTMLElement {
         transition: 'all 150ms cubic-bezier(.33,.17,.85,1.1)',
         transform: 'translateX(-24px)'
       },
-      '.album > div': {
+      '.album-list > div': {
         transform: 'translateX(-24px)',
         overflow: "hidden",
         'white-space': 'nowrap',
         'text-overflow': 'ellipsis'
       },
-      '.album[favorite] > .fav': {
+      '.album-list[favorite] > .fav': {
         opacity: 0.6
       },
-      '.album[inlist] > .listed': {
+      '.album-list[inlist] > .listed': {
         height: '20px',
         width: '20px',
         opacity: 0.6
       },
-      '.album[playing] > .playing-svg': {
+      '.album-list[playing] > .playing-svg': {
         height: '16px',
         width: '16px',
         opacity: 1
       },
-      ".album[selected]": {
+      ".album-list[selected]": {
         "background-color": "var(--selected-color)"
       },
-      ".album[selected]:hover": {
+      ".album-list[selected]:hover": {
         "background-color": "var(--selected-hover-color)"
       },
       ".blank": {
@@ -215,40 +289,74 @@ class MusicLibrary extends HTMLElement {
     ].forEach(el => this.shadowRoot.appendChild(el));
   }
 
-
   /**
-   * attribute has changed 
+   * view has changed 
    * 
-   * @param {String} name
-   * @param {Number} oldVal
-   * @param {Number} newVal
    */
-  attributeChangedCallback(name, oldVal, newVal) {
-    console.log(newVal);
+  attributeChangedCallback() {
+    qs('.card').setAttribute('view', this.getAttribute('view'));
   }
 
   /**
    * fetch data
    */
   async go() {
+    const VIEW = this.getAttribute('view');
+
+    const ALBUMS_IN_PLAYLIST = qsa('.album[inlist]', this.shadowRoot);
+
     this._usedChars = [
       '>'
     ];
-    await fadeOut(this.content);
+
+    const CONTENT_CARD = qs('.card');
+
+    // hide content to prevent flash when new content is pushed
+    await fadeOut(CONTENT_CARD);
+
+    
+    // clear the element
     this.content.innerHTML = '';
+
+    // get data
     const MUSIC_LIBRARY_DATA = await pywebview.api.lib_data();
     this.libSize = MUSIC_LIBRARY_DATA.lib_size || '0 b';
     delete MUSIC_LIBRARY_DATA.lib_size;
-    this._displayData(MUSIC_LIBRARY_DATA);
+
+    // send data to UI
+    if (VIEW === 'list') {
+      this._albumList(MUSIC_LIBRARY_DATA);
+    } else {
+      this._albumGrid(MUSIC_LIBRARY_DATA);
+    }
+
+    // get sync.json data
     const SYNC_JSON = await pywebview.api.sync_file();
+
+    // make "selected" albums & artist
     this._compareData(SYNC_JSON);
+
+    // favorites.json
     const FAVORITES = await pywebview.api.load_favorites();
+
+    // mark "favorite" albums
     this._loadFavorites(FAVORITES);
+
+    // if displaying favirites when refreshed only display favirites after
     if (this.hasAttribute('favorites')) {
       this.toggleAttribute('favorites');
       this.favorites();
     }
-    fadeIn(this.content);
+
+    ALBUMS_IN_PLAYLIST.forEach(element => {
+      const ALBUM_IN_LIST = qs(`[data-artist="${element.dataset.artist}"][data-album="${element.dataset.album}"]`, this.shadowRoot);
+      if (ALBUM_IN_LIST) ALBUM_IN_LIST.toggleAttribute('inlist');
+    });
+
+    // show the new stuff
+    fadeIn(CONTENT_CARD);
+
+    // update filesize in menu
     const CUSTOM_EVENT = new CustomEvent('lib_size_updated', {
       detail:{lib_size: this.libSize}
     });
@@ -266,10 +374,10 @@ class MusicLibrary extends HTMLElement {
     const PLAYING_QUICK_LINK = qs('a[title="Playing"]', this.shadowRoot);
 
     // hide the link
-    PLAYING_QUICK_LINK.style.display = 'none';
+    if (PLAYING_QUICK_LINK) PLAYING_QUICK_LINK.style.display = 'none';
 
     // blanket unmark all albums as playing
-    qsa('.album', this.shadowRoot).forEach(el => {
+    qsa('.album[playing]', this.shadowRoot).forEach(el => {
       el.removeAttribute('playing');
     });
 
@@ -281,12 +389,12 @@ class MusicLibrary extends HTMLElement {
 
     // find the album that is playing
     const ALBUM_PLAYING_NOW = qs(`[data-artist="${details.artist}"][data-album="${details.album}"]`, this.shadowRoot);
-    
+
     // mark it
-    ALBUM_PLAYING_NOW.toggleAttribute('playing');
+    if (ALBUM_PLAYING_NOW && !ALBUM_PLAYING_NOW.hasAttribute('playing')) ALBUM_PLAYING_NOW.toggleAttribute('playing');
 
     // unhide the quick link now playing link
-    PLAYING_QUICK_LINK.style.removeProperty('display');
+    if (PLAYING_QUICK_LINK) PLAYING_QUICK_LINK.style.removeProperty('display');
 
     // check for album info dialog
     const OPENED_ALBUM_DIALOG = qs('#album-info');
@@ -367,7 +475,7 @@ class MusicLibrary extends HTMLElement {
     const FAVORITES = this._getFavorites();
     
     // save to  file
-    pywebview.api.save_favorites(JSON.stringify(FAVORITES, null, 2));
+    pywebview.api.save_favorites(JSON.stringify(FAVORITES));
     
     // favorited artist element
     const ARTIST_ELEMENT = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
@@ -428,35 +536,60 @@ class MusicLibrary extends HTMLElement {
    * player playlist cleared and we need to clean up inlist attributes
    */
   playlistCleared() {
-    const ALBUM_ELEMENTS = qsa('.album', this.shadowRoot);
+    const ALBUM_ELEMENTS = qsa('.album[inlist]', this.shadowRoot);
     ALBUM_ELEMENTS.forEach(albumElement => {
       albumElement.removeAttribute('inlist');
     });
   }
 
-  /**
-   * fill in page with data
+    /**
+   * fill in page with data in a grid of album covers
    * 
-   * @param {Object} data artists and albums list from lib_data.json *required*
+   * @param {Object} musicLibrary artists and albums list from lib_data.json *required*
    */
-  _displayData(data) {
+  _albumGrid(musicLibrary) {
     //  no data 
-    if (Object.keys(data).length === 0) {
+    if (Object.keys(musicLibrary).length === 0) {
+      this._emptyLib();
+      return;
+    }
+    for (const ARTIST in musicLibrary) {
+      this._displayArtistGrid(ARTIST);
+      for (const ALBUM of musicLibrary[ARTIST]) {
+        this._displayAlbumGrid(ARTIST, ALBUM);
+      }
+    }
+    this._createQucikLinks();
+  }
+
+  /**
+   * fill in page with data in a list
+   * 
+   * @param {Object} musicLibrary artists and albums list from lib_data.json *required*
+   */
+  _albumList(musicLibrary) {
+    //  no data 
+    if (Object.keys(musicLibrary).length === 0) {
       this._emptyLib();
       return;
     }
 
     // create a element for each artist & album
-    for (const artist in data) {
-      this._displayArtist(artist);
-      for (let i = 0; i < data[artist].length; i++) {
-        this._displayAlbum(artist, data[artist][i]);
+    for (const ARTIST in musicLibrary) {
+      this._displayArtistList(ARTIST);
+      for (const ALBUM of musicLibrary[ARTIST]) {
+        this._displayAlbumList(ARTIST, ALBUM);
       }
     }
+    this._createQucikLinks();
+  }
 
-    // no need to display in not enough chars used
-    if (this._usedChars.length < 10) return;
-
+  /**
+   * generates alphibetical quick links on right of page
+   * 
+   * @returns {void}
+   */
+  _createQucikLinks() {
     //  create quick links element
     const QUCICK_LINKS_CONTAINER = ce('div');
     this.content.appendChild(QUCICK_LINKS_CONTAINER);
@@ -763,6 +896,33 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
+   * favorites an album
+   * 
+   * @param {HTMLElement} favbutton
+   * @param {String} artist 
+   * @param {Object} album 
+   */
+  _albumDialogFavoriteButtonClicked(favbutton, artist, album) {
+    //  toggle favorite state
+    album.favorite = !album.favorite;
+    // mark / unmark in the library UI 
+    this.favoriteAlbum(artist, album.title);
+    // mark / unmark in the audio player
+    this.player.favorite({
+      artist: artist, 
+      title: album.title, 
+      favorite: album.favorite
+    });
+    if (album.favorite) {
+      favbutton.style.opacity = 1;
+      favbutton.title = 'Unfavorite';
+    } else {
+      favbutton.style.opacity = 0.5;
+      favbutton.title = 'Favorite';
+    }
+  }
+
+  /**
    * open album info dialog
    * 
    * @param {String} artist
@@ -770,133 +930,114 @@ class MusicLibrary extends HTMLElement {
    * 
    */
   async _openAlbumInfoDialog(artist, album, albumContainer) {
-    const dialog = ce('audiosync-dialog');
-    dialog.id = 'album-info';
-    dialog.toggleAttribute('nopad');
-    dialog.blocker.addEventListener('click', async _ => {
-      dialog.close();
-      await sleep(500);
-      dialog.remove();
-    });
+    const DIALOG = ce('audiosync-dialog');
+    DIALOG.id = 'album-info';
+    DIALOG.toggleAttribute('nopad');
+    DIALOG.toggleAttribute('cleanup');
 
-    const favbutton = ce('audiosync-small-button');
-    favbutton.classList.add('fav');
-    favbutton.appendChild(await svgIcon('favorite'));
+    const FAVORITE_BUTTON = ce('audiosync-small-button');
+    FAVORITE_BUTTON.classList.add('fav');
+    FAVORITE_BUTTON.appendChild(await svgIcon('favorite'));
+    FAVORITE_BUTTON.onClick(_ => this._albumDialogFavoriteButtonClicked(FAVORITE_BUTTON, artist, album));
     if (!album.favorite) {
-      favbutton.style.opacity = 0.5;
+      FAVORITE_BUTTON.style.opacity = 0.5;
     }
-    favbutton.onClick(_ => {
-      //  toggle favorite state
-      album.favorite = !album.favorite;
-      // mark / unmark in the library UI 
-      this.favoriteAlbum(artist, album.title);
-      // mark / unmark in the audio player
-      this.player.favorite({
-        artist: artist, 
-        title: album.title, 
-        favorite: album.favorite
-      });
-      if (album.favorite) {
-        favbutton.style.opacity = 1;
-        favbutton.title = 'Unfavorite';
-      } else {
-        favbutton.style.opacity = 0.5;
-        favbutton.title = 'Favorite';
-      }
-    });
 
-    const addtoplaylist = ce('audiosync-small-button');
-    addtoplaylist.classList.add('add');
-    addtoplaylist.appendChild(await svgIcon('add'));
-    if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('inlist')) addtoplaylist.style.display = 'none';
-    addtoplaylist.onClick(async _ => {
+    const ADD_TO_PLAYLIST = ce('audiosync-small-button');
+    ADD_TO_PLAYLIST.classList.add('add');
+    ADD_TO_PLAYLIST.appendChild(await svgIcon('add'));
+    if (!this.player.hasAttribute('playing') || albumContainer.hasAttribute('inlist')) ADD_TO_PLAYLIST.style.display = 'none';
+    ADD_TO_PLAYLIST.onClick(async _ => {
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
       albumContainer.toggleAttribute('inlist');
-      await fadeOut(addtoplaylist);
-      addtoplaylist.style.display = 'none';
+      await fadeOut(ADD_TO_PLAYLIST);
+      ADD_TO_PLAYLIST.style.display = 'none';
     });
 
-    const imgwrapper = ce('div');
-    imgwrapper.classList.add('img-wrapper');
+    const IMG_WRAPPER = ce('div');
+    IMG_WRAPPER.classList.add('img-wrapper');
     
-    const placeholder = ce('div');
-    placeholder.classList.add('img-placeholder');
-    placeholder.textContent  = 'Loading Image..';
+    const IMAGE_PLACEHOLDER = ce('div');
+    IMAGE_PLACEHOLDER.classList.add('img-placeholder');
+    IMAGE_PLACEHOLDER.textContent  = 'Loading Image..';
 
 
-    const canvas = ce('canvas');
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    canvas.width = 450;
-    canvas.height = 450;
+    const CANVAS = ce('canvas');
+    const ctx = CANVAS.getContext('2d', { willReadFrequently: true });
+    CANVAS.width = 450;
+    CANVAS.height = 450;
 
     
-    const img = ce('img');
-    img.src = album.tracks[0].art;
-    img.style.display = 'none';
-    img.style.opacity = 0;
-    img.onload = async _ => {
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const IMG = ce('img');
+    IMG.src = album.tracks[0].art;
+    IMG.style.display = 'none';
+    IMG.style.opacity = 0;
+    IMG.onload = async _ => {
+      ctx.drawImage(IMG, 0, 0, CANVAS.width, CANVAS.height);
 
-      const pointone = getColorAtPoint(canvas, 40,40,30);
-      const pointtwo = getColorAtPoint(canvas, (canvas.width - 40),40,30);
+      const POINT_ONE = getColorAtPoint(CANVAS, 40,40,30);
+      const POINT_TWO = getColorAtPoint(CANVAS, (CANVAS.width - 40),40,30);
 
-      addtoplaylist.setAttribute('color', getContrastColor(pointone));
-      favbutton.setAttribute('color', getContrastColor(pointtwo));
+      ADD_TO_PLAYLIST.setAttribute('color', getContrastColor(POINT_ONE));
+      FAVORITE_BUTTON.setAttribute('color', getContrastColor(POINT_TWO));
 
-      img.style.removeProperty('display');
-      placeholder.style.display = 'none';
-      await fadeIn(img);
+      IMG.style.removeProperty('display');
+      IMAGE_PLACEHOLDER.style.display = 'none';
+      await fadeIn(IMG);
     };
 
     [
-      placeholder,
-      img
-    ].forEach(el => imgwrapper.appendChild(el));
+      IMAGE_PLACEHOLDER,
+      IMG
+    ].forEach(el => IMG_WRAPPER.appendChild(el));
     
 
-    const tracklist = ce('div');
-    tracklist.classList.add('tracklist');
-    const header = ce('div');
-    header.classList.add('album-head')
-    const artistName = ce('div');
-    artistName.textContent = artist;
-    const albumTitle = ce('div');
-    albumTitle.textContent = album.title;
+    const TRACKLIST_CONTAINER = ce('div');
+    TRACKLIST_CONTAINER.classList.add('tracklist');
+
+    const PLAYLIST_HEADER = ce('div');
+    PLAYLIST_HEADER.classList.add('album-head');
+
+    const ARTISTS_NAME = ce('div');
+    ARTISTS_NAME.textContent = artist;
+
+    const ALBUM_TITLE = ce('div');
+    ALBUM_TITLE.textContent = album.title;
     [
-      artistName,
-      albumTitle
-    ].forEach(el => header.appendChild(el));
-    tracklist.appendChild(header);
+      ARTISTS_NAME,
+      ALBUM_TITLE
+    ].forEach(el => PLAYLIST_HEADER.appendChild(el));
+    TRACKLIST_CONTAINER.appendChild(PLAYLIST_HEADER);
 
     album.tracks.forEach((track, ndx) => {
 
       // shortened path to playing file
-      const playing = this.player.player.src.replace('http://localhost:8000/', '');
+      const PATH_CURRENTLY_PLAYING = this.player.player.src.replace(`${window.location.origin}/`, '');
 
-      const tnum = ce('div');
-      tnum.textContent = track.track;
+      const TRACK_NUMBER = ce('div');
+      TRACK_NUMBER.textContent = track.track;
       
-      const title = ce('div');
-      title.textContent = track.title;
+      const TRACK_TITLE = ce('div');
+      TRACK_TITLE.textContent = track.title;
       
-      const container = ce('div');
+      const TRACK_CONTAINER = ce('div');
       
       // is the cueently playing track this track
-      if (this._arePathsTheSame(playing, track.path)) container.toggleAttribute('playing');
-      container.dataset.src = track.path;
-      container.classList.add('track');
-      container.addEventListener('click', _ => {
+      if (this._arePathsTheSame(PATH_CURRENTLY_PLAYING, track.path)) TRACK_CONTAINER.toggleAttribute('playing');
+      TRACK_CONTAINER.dataset.src = track.path;
+      TRACK_CONTAINER.classList.add('track');
+      TRACK_CONTAINER.addEventListener('click', _ => {
         // check if tracks are in playlist
-        const tracksInPlaylist = areElementsPresent(album.tracks, this.player.playlist);
+        const ARE_TRACKS_IN_PLAYLIST = areElementsPresent(album.tracks, this.player.playlist);
 
-        if (tracksInPlaylist && this.player.playlist.length === album.tracks.length) {
+        if (ARE_TRACKS_IN_PLAYLIST && this.player.playlist.length === album.tracks.length) {
           // tracks in playlist are this album and only this album it is safe to play ndx directly
           this.player.playNdx(ndx);
-        } else if (tracksInPlaylist) {
+        } else if (ARE_TRACKS_IN_PLAYLIST) {
           // tracks are present with tracks from other albums
-          const albumStartsAt = indexOfElement(this.player.playlist, album.tracks[0]);
-          this.player.playNdx(albumStartsAt + ndx);
+          const ALBUM_START_POINT = indexOfElement(this.player.playlist, album.tracks[0]);
+          this.player.playNdx(ALBUM_START_POINT + ndx);
         } else {
           // not in playlist. will overwrite current playlist and play this album starting on the song clicked
           this.player.playAlbum(album, ndx);
@@ -906,40 +1047,102 @@ class MusicLibrary extends HTMLElement {
       });
 
       [
-        tnum,
-        title
-      ].forEach(el => container.appendChild(el));
-      tracklist.appendChild(container);
+        TRACK_NUMBER,
+        TRACK_TITLE
+      ].forEach(el => TRACK_CONTAINER.appendChild(el));
+      TRACKLIST_CONTAINER.appendChild(TRACK_CONTAINER);
     });
 
     [
-      addtoplaylist,
-      favbutton,
-      imgwrapper,
-      tracklist
-    ].forEach(el => dialog.appendChild(el));
+      ADD_TO_PLAYLIST,
+      FAVORITE_BUTTON,
+      IMG_WRAPPER,
+      TRACKLIST_CONTAINER
+    ].forEach(el => DIALOG.appendChild(el));
 
 
-    qs('body').appendChild(dialog);
+    qs('body').appendChild(DIALOG);
     await sleep(20);
-    dialog.open();
+    DIALOG.open();
     await sleep(200);
-    const p = qs('audiosync-dialog > .tracklist > .track[playing]');
-    if (p) p.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const PLAYING_TRACK_ELEMENT = qs('audiosync-dialog > .tracklist > .track[playing]');
+    if (PLAYING_TRACK_ELEMENT) PLAYING_TRACK_ELEMENT.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   /**
    * album element
    * 
    * @param {String} artist
-   * @param {String} album
+   * @param {Object} album
    */
-  _displayAlbum(artist, album) {
+  _displayAlbumGrid(artist, album) {
+    this._fixPaths(album.tracks);
+    const IMG = ce('img');
+    IMG.height = 150;
+    IMG.width = 150;
+    IMG.setAttribute('loading', 'lazy');
+    IMG.src = album.tracks[0].art.replace('cover.jpg', 'thumb.webp');
+
+    const ARTIST_NAME = ce('div');
+    ARTIST_NAME.textContent = artist;
+
+    const ALBUM_TITLE = ce('div');
+    ALBUM_TITLE.textContent = album.title;
+
+    const ALBUM_CONTAINER = ce('div');
+    [
+      IMG,
+      ARTIST_NAME,
+      ALBUM_TITLE
+    ].forEach(el => ALBUM_CONTAINER.appendChild(el));
+    ALBUM_CONTAINER.dataset.artist = artist;
+    ALBUM_CONTAINER.dataset.album = album.title;
+    ALBUM_CONTAINER.classList.add('album');
+    ALBUM_CONTAINER.classList.add('album-grid');
+    ALBUM_CONTAINER.addEventListener('click', this._makeSelection);
+    ALBUM_CONTAINER.addEventListener('contextmenu', ev => this._openContexMenu(ev, ALBUM_CONTAINER, artist, album));
+    svgIcon('playing').then(svg => {
+      svg.classList.add('playing-svg');
+      svg.title = 'Playing';
+      ALBUM_CONTAINER.appendChild(svg);
+    });
+    svgIcon('list').then(svg => {
+      svg.classList.add('listed');
+      svg.title = 'In Playlist';
+      ALBUM_CONTAINER.appendChild(svg);
+    });
+    svgIcon('favorite').then(svg => {
+      svg.classList.add('fav');
+      svg.title = 'Favorite';
+      ALBUM_CONTAINER.appendChild(svg);
+    });
+    svgIcon('check').then(svg => {
+      svg.classList.add('selected');
+      svg.title = 'Selected';
+      ALBUM_CONTAINER.appendChild(svg);
+    });
+    this.content.appendChild(ALBUM_CONTAINER);
+    // IMG.onload = _ => {
+    //   const THIEF = new ColorThief();
+    //   const COLOR = THIEF.getColor(IMG);
+    //   const CONTRAST = getContrastColor(convertToHex(`rgb(${COLOR[0]},${COLOR[1]},${COLOR[2]})`));
+    //   ALBUM_CONTAINER.style.color = CONTRAST;
+    // };
+  }
+
+  /**
+   * album element
+   * 
+   * @param {String} artist
+   * @param {Object} album
+   */
+  _displayAlbumList(artist, album) {
     this._fixPaths(album.tracks);
     let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
     albumContainer.dataset.album = album.title;
     albumContainer.classList.add('album');
+    albumContainer.classList.add('album-list');
     albumContainer.addEventListener('click', this._makeSelection);
     albumContainer.addEventListener('contextmenu', ev => this._openContexMenu(ev, albumContainer, artist, album));
     svgIcon('playing').then(svg => {
@@ -964,20 +1167,38 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
-   * artist element
+   * artist grid element
    * 
    * @param {String} artist
    */
-  _displayArtist(artist) {
-    const firstChar = artist[0].toLowerCase();
+  _displayArtistGrid(artist) {
+    const ARTIST_MARKER = ce('div');
+    ARTIST_MARKER.dataset.artist = artist;
+    ARTIST_MARKER.classList.add('artist');
+    ARTIST_MARKER.classList.add('artist-grid');
+    this.content.appendChild(ARTIST_MARKER);
+    this._quickLinkMarkElement(artist, ARTIST_MARKER);
+  }
+
+  /**
+   * artist list element
+   * 
+   * @param {String} artist
+   */
+  _displayArtistList(artist) {
     let artistContainer = ce('div');
     artistContainer.dataset.artist = artist;
     artistContainer.classList.add('artist');
+    artistContainer.classList.add('artist-list');
     artistContainer.textContent = artist;
     artistContainer.addEventListener('click', this._makeSelection);
     artistContainer.addEventListener('contextmenu', ev => ev.preventDefault());
     this.content.appendChild(artistContainer);
+    this._quickLinkMarkElement(artist, artistContainer);
+  }
 
+  _quickLinkMarkElement(artistName, artistContainer) {
+    const firstChar = artistName[0].toLowerCase();
     // first char isn't included in the list of chars
     if (!this._usedChars.includes(firstChar)) {
       // add first number encountered to array and drop all others
