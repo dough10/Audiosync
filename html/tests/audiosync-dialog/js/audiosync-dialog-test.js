@@ -1,11 +1,18 @@
 import {qs, ce, sleep} from '../../../js/helpers.js';
 
+const button = ce('button');
+button.textContent = 'OPEN';
+
 const INPUT = ce('input');
 INPUT.type = 'text';
 INPUT.toggleAttribute('autoFocus');
 
 const DIALOG = ce('audiosync-dialog');
-qs('body').appendChild(DIALOG);
 DIALOG.appendChild(INPUT);
-await sleep(500);
-DIALOG.open();
+
+button.addEventListener('click', _ => DIALOG.open());
+
+[
+  DIALOG,
+  button
+].forEach(el => qs('body').appendChild(el));

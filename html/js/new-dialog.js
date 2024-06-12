@@ -11,6 +11,7 @@ class AudioSyncDialog extends HTMLElement {
     super();
     const CSS_OBJECT = {
       'dialog': {
+        position: 'absolute',
         color: 'var(--text-color)',
         padding: '24px',
         background: 'var(--main-color)',
@@ -21,21 +22,25 @@ class AudioSyncDialog extends HTMLElement {
         'min-width': '310px',
         overflow: 'hidden',
         border: 'none',
-        display: 'none',
-        animation: 'close 300ms linear'
+        animation: 'close 300ms ease'
       },
       'dialog::backdrop': {
-        background: 'rgba(0,0,0,0.2)'
+        background: 'rgba(0,0,0,0.2)',
       },
       'dialog[open]': {
         display: 'block',
-        animation: 'open 300ms linear'
+        animation: 'open 300ms ease'
+      },
+      'dialog[open]::backdrop': {
+
       },
       '@keyframes open': {
         from: {
+          display:'none',
           transform: 'scale3d(0,0,0)'
         }, 
         to: {
+          display:'block',
           transform: 'scale3d(1,1,1)'
         }
       },
