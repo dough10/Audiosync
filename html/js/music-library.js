@@ -1233,20 +1233,22 @@ class MusicLibrary extends HTMLElement {
    */
   _compareData(data) {
     if (Object.keys(data).length === 0) {
-      const s = 'No sync file... Running sync now will sync all music';
-      console.log(s);
-      alertUser(s);
+      const STRING = 'No sync file... Running sync now will sync all music';
+      console.log(STRING);
+      alertUser(STRING);
       return;
     }
     for (const artist in data) {
-      const m = qsa(`[data-artist="${artist}"].artist`, this.shadowRoot);
-      m.forEach(el => el.toggleAttribute('selected'));
-      for (let i=0; i < data[artist].length; i++) {
-        const s = qsa(`[data-album="${data[artist][i]}"]`, this.shadowRoot);
-        s.forEach(el => el.toggleAttribute('selected'));
+      const MATCHING_ARTIST_ELEMENTS = qsa(`[data-artist="${artist}"].artist`, this.shadowRoot);
+      MATCHING_ARTIST_ELEMENTS.forEach(el => el.toggleAttribute('selected'));
+      for (const album of data[artist]) {
+        const MATCHING_ALBUM_ELEMENTS = qsa(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+        MATCHING_ALBUM_ELEMENTS.forEach(el => el.toggleAttribute('selected'));
       }
     }
   }
+
+  
 
   /**
    * creates a new object from selected elements to be saved as sync.json
