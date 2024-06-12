@@ -42,6 +42,10 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
       directory = html_path
     return os.path.join(directory, path.lstrip('/'))
 
+  def address_string(self):
+    host, port = self.client_address[:2]
+    return host
+
   def end_headers(self):
     self.send_header('Access-Control-Allow-Origin', '*')
     self.send_header('Access-Control-Allow-Methods', 'GET')
@@ -194,7 +198,7 @@ def main():
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url=f'http://localhost:{port}/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url=f'http://127.0.0.1:{port}/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
 
   
