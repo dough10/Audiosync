@@ -46,6 +46,7 @@ function loadTheme(theme) {
   }
   qs('style').textContent = objectToCSS(STYLES);
   // refresh button color
+  qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', 'var(--pop-color)');
   qsa('audiosync-small-button').forEach(el => el.setAttribute('color', 'var(--text-color)'));
   qsa('audiosync-small-button', qs('audiosync-player').shadowRoot).forEach(el => {
     if (el.id !== 'favorite') el.setAttribute('color', 'var(--text-color)');
@@ -106,11 +107,21 @@ async function toggleSwitchCallback(ev) {
   }
 }
 
+/**
+ * hide a HTMLElement
+ * 
+ * @param {HTMLElement} el 
+ */
 async function hideElement(el) {
   await fadeOut(el);
   el.style.display = 'none';
 }
 
+/**
+ * show a HTMLElement
+ * 
+ * @param {HTMLElement} el 
+ */
 async function showElement(el) {
   el.style.removeProperty('display');
   fadeIn(el);
@@ -250,7 +261,16 @@ async function load_app() {
     MUSIC_LIBRARY.go();
   });
 
-  MUSIC_LIBRARY_FAVORITE_BUTTON.onClick( _ => MUSIC_LIBRARY.favorites());
+  MUSIC_LIBRARY_FAVORITE_BUTTON.onClick( _ => {
+    if (MUSIC_LIBRARY.hasAttribute('favorites')) {
+      qs('path', MUSIC_LIBRARY_FAVORITE_BUTTON).style.opacity = 0.5;
+      new Toast('Displaying all', 1);
+    } else {
+      qs('path', MUSIC_LIBRARY_FAVORITE_BUTTON).style.opacity = 1;
+      new Toast('Displaying favorites', 1);
+    }
+    MUSIC_LIBRARY.favorites();
+  });
   
   PODCAST_LIBRARY_ADD_BUTTON.onClick(_ => PODCAST_LIBRARY.openAddPodcastDialog());
 
@@ -352,6 +372,13 @@ async function load_app() {
     ICON.setAttribute('d', GRID_ICON);
   } else {
     ICON.setAttribute('d', LIST_ICON);
+  }
+
+
+  if (MUSIC_LIBRARY.hasAttribute('favorites')) {
+    qs('path', MUSIC_LIBRARY_FAVORITE_BUTTON).style.opacity = 1;
+  } else {
+    qs('path', MUSIC_LIBRARY_FAVORITE_BUTTON).style.opacity = 0.5;
   }
 
   await MUSIC_LIBRARY.go();
