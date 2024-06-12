@@ -330,7 +330,7 @@ class MusicLibrary extends HTMLElement {
     if (VIEW === 'list') {
       this._albumList(MUSIC_LIBRARY_DATA);
     } else {
-      this._albumGrid(MUSIC_LIBRARY_DATA);
+      await this._albumGrid(MUSIC_LIBRARY_DATA);
     }
 
     // get sync.json data
@@ -550,7 +550,7 @@ class MusicLibrary extends HTMLElement {
    * 
    * @param {Object} musicLibrary artists and albums list from lib_data.json *required*
    */
-  _albumGrid(musicLibrary) {
+  async _albumGrid(musicLibrary) {
     //  no data 
     if (Object.keys(musicLibrary).length === 0) {
       this._emptyLib();
@@ -559,7 +559,7 @@ class MusicLibrary extends HTMLElement {
     for (const ARTIST in musicLibrary) {
       this._displayArtistGrid(ARTIST);
       for (const ALBUM of musicLibrary[ARTIST]) {
-        this._displayAlbumGrid(ARTIST, ALBUM);
+        await this._displayAlbumGrid(ARTIST, ALBUM);
       }
     }
     this._createQucikLinks();
@@ -1078,13 +1078,32 @@ class MusicLibrary extends HTMLElement {
    * @param {String} artist
    * @param {Object} album
    */
-  _displayAlbumGrid(artist, album) {
+  async _displayAlbumGrid(artist, album) {
     this._fixPaths(album.tracks);
-    const IMG = ce('img');
+    const IMG = new Image();
     IMG.height = 150;
     IMG.width = 150;
     IMG.setAttribute('loading', 'lazy');
+    IMG.setAttribute('decoding', 'async');
+    IMG.setAttribute('fetchpriority', 'low');
+    IMG.setAttribute('alt', 'cover.jpg');
     IMG.src = album.tracks[0].art.replace('cover.jpg', 'thumb.webp');
+
+    const PLAYING_ICON = await svgIcon('playing');
+    PLAYING_ICON.classList.add('playing-svg');
+    PLAYING_ICON.title = 'Playing';
+
+    const INLIST_ICON = await svgIcon('list');
+    INLIST_ICON.classList.add('listed');
+    INLIST_ICON.title = 'In Playlist';
+
+    const FAVORITE_ICON = await svgIcon('favorite');
+    FAVORITE_ICON.classList.add('fav');
+    FAVORITE_ICON.title = 'Favorite';
+
+    const SELECTED_ICON = await svgIcon('check');
+    SELECTED_ICON.classList.add('selected');
+    SELECTED_ICON.title = 'Selected';
 
     const ARTIST_NAME = ce('div');
     ARTIST_NAME.textContent = artist;
@@ -1092,11 +1111,15 @@ class MusicLibrary extends HTMLElement {
     const ALBUM_TITLE = ce('div');
     ALBUM_TITLE.textContent = album.title;
 
-    const ALBUM_CONTAINER = ce('div');
+    const ALBUM_CONTAINER = ce('div');await 
     [
       IMG,
       ARTIST_NAME,
-      ALBUM_TITLE
+      ALBUM_TITLE,
+      PLAYING_ICON,
+      INLIST_ICON,
+      FAVORITE_ICON,
+      SELECTED_ICON
     ].forEach(el => ALBUM_CONTAINER.appendChild(el));
     ALBUM_CONTAINER.dataset.artist = artist;
     ALBUM_CONTAINER.dataset.album = album.title;
@@ -1104,33 +1127,7 @@ class MusicLibrary extends HTMLElement {
     ALBUM_CONTAINER.classList.add('album-grid');
     ALBUM_CONTAINER.addEventListener('click', this._makeSelection);
     ALBUM_CONTAINER.addEventListener('contextmenu', ev => this._openContexMenu(ev, ALBUM_CONTAINER, artist, album));
-    svgIcon('playing').then(svg => {
-      svg.classList.add('playing-svg');
-      svg.title = 'Playing';
-      ALBUM_CONTAINER.appendChild(svg);
-    });
-    svgIcon('list').then(svg => {
-      svg.classList.add('listed');
-      svg.title = 'In Playlist';
-      ALBUM_CONTAINER.appendChild(svg);
-    });
-    svgIcon('favorite').then(svg => {
-      svg.classList.add('fav');
-      svg.title = 'Favorite';
-      ALBUM_CONTAINER.appendChild(svg);
-    });
-    svgIcon('check').then(svg => {
-      svg.classList.add('selected');
-      svg.title = 'Selected';
-      ALBUM_CONTAINER.appendChild(svg);
-    });
     this.content.appendChild(ALBUM_CONTAINER);
-    // IMG.onload = _ => {
-    //   const THIEF = new ColorThief();
-    //   const COLOR = THIEF.getColor(IMG);
-    //   const CONTRAST = getContrastColor(convertToHex(`rgb(${COLOR[0]},${COLOR[1]},${COLOR[2]})`));
-    //   ALBUM_CONTAINER.style.color = CONTRAST;
-    // };
   }
 
   /**
@@ -1200,6 +1197,14 @@ class MusicLibrary extends HTMLElement {
     this._quickLinkMarkElement(artist, artistContainer);
   }
 
+  /**
+   * create quick links UI
+   * 
+   * @param {String} artistName 
+   * @param {HTMLElement} artistContainer 
+   * 
+   * @returns {HTMLElement}
+   */
   _quickLinkMarkElement(artistName, artistContainer) {
     const firstChar = artistName[0].toLowerCase();
     // first char isn't included in the list of chars
