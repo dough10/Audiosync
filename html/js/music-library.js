@@ -95,7 +95,6 @@ class MusicLibrary extends HTMLElement {
         'border-radius': '5px',
         margin: '8px',
         background: 'var(--main-color)',
-        color: 'var(--text-color)',
         "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
       },
       '.album-grid > img': {
@@ -106,8 +105,9 @@ class MusicLibrary extends HTMLElement {
         'pointer-events': 'none'
       },
       '.album-grid > div:nth-child(2)': {
+        'font-weight': '500',
         'max-width': '148px',
-        padding:'4px',
+        padding:'8px 4px 0px',
         'font-size': '16px',
         overflow: 'hidden',
         'white-space': 'nowrap',
@@ -130,7 +130,7 @@ class MusicLibrary extends HTMLElement {
         transition: 'opacity 150ms ease'
       },
       '.album-grid[favorite] > .fav': {
-        bottom:'24px',
+        bottom:'23px',
         right:'5px',
         opacity: 0.5
       },
