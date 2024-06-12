@@ -39,6 +39,8 @@ class AudioSyncPages extends HTMLElement {
       await sleep(SLEEP_TIME);
     }
     
+    qs('.card').setAttribute('page', newVal);
+
     if (qs('scroll-element')) qs('scroll-element').top();
 
     // elements in the customelement "slot"
