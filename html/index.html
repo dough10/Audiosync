@@ -87,19 +87,21 @@
         color: yellow;
       }
       .card {
-        color: var(--text-color);
-        max-width: 900px;
         min-width: 280px;
+        color: var(--text-color);
         padding: 0px;
         background: var(--main-color);
         position: relative;
-        margin: auto;
+        margin: 0 24px;
         border-radius: 20px;
-        margin-bottom: 8px;
         box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
         text-align: center;
         margin-bottom: 100px;
         overflow: hidden;
+      }
+      .card[view=grid] {
+        background: var(--background-color);
+        box-shadow: none;
       }
       @keyframes spin {
         from {
@@ -111,18 +113,6 @@
       }
       .spinning {
         animation: spin 1.5s linear infinite;
-      }
-      @keyframes ripple-animation {
-        to {
-          transform: scale(4);
-          opacity: 0;
-        }
-      }
-      .ripple-effect {
-        position: absolute;
-        border-radius: 50%;
-        background: var(--text-color);
-        animation: ripple-animation 0.7s linear;
       }
       .alert {
         background: #323232;
@@ -265,6 +255,7 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+        margin-bottom: 4px;
       }
       audiosync-dialog > .tracklist > .album-head > div:first-child {
         font-size: 24px;
@@ -281,7 +272,7 @@
         cursor: pointer;
       }
       audiosync-dialog > .tracklist > .track[playing] {
-        background-color: #00000044
+        background-color: rgba(var(--pop-rgb),0.4)
       }
       audiosync-dialog > .tracklist > .track > div:first-child {
         margin-left: 8px;
@@ -422,9 +413,33 @@
       .spinning {
         animation: "spin 1.5s linear infinite";
       }
+      @media screen and (max-width: 700px) {
+        .card {
+          margin:auto;
+          margin-bottom: 100px;
+        }
+      }
       @media screen and (min-width: 1200px) {
         #menu-button {
           display: none;
+        }
+      }
+      @media screen and (min-height: 815px) {
+        audiosync-dialog > .img-wrapper {
+          height: 525px;
+          width: 525px;
+        }
+        audiosync-dialog > .tracklist > .track {
+          max-width: 525px;
+        }
+      }
+      @media screen and (min-height: 915px) {
+        audiosync-dialog > .img-wrapper {
+          height: 600px;
+          width: 600px;
+        }
+        audiosync-dialog > .tracklist > .track {
+          max-width: 600px;
         }
       }
     </style>
@@ -471,10 +486,16 @@
             <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
           </svg>
         </audiosync-small-button>
-        <div>
+        <div>          
           <audiosync-small-button id="scan" class="music">
             <svg viewBox="0 -960 960 960">
               <path fill="currentColor" d="M240-80q-33 0-56.5-23.5T160-160v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-80H240Zm-80-440v-280q0-33 23.5-56.5T240-880h320l240 240v120h-80v-80H520v-200H240v280h-80ZM40-360v-80h880v80H40Zm440-160Zm0 240Z"/>
+            </svg>
+          </audiosync-small-button>
+
+          <audiosync-small-button id="view" class="music">
+            <svg viewBox="0 -960 960 960">
+              <path fill="currentColor" d="M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z"/>
             </svg>
           </audiosync-small-button>
 
