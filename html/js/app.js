@@ -11,11 +11,28 @@ import {
   fadeIn,
   fadeOut,
   parseCSS,
-  objectToCSS
+  objectToCSS,
+  getFilenameWithoutExtension
 } from './helpers.js';
 
   
 let _loadTimer = 0
+
+/**
+ * returns index of theme with the given name
+ * 
+ * @param {String} themename 
+ * 
+ * @returns {Number}
+ */
+function themenameToIndex(themename) {
+  const OPTIONS = qsa('option', qs('.select-text'));
+  for (let i = 0; i < OPTIONS.length; i++) {
+    const VALUE = getFilenameWithoutExtension(OPTIONS[i].value)
+    if (themename === VALUE) return i;
+  }
+  return -1;
+}
 
 /**
  * load theme CSS 
@@ -287,12 +304,12 @@ async function load_app() {
   // get settings from config.json
   const CONFIG_OBJECT = await pywebview.api.get_config();
 
-  let theme = 1;
+  let theme = themenameToIndex('light');
 
   theme = CONFIG_OBJECT.theme;
 
   if (isDarkMode()) {
-    theme = 0;
+    theme = themenameToIndex('dark');
   }
 
   THEME_DROPDOWN.selectedIndex = theme;
