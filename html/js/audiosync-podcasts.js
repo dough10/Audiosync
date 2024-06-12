@@ -13,12 +13,12 @@ class AudioSyncPodcasts extends HTMLElement {
         height: "24px"
       },
       ".container": {
-        padding: "8px",
         display: "flex",
         "flex-direction": "column",
         "jusify-content": "space-between"
       },
       ".wrapper": {
+        padding: '0 8px',
         display: "flex",
         "flex-direction": "row",
         "justify-content": "space-between",
@@ -27,6 +27,9 @@ class AudioSyncPodcasts extends HTMLElement {
         "font-size": "14px",
         "font-weight": "bold",
         "min-height": "44px"
+      },
+      '.container > .wrapper:first-child': {
+        'border-top': 'none'
       },
       ".head": {
         width: "100%",
@@ -120,11 +123,7 @@ class AudioSyncPodcasts extends HTMLElement {
     
     // animated dialog card
     const ADD_PODCAST_DIALOG = ce('audiosync-dialog');
-    ADD_PODCAST_DIALOG.blocker.addEventListener('click', async _ => {
-      await ADD_PODCAST_DIALOG.close();
-      await sleep(500);
-      ADD_PODCAST_DIALOG.remove();
-    });
+    ADD_PODCAST_DIALOG.toggleAttribute('cleanup');
 
     [
       INPUT_GROUP,
@@ -242,7 +241,7 @@ class AudioSyncPodcasts extends HTMLElement {
       DOWNLOAD_PROGRESS_BAR.setAttribute('percent', DOWNLOADED_PRECENTAGE);
       
       if (DOWNLOADED_PRECENTAGE == 100) {
-        await fadeOut(bar);
+        await fadeOut(DOWNLOAD_PROGRESS_BAR);
         DOWNLOAD_PROGRESS_BAR.style.display = 'none';
         new Toast(`${fileName} downloaded`);
         qs('#title', DOWNLOAD_PROGRESS_BAR).textContent = '';
@@ -296,6 +295,7 @@ class AudioSyncPodcasts extends HTMLElement {
       DELETE_CONFIRMATION_TEXT.textContent = `Unsubscribe from "${PODCAST_TITLE_ELEMENT.textContent}"?`;
       
       const DELETE_CONFIRMATION_DIALOG = ce('audiosync-dialog');
+      DELETE_CONFIRMATION_DIALOG.toggleAttribute('cleanup');
 
       const YES_BUTTON = ce('audiosync-button');
       const NO_BUTTON = ce('audiosync-button');
