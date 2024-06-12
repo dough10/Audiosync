@@ -106,7 +106,7 @@ class MusicLibrary extends HTMLElement {
         'pointer-events': 'none'
       },
       '.album-grid > div:nth-child(2)': {
-        'max-width': '120px',
+        'max-width': '148px',
         padding:'4px',
         'font-size': '16px',
         overflow: 'hidden',
@@ -133,6 +133,9 @@ class MusicLibrary extends HTMLElement {
         bottom:'24px',
         right:'5px',
         opacity: 0.5
+      },
+      '.album-grid[favorite] > div:nth-child(2)': {
+        'max-width': '120px'
       },
       '.album-grid[inlist] > .listed': {
         left: '52px',
