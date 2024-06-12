@@ -6,7 +6,7 @@ class AudioSyncButton extends HTMLElement {
   }
   constructor() {
     super();
-    this.attachShadow({mode: "open"});
+    this.attachShadow({mode: 'open'});
 
     // color higherarchy 
     // color attribute > css '--pop-color' variable > white
@@ -16,80 +16,81 @@ class AudioSyncButton extends HTMLElement {
     const CONTRAST_COLOR = getContrastColor(COLOR);
 
     const CSS_OBJECT = {
-      ".button": {
-        display: "inline-flex",
-        "min-width": "5.14em",
-        margin: "0.29em 0.29em",
+      '.button': {
+        display: 'inline-flex',
+        'min-width': '5.14em',
+        margin: '0.29em 0.29em',
         color: CONTRAST_COLOR,
-        "background-color": COLOR,
-        "text-align": "center",
-        "text-transform": "uppercase",
-        "outline-width": 0,
-        "border-radius": "3px",
-        padding: "0.7em 0.57em",
-        cursor: "pointer",
-        position: "relative",
-        "box-sizing": "border-box",
-        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)",
-        "-webkit-user-select": "none",
-        "user-select": "none",
-        "pointer-events": "all",
-        "justify-content": "center",
-        "align-items": "center",
+        'background-color': COLOR,
+        'text-align': 'center',
+        'text-transform': 'uppercase',
+        'outline-width': 0,
+        'border-radius': '3px',
+        padding: '0.7em 0.57em',
+        cursor: 'pointer',
+        position: 'relative',
+        'box-sizing': 'border-box',
+        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',
+        '-webkit-user-select': 'none',
+        'user-select': 'none',
+        'pointer-events': 'all',
+        'justify-content': 'center',
+        'align-items': 'center',
         transition: 'var(--button-bg-animation)',
-        overflow: "hidden",
-        transform: "translate3d(0, 0, 0)"
+        overflow: 'hidden',
+        transform: 'translate3d(0, 0, 0)'
       },
-      ".button > *": {
-        "pointer-events": "none"
-      },
-      ".button:after": {
-        display: "inline-block",
-        width: "100%",
-        height: "100%",
-        "border-radius": "3px",
+      '.button:after': {
+        display: 'inline-block',
+        'z-index': -1,
+        width: '100%',
+        height: '100%',
         opacity: 0,
-        transition: "opacity 150ms cubic-bezier(.33,.17,.85,1.1)",
-        "box-shadow": "0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)",
-        content: "' '",
-        position: "absolute",
+        'border-radius': '3px',
+        transition: 'opacity 150ms cubic-bezier(.33,.17,.85,1.1)',
+        'box-shadow': '0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4)',
+        content: '" "',
+        position: 'absolute',
         top: 0,
         left: 0
       },
-      ".button:hover:after": {
+      '.button:hover:after': {
         opacity: 1
       },
-      ".button:hover:active:after": {
+      '.button:hover:active:after': {
         opacity: 0
       },
-      ".button[disabled]": {
-        background: "rgba(84, 84, 84, 0.4)",
-        color: "#ffffff",
-        "box-shadow": "none",
-        cursor: "none",
-        "pointer-events": "none"
+      '.button[disabled]': {
+        background: 'rgba(84, 84, 84, 0.4)',
+        color: '#ffffff',
+        'box-shadow': 'none',
+        cursor: 'none',
+        'pointer-events': 'none'
       },
-      ".button[disabled]:active, .button[disabled]:hover, .button[disabled]:active:hover": {
-        "box-shadow": "none",
-        "background-color": "rgba(0, 0, 0, 0.178)"
+      '.button[disabled]:active, .button[disabled]:hover, .button[disabled]:active:hover': {
+        'box-shadow': 'none',
+        'background-color': 'rgba(0, 0, 0, 0.178)'
       },
-      ".button[noshadow], .button[noshadow]:hover, .button[noshadow]:hover:after, .button[noshadow]:after": {
-        "box-shadow": "none"
+      '.button[noshadow], .button[noshadow]:hover, .button[noshadow]:hover:after, .button[noshadow]:after': {
+        'box-shadow': 'none'
       },
-      ".button[noshadow]:active": {
-        "box-shadow": "0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)"
+      '.button[noshadow]:active': {
+        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)'
       },
-      "@keyframes ripple-animation": {
+      '.button > *': {
+        'pointer-events': 'none'
+      },
+      '@keyframes ripple-animation': {
         to: {
-          transform: "scale(4)",
+          transform: 'scale(4)',
           opacity: 0
         }
       },
-      ".ripple-effect": {
-        position: "absolute",
-        "border-radius": "50%",
+      '.ripple-effect': {
+        position: 'absolute',
+        'border-radius': '50%',
         background: hexToRgba(CONTRAST_COLOR),
-        animation: "ripple-animation 0.7s linear"
+        animation: 'ripple-animation 0.7s linear'
       }
     };
 
