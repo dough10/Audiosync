@@ -89,6 +89,16 @@ async function toggleSwitchCallback(ev) {
   }
 }
 
+async function hideElement(el) {
+  await fadeOut(el);
+  el.style.display = 'none';
+}
+
+async function showElement(el) {
+  el.style.removeProperty('display');
+  fadeIn(el);
+}
+
 /**
  * setup listeners and fetch data
 */
@@ -120,6 +130,11 @@ async function load_app() {
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
   const IMPORT_PODCASTS_SWITCH = qs('#podcast');
   const TOGGLE_SWITCHES = qsa('audiosync-switch');
+  const MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON = qs('#view');
+
+  const GRID_ICON = "M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z";
+  const LIST_ICON = "M280-600v-80h560v80H280Zm0 160v-80h560v80H280Zm0 160v-80h560v80H280ZM160-600q-17 0-28.5-11.5T120-640q0-17 11.5-28.5T160-680q17 0 28.5 11.5T200-640q0 17-11.5 28.5T160-600Zm0 160q-17 0-28.5-11.5T120-480q0-17 11.5-28.5T160-520q17 0 28.5 11.5T200-480q0 17-11.5 28.5T160-440Zm0 160q-17 0-28.5-11.5T120-320q0-17 11.5-28.5T160-360q17 0 28.5 11.5T200-320q0 17-11.5 28.5T160-280Z";
+
 
   if (_loadTimer) {
     clearTimeout(_loadTimer);
@@ -147,7 +162,9 @@ async function load_app() {
     [
       qs('audiosync-button', SYNC_UI_ELEMENT.shadowRoot),
       qs('audiosync-fab', SCROLL_ELEMENT.shadowRoot)
-    ].forEach(el => el.setAttribute('color', palette.fab));
+    ].forEach(el => {
+      if (el) el.setAttribute('color', palette.fab);
+    });
   });
   
   MUSIC_LIBRARY.addEventListener('library-scan', async e => {
@@ -175,15 +192,9 @@ async function load_app() {
     }
     if (PAGES.getAttribute('selected') === '0') return;
     PAGES.setAttribute('selected', 0);
-    PODCAST_HEADER_BUTTONS.forEach(async el => {
-      await fadeOut(el);
-      el.style.display = 'none';
-    });
+    PODCAST_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
-    MUSIC_HEADER_BUTTONS.forEach(el => {
-      el.style.removeProperty('display');
-      fadeIn(el);
-    });
+    MUSIC_HEADER_BUTTONS.forEach(showElement);
   });
 
   PODCAST_LIBRARY_MENU_BUTTON.onClick(async _ => {
@@ -194,15 +205,9 @@ async function load_app() {
     }
     if (PAGES.getAttribute('selected') === '1') return;
     PAGES.setAttribute('selected', 1);
-    MUSIC_HEADER_BUTTONS.forEach(async el => {
-      await fadeOut(el);
-      el.style.display = 'none';
-    });
+    MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
-    PODCAST_HEADER_BUTTONS.forEach(el => {
-      el.style.removeProperty('display');
-      fadeIn(el);
-    });
+    PODCAST_HEADER_BUTTONS.forEach(showElement);
   });
 
   // header hamburger icon
@@ -215,6 +220,19 @@ async function load_app() {
     MUSIC_LIBRARY_SCAN_BUTTON.removeAttribute('disabled');
   });
   
+  MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON.onClick(_ => {
+    const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
+
+    if (MUSIC_LIBRARY.getAttribute('view') === 'list') {
+      ICON.setAttribute('d', LIST_ICON);
+      MUSIC_LIBRARY.setAttribute('view', 'grid');
+    } else {
+      ICON.setAttribute('d', GRID_ICON);
+      MUSIC_LIBRARY.setAttribute('view', 'list');
+    }
+    MUSIC_LIBRARY.go();
+  });
+
   MUSIC_LIBRARY_FAVORITE_BUTTON.onClick( _ => MUSIC_LIBRARY.favorites());
   
   PODCAST_LIBRARY_ADD_BUTTON.onClick(_ => PODCAST_LIBRARY.openAddPodcastDialog());
@@ -259,8 +277,6 @@ async function load_app() {
     await animateElement(clickEvent.target, 'translateY(-120%)', 800, 0);
   });
 
-
-
   // when a switch is changed update config & UI
   TOGGLE_SWITCHES.forEach(toggleSwitch => toggleSwitch.addEventListener('statechange', toggleSwitchCallback));
 
@@ -271,10 +287,12 @@ async function load_app() {
   // get settings from config.json
   const CONFIG_OBJECT = await pywebview.api.get_config();
 
-  let theme = 0;
+  let theme = 1;
+
+  theme = CONFIG_OBJECT.theme;
 
   if (isDarkMode()) {
-    theme = 1;
+    theme = 0;
   }
 
   THEME_DROPDOWN.selectedIndex = theme;
@@ -309,6 +327,15 @@ async function load_app() {
 
   // load media library
   MUSIC_LIBRARY.addEventListener('lib_size_updated', e => MENU_DRAWER.footElement(e.detail.lib_size));
+
+  MUSIC_LIBRARY.setAttribute('view', CONFIG_OBJECT.view || 'list');
+
+  const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
+  if (MUSIC_LIBRARY.getAttribute('view') === 'list') {
+    ICON.setAttribute('d', GRID_ICON);
+  } else {
+    ICON.setAttribute('d', LIST_ICON);
+  }
 
   await MUSIC_LIBRARY.go();
 
