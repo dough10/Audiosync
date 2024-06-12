@@ -783,7 +783,7 @@ function parseCSS(cssString) {
     } else if (char === '}') {
       braceCount--;
       if (braceCount === 0) {
-        if (currentSelector.startsWith('@keyframes') || currentSelector.startsWith('@media')) {
+        if (currentSelector.startsWith('@')) {
           cssObject[currentSelector] = parseKeyframes(buffer);
         } else {
           cssObject[currentSelector] = parseProperties(buffer);
@@ -830,7 +830,7 @@ function objectToCSS(cssObject) {
 
   for (const selector in cssObject) {
     if (cssObject.hasOwnProperty(selector)) {
-      if (selector.startsWith('@keyframes') || selector.startsWith('@media')) {
+      if (selector.startsWith('@')) {
         cssString += `${selector} {\n`;
         const keyframes = cssObject[selector];
 
