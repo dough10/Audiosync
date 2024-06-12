@@ -12,7 +12,6 @@ from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast
 import urllib.parse
 
-
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 config_path = os.path.join(script_folder, 'config.json')
@@ -38,6 +37,7 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
       path = path[len('/podcasts/'):]
       directory = config['podcast_folder']
     else:
+
       directory = html_path
     return os.path.join(directory, path.lstrip('/'))
 
@@ -53,6 +53,7 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
 def run_combined_server():
   handler = CustomRequestHandler
   with socketserver.ThreadingTCPServer(("", 8080), handler) as httpd:
+    httpd.max_threads = 8
     httpd.serve_forever()
   
 # save config file
@@ -180,8 +181,9 @@ class Api:
     except Exception as e:
       print(f'Error parsing XML {e}')
 
-# run the application
-if __name__ == '__main__':
+
+def main():
+  global window
   # run UI server
   server_thread = threading.Thread(target=run_combined_server)
   server_thread.daemon = True
@@ -193,3 +195,8 @@ if __name__ == '__main__':
   # load UI
   window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8080/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
+
+  
+# run the application
+if __name__ == '__main__':
+  main()
