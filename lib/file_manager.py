@@ -10,9 +10,43 @@ from concurrent.futures import ThreadPoolExecutor
 def estimate_file_size(text):
   return len(text.encode('utf-8')) / 1024
 
+def delete_thumbnails(path):
+  for root, dirs, files in os.walk(path):
+    thumbs = [os.path.join(root,file) for file in files if file.endswith('thumb.webp')]
+    for file in thumbs:
+      os.remove(file)
+
 class File_manager:
   def __init__(self, changes):
     self.changes = changes
+
+  def resizeImage(self, image_path, size, destination, ext='JPEG'):
+    options = {
+      "quality": 60,  # Adjust the quality (0-100, higher is better quality)
+      "method": 6,    # Compression method (0-6, 6 is slowest but provides better compression)
+      "lossless": False  # Set to True for lossless compression
+    }
+    try:
+      img = Image.open(image_path)
+      width, height = img.size 
+      if width > size or height > size:
+        img.thumbnail((size, size), Image.LANCZOS)
+      img.convert('RGB')
+      try:
+        if ext == 'WEBP':
+          img.save(destination, ext, **options)
+        else :
+          img.save(destination, ext)
+      except FileExistsError:
+        os.remove(destination)
+        if ext == 'WEBP':
+          img.save(destination, ext, **options)
+        else :
+          img.save(destination, ext)
+      except OSError:
+        img.save(destination, 'PNG')
+    except:
+      pass
 
   def formatFilename(self, s):
     """
@@ -83,21 +117,7 @@ class File_manager:
 
     def process_image(filename):
       # resize
-      try:
-        img = Image.open(filename)
-        width, height = img.size 
-        if width > 1000 or height > 1000:
-          img.thumbnail((1000, 1000), Image.LANCZOS)
-        img.convert('RGB')
-        try:
-          img.save(filename, 'JPEG')
-        except FileExistsError:
-          os.remove(filename)
-          img.save(filename, 'JPEG')
-        except OSError:
-          img.save(filename, 'PNG')
-      except:
-        pass
+      self.resizeImage(filename, 1000, filename)
 
       # rename
       if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg") or filename.endswith('Cover.jpg'):
