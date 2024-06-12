@@ -57,6 +57,7 @@ class AudioSyncDialog extends HTMLElement {
     this.blocker.id = 'click-blocker';
     this.blocker.classList.add('allow-clicks');
     this.blocker.style.display = 'none';
+    this.blocker.addEventListener('click', this.close);
 
     this.dialog = ce('div');
     this.dialog.classList.add('dialog');
@@ -90,9 +91,10 @@ class AudioSyncDialog extends HTMLElement {
    * close the dialog
    */
   async close() {
-    const CLOSE_END = _ => {
+    const CLOSE_END = async _ => {
       this.dialog.removeEventListener('transitionend', CLOSE_END);
       this.blocker.style.display = 'none';
+      if (this.hasAttribute('cleanup')) this.remove();
     };
     this.dialog.addEventListener('transitionend', CLOSE_END);
     requestAnimationFrame(_ => {
