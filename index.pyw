@@ -18,6 +18,7 @@ config_path = os.path.join(script_folder, 'config.json')
 with open(config_path, 'r') as j:
   config = json.load(j)
 
+port = 8080
 
 window = False
 file_path = os.path.abspath(__file__)
@@ -52,7 +53,7 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
 
 def run_combined_server():
   handler = CustomRequestHandler
-  with socketserver.ThreadingTCPServer(("", 8080), handler) as httpd:
+  with socketserver.ThreadingTCPServer(("", port), handler) as httpd:
     httpd.max_threads = 8
     httpd.serve_forever()
   
@@ -193,7 +194,7 @@ def main():
   time.sleep(2)
 
   # load UI
-  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url='http://localhost:8080/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
+  window = webview.create_window('sync.json Creator', confirm_close=True, frameless=False, url=f'http://localhost:{port}/index.html', js_api=Api(), resizable=True, height=800, width=1400, min_size=(550, 750), background_color='#d6d6d6')  
   webview.start(debug=config['debug'])
 
   
