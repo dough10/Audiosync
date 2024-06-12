@@ -228,7 +228,7 @@ class AudioPlayer extends HTMLElement {
     };
 
     this.library = qs('music-library');
-
+    this.lastUpdate = 0;
 
     // pause timer
     // hide ui if paused for period of time
@@ -661,6 +661,8 @@ class AudioPlayer extends HTMLElement {
 
     const NOW_PLAYING = this.playlist[this.playing];
 
+    if (!NOW_PLAYING) return;
+
     this.artist = NOW_PLAYING.artist;
     this.albumTitle = NOW_PLAYING.album;
     this.isFavorite = qs(`[data-artist="${this.artist}"][data-album="${this.albumTitle}"]`, qs('music-library').shadowRoot).hasAttribute('favorite');
@@ -680,8 +682,6 @@ class AudioPlayer extends HTMLElement {
     // load and play the file
     this.player.load();
     this.player.play();
-
-    // update library UI
     this.library.nowPlaying(NOW_PLAYING);
   }
 
@@ -974,6 +974,11 @@ class AudioPlayer extends HTMLElement {
     } else {
       if (DURATION_TEXT) DURATION_TEXT.textContent = `${MINS}:${SECS}`;
     }
+
+    const NOW = new Date().getTime();
+    if ((NOW - this.lastUpdate) < 1000) return;
+    this.library.nowPlaying(this.playlist[this.playing]);
+    this.lastUpdate = NOW;
   }
 
   /**
@@ -1079,7 +1084,7 @@ class AudioPlayer extends HTMLElement {
    */
   _onWaiting(ev) {
     // some kind of loading animation
-    console.log(ev);
+    // console.log(ev);
   }
 }
 customElements.define('audiosync-player', AudioPlayer);
