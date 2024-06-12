@@ -218,6 +218,8 @@ def move_file(root, file, ext):
     need_attention.append(f"file:{source_file}\ndest:{dest}\nerror:{str(e)}\n\n")
     return
 
+
+
 def get_audio_files():
   audio_files = []
   for root, dirs, files in os.walk(working_dir):
@@ -226,6 +228,8 @@ def get_audio_files():
         file = file_manager.fix_filename(root, file)
         audio_files.append({'root': root, 'file': file, 'ext': os.path.splitext(file)[-1].lower()})
   return audio_files
+
+
 
 def process_audio_files(window):
   """
@@ -244,6 +248,8 @@ def process_audio_files(window):
     if window:
       window.evaluate_js(f'document.querySelector("sync-ui").updateBar("#files-bar", {ndx}, {length});')
 
+
+
 def notify(s, window):
   try:
     if window:
@@ -253,8 +259,12 @@ def notify(s, window):
   except Exception as e:
     print(e)
 
+
+
 def get_lib_size(queue):
   queue.put(get_folder_size(config['source']))
+
+
 
 def run_sync(window):
   """
@@ -374,7 +384,7 @@ def run_sync(window):
   lib_path = os.path.join(script_folder, 'lib_data.json')
 
   with open(lib_path, 'w') as data_file:
-    data_file.write(json.dumps(sorted_data, indent=2))
+    data_file.write(json.dumps(sorted_data))
 
   # copy / delete podcasts and add those changes to the total changes
   if podcast:
@@ -418,24 +428,36 @@ def build_lib(root, file, ext):
   global lib_data
   source_file = os.path.join(root, file)
   jpg = os.path.join(root, 'cover.jpg')
+  alt_jpg = os.path.join(root, '..', 'cover.jpg')
   if ext == '.flac':
     info = pl_manager.get_flac_info(source_file, file)
   else:
     info = pl_manager.get_mp3_info(source_file, file, jpg)
   if not info:
     return
+  if not os.path.exists(jpg) and os.path.exists(alt_jpg):
+    file_manager.copy_file(alt_jpg, root, jpg)
   if not os.path.exists(jpg):
     return
+  thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
+  if not os.path.exists(thumbnail_name):
+    file_manager.resizeImage(jpg, 150, thumbnail_name, ext='WEBP')
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
+
+
 
 def create_lib_json(window):
   global lib_data
+  # clear data object
   lib_data = {}
+  # get library size
   fs_queue = queue.Queue()
   thread = threading.Thread(target=get_lib_size, args=(fs_queue,))
   thread.start()
+  # list audio files
   audio_files = get_audio_files()
   length = len(audio_files)
+  # build data object
   for ndx, file in enumerate(audio_files):
     build_lib(file['root'], file['file'], file['ext'])
     if window:
@@ -453,7 +475,7 @@ def create_lib_json(window):
   lib_path = os.path.join(script_folder, 'lib_data.json')
 
   with open(lib_path, 'w') as data_file:
-    data_file.write(json.dumps(sorted_data, indent=2))
+    data_file.write(json.dumps(sorted_data))
 
 if __name__ == "__main__":
   run_sync(False)
