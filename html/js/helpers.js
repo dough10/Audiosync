@@ -970,6 +970,23 @@ function containsNumber(array) {
   return array.some(value => Number(value));
 }
 
+/**
+ * return the filename without path and extension 
+ * 
+ * @param {String} filePath 
+ * 
+ * @returns {Number}
+ */
+function getFilenameWithoutExtension(filePath) {
+  const parts = filePath.split('/');
+  const filenameWithExtension = parts.pop();
+  const lastDotPosition = filenameWithExtension.lastIndexOf('.');
+  if (lastDotPosition === -1) {
+      return filenameWithExtension;
+  }
+  return filenameWithExtension.substring(0, lastDotPosition);
+}
+
 export {
   Timer,
   Toast,
@@ -1000,5 +1017,6 @@ export {
   getColorAtPoint,
   areElementsPresent,
   indexOfElement,
-  containsNumber
+  containsNumber,
+  getFilenameWithoutExtension
 }
