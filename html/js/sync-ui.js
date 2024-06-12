@@ -25,7 +25,8 @@ class SyncUI extends HTMLElement {
         "margin-bottom": "24px",
         height: "75px",
         "font-size": "16px",
-        'max-width': '457px'
+        'max-width': '457px',
+        'text-wrap': 'pretty'
       },
       svg: {
         height: "24px",
@@ -63,7 +64,6 @@ class SyncUI extends HTMLElement {
     });
     
     this.dialog = ce('audiosync-dialog');
-    this.dialog.blocker.addEventListener('click', _ => this.dialog.close());
 
     // style the dialog wider the normal 
     const DIALOG_STYLES = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
