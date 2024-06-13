@@ -8,6 +8,6 @@
   "--selected-color": "rgba(136, 136, 136, 0.582)",
   "--selected-hover-color":"rgba(var(--pop-rgb),0.8)",
   "--pop-rgb": "166, 136, 250",
-  "--seperator-line": "1px solid rgba(225,225,225,0.2)",
+  "--seperator-line": "1px solid rgba(225,225,225,0.1)",
   "--close-red": "red"
 }
