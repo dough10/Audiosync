@@ -374,10 +374,6 @@ class AudioPlayer extends HTMLElement {
   async fullScreen() {
     if (qs('#fbg', this.shadowRoot)) return;
 
-    qs('scroll-element').offScreen();
-
-    animateElement(qs('#expand', this.shadowRoot), 'rotate(180deg)', 300);
-
     // art
     const IMG = ce('img');
     IMG.id = 'fsart';
@@ -456,7 +452,9 @@ class AudioPlayer extends HTMLElement {
       el.style.display = 'none';
     });
 
-    // animate onscreen
+    // animate 
+    qs('scroll-element').offScreen();
+    animateElement(qs('#expand', this.shadowRoot), 'rotate(180deg)', 300);
     await animateElement(FULLSCREEN_BACKGROUND, 'translateY(0%)', 300);
     this.toggleAttribute('fullscreen');
     this.onScreen();
