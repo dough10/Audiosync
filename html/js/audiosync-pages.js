@@ -39,8 +39,6 @@ class AudioSyncPages extends HTMLElement {
       await sleep(SLEEP_TIME);
     }
     
-    qs('.card').setAttribute('page', newVal);
-
     if (qs('scroll-element')) qs('scroll-element').top();
 
     // elements in the customelement "slot"
@@ -66,6 +64,8 @@ class AudioSyncPages extends HTMLElement {
 
       const HEADER_HEIGHT = Number(getCSSVariableValue('--header-height').replace('px',''));
       const WINDOW_HEIGHT = window.innerHeight - HEADER_HEIGHT;
+
+      qs('.card').setAttribute('page', newVal);
 
       // animate height if the content is small enough to see the bottom of the card
       if (HEIGHT_OF_TO_PAGE < WINDOW_HEIGHT || HEIGHT_OF_FROM_PAGE < WINDOW_HEIGHT) {
