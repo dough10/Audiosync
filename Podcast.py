@@ -44,9 +44,11 @@ with open(config_path, 'r') as j:
 
 folder = config['podcast_folder']
 
+# check internet connections status
 def is_connected():
   return is_live_url("https://google.com")
 
+# make sure URL is a valie URL scheme
 def validate_url(url):
   try:
     parsed_url = urlparse(url)
@@ -54,6 +56,7 @@ def validate_url(url):
   except Exception:
     return False
 
+# make sure URL returns 200 status
 def is_live_url(url):
   try:
     response = requests.get(url, timeout=5)
@@ -61,27 +64,32 @@ def is_live_url(url):
   except requests.exceptions.RequestException:
     return False
 
+# list of files newer than the 'old_date' variable
 def list_of_new_files(path):
   return [
     file for file in glob.glob(os.path.join(path, '*.mp3'))
     if old_date < datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
+# lsit of files older then the 'old_date' variable
 def list_of_old_files(path):
   return [
     file for file in glob.glob(os.path.join(path, '*.mp3'))
     if old_date > datetime.datetime.fromtimestamp(os.path.getmtime(file)).date()
   ]
 
+# count audio file in the given directory
 def playable_file_count(dir):
   count = 0
   for file_type in supported_formats:
     count += len(glob.glob(os.path.join(dir, f'*{file_type}')))
   return count
 
+# count file not hidden
 def nonhidden_file_count(dest):
   return len([entry for entry in os.listdir(dest) if os.path.isfile(os.path.join(dest, entry)) and not entry.startswith('.')])
 
+# write new podcast episodes to the given directory / player address
 def updatePlayer(player, window, bypass=False, logger=print):
   newPodcast = 0
   filesWriten = 0
@@ -207,12 +215,15 @@ def updatePlayer(player, window, bypass=False, logger=print):
     print('Please wait for prompt before removing the drive')
     os.system(f'diskutil eject {escapeFolder(player)}')
 
+# list of cronjobs
 def listCronjobs():
   return re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', os.popen('crontab -l').read())
 
+# make sure file path doesn't contain special chars
 def escapeFolder(s):
   return s.replace(' ', '\\ ').replace('(', '\\(').replace(')', '\\)')
 
+# request yes, no / true, false input from user
 def question(q):
   while True:
     answer = input(q).strip().lower()
@@ -223,6 +234,7 @@ def question(q):
     else:
       print('Invalid option. Please enter "yes" or "no".')
       
+# download the given audiofile url to the giver file path
 def dlWithProgressBar(url, path, progress_callback=None):
   chunk_size = 4096
   try:
@@ -251,6 +263,7 @@ def dlWithProgressBar(url, path, progress_callback=None):
     print(f"ERROR: An I/O error occurred while writing the file: {str(e)}")
     sys.exit()
 
+# save a downloaded image as a temp file
 def save_image_to_tempfile(img):
   try:
     with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
@@ -264,6 +277,7 @@ def save_image_to_tempfile(img):
       print(f"Error saving image to tempfile: {str(e)}")
       return None
 
+# write an Image to audiofile ID3 info
 def id3Image(file, img):
   """
   Sets the ID3 artwork for the given file using the provided image data.
