@@ -74,15 +74,16 @@ class AudioPlayer extends HTMLElement {
         position: 'absolute',
         'background-color': 'var(--pop-color)',
         transform: 'translateX(-100%)',
-        transition: 'var(--button-bg-animation)'
+        'transition-property': 'color',
+        'transition-duration': '300ms',
+        'transition-timing-function': 'ease'
       },
       '.click-strip': {
-        "border-bottom": "1px solid rgba(51,51,51,0.05)",
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        height: '5px',
+        height: '8px',
         'z-index': 1,
         cursor: 'pointer'
       },
@@ -224,6 +225,18 @@ class AudioPlayer extends HTMLElement {
         '#info': {
           'max-width': '450px'
         }
+      },      
+      '@keyframes ripple-animation': {
+        to: {
+          transform: 'scale(4)',
+          opacity: 0
+        }
+      },
+      '.ripple-effect': {
+        position: 'absolute',
+        'border-radius': '50%',
+        background: 'rgba(var(--pop-rgb),0.4)',
+        animation: 'ripple-animation 0.7s linear'
       }
     };
 
@@ -787,22 +800,6 @@ class AudioPlayer extends HTMLElement {
   _getLuminence(r,g,b) {
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
   }
-
-  /**
-   * trim  a file path to name only
-   * 
-   * @param {String} filePath 
-   * @returns {String}
-   */
-  _getFilenameWithoutExtension(filePath) {
-    const PARTS = filePath.split('/');
-    const FILENAME_WITH_EXTENTION = PARTS.pop();
-    const LAST_DOT_POSITION = FILENAME_WITH_EXTENTION.lastIndexOf('.');
-    if (LAST_DOT_POSITION === -1) {
-        return FILENAME_WITH_EXTENTION;
-    }
-    return FILENAME_WITH_EXTENTION.substring(0, LAST_DOT_POSITION);
-}
 
   /**
    * loads an image and gets a palette from the image
