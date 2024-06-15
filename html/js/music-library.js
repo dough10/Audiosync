@@ -277,6 +277,18 @@ class MusicLibrary extends HTMLElement {
       },
       '.popup > .option:hover': {
         background: 'var(--hover-color)'
+      },      
+      '@keyframes ripple-animation': {
+        to: {
+          transform: 'scale(4)',
+          opacity: 0
+        }
+      },
+      '.ripple-effect': {
+        position: 'absolute',
+        'border-radius': '50%',
+        background: 'rgba(var(--pop-rgb),0.4)',
+        animation: 'ripple-animation 0.7s linear'
       }
     };
 
@@ -296,12 +308,13 @@ class MusicLibrary extends HTMLElement {
    * view has changed 
    * 
    */
-  attributeChangedCallback() {
+  async attributeChangedCallback() {
+    await sleep(100);
     qs('.card').setAttribute('view', this.getAttribute('view'));
   }
 
   /**
-   * fetch data
+   * fetch data and fill ui with content
    */
   async go() {
     const VIEW = this.getAttribute('view');
@@ -313,14 +326,14 @@ class MusicLibrary extends HTMLElement {
     ];
 
     const CONTENT_CARD = qs('.card');
-
+    
     // hide content to prevent flash when new content is pushed
-    await fadeOut(CONTENT_CARD);
-
+    await fadeOut(CONTENT_CARD, 200);
+    await sleep(50);
     
     // clear the element
     this.content.innerHTML = '';
-
+    
     // get data
     const MUSIC_LIBRARY_DATA = await pywebview.api.lib_data();
     this.libSize = MUSIC_LIBRARY_DATA.lib_size || '0 b';
@@ -355,10 +368,10 @@ class MusicLibrary extends HTMLElement {
       const ALBUM_IN_LIST = qs(`[data-artist="${element.dataset.artist}"][data-album="${element.dataset.album}"]`, this.shadowRoot);
       if (ALBUM_IN_LIST) ALBUM_IN_LIST.toggleAttribute('inlist');
     });
-
+      
     // show the new stuff
-    fadeIn(CONTENT_CARD);
-
+    fadeIn(CONTENT_CARD, 200);
+    
     // update filesize in menu
     const CUSTOM_EVENT = new CustomEvent('lib_size_updated', {
       detail:{lib_size: this.libSize}
@@ -814,30 +827,37 @@ class MusicLibrary extends HTMLElement {
     }
     POPUP_CONTAINER.classList.add('popup');
 
-    // any click to close the popup
-    // closes and cleans up the popup element
-    qs('body').addEventListener('click', _ => {
+    const DISMISS = _ => {
+      qs('body').removeEventListener('click', _ => DISMISS());
+      qs('body').removeEventListener('contextmenu', _ => DISMISS());
       this.content.style.removeProperty('pointer-events');
       POPUP_CONTAINER.addEventListener('transitionend', async _ => {
         await sleep(500);
         POPUP_CONTAINER.remove();
       });
-      POPUP_CONTAINER.style.removeProperty('transform');
-    });
+      POPUP_CONTAINER.style.removeProperty('transform');      
+    };
+
+    // any click to close the popup
+    // closes and cleans up the popup element
+    qs('body').addEventListener('click', _ => DISMISS());
+    setTimeout(_ => qs('body').addEventListener('contextmenu', _ => DISMISS()), 50);
 
     // popup play button
     const POPUP_PLAY_BUTTON = fillButton('play', 'play');
     POPUP_PLAY_BUTTON.classList.add('option');
 
     // play the album
-    POPUP_PLAY_BUTTON.addEventListener('click', _ => {
+    POPUP_PLAY_BUTTON.addEventListener('click', e => {
+      createRipple(e);
       this.player.playAlbum(album);
       albumContainer.toggleAttribute('inlist');
     });
     
     const POPUP_PLAYLIST_BUTTON = fillButton('add', 'playlist');
     POPUP_PLAYLIST_BUTTON.classList.add('option');
-    POPUP_PLAYLIST_BUTTON.addEventListener('click', _ => {
+    POPUP_PLAYLIST_BUTTON.addEventListener('click', e => {
+      createRipple(e);
       this.player.addToPlaylist(album);
       new Toast(`${album.title} added to playlist`, 1);
       albumContainer.toggleAttribute('inlist');
@@ -854,7 +874,8 @@ class MusicLibrary extends HTMLElement {
       fav = fillButton('addFav', 'favorite');
     }
     fav.classList.add('option');
-    fav.addEventListener('click', _ => {
+    fav.addEventListener('click', e => {
+      createRipple(e);
       // mark / unmark in library ui
       this.favoriteAlbum(artist, album.title);
       // mark / unmark in audio player
@@ -864,7 +885,10 @@ class MusicLibrary extends HTMLElement {
     // display album info dialog (eventualy)
     const ALBUM_INFO_BUTTON = fillButton('list', 'info');
     ALBUM_INFO_BUTTON.classList.add('option');
-    ALBUM_INFO_BUTTON.addEventListener('click', _ => this._openAlbumInfoDialog(artist, album, albumContainer));
+    ALBUM_INFO_BUTTON.addEventListener('click', e => {
+      createRipple(e);
+      this._openAlbumInfoDialog(artist, album, albumContainer);
+    });
 
     [
       POPUP_PLAY_BUTTON,
