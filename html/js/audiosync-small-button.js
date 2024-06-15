@@ -33,7 +33,7 @@ class SmallButton extends HTMLElement {
       ".ripple-effect": {
         position: "absolute",
         "border-radius": "50%",
-        background: "rgba(51,51,51,0.4)",
+        background: "rgba(var(--pop-rgb),0.4)",
         animation: "ripple-animation 0.7s linear"
       }
     };
@@ -78,7 +78,7 @@ class SmallButton extends HTMLElement {
     ELEMENT_STYLES['.new-color'] = {
       'color': HEX_COLOR
     };
-    ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(HEX_COLOR);
+    // ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(HEX_COLOR);
 
     // apply styles
     qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES);
