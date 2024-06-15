@@ -27,7 +27,7 @@ remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
 import_lyrics = False
-json_data = {}
+sync_file_data = {}
 lib_data = {}
 changes = { # log of file changes 
   "lrc_created":0,
@@ -161,7 +161,7 @@ def move_file(root, file, ext):
   if use_sync_file:
 
     # artist is not in sync file
-    if artist_folder not in json_data:
+    if artist_folder not in sync_file_data:
 
       # artist folder path
       artf = os.path.join(sorted_dir, artist_folder)
@@ -173,7 +173,7 @@ def move_file(root, file, ext):
       return
     
     # album is not in sync file
-    if album_folder not in json_data[artist_folder]:
+    if album_folder not in sync_file_data[artist_folder]:
 
       # album folder path
       albf = os.path.join(sorted_dir, artist_folder, album_folder)
@@ -280,7 +280,7 @@ def run_sync(window):
   global use_sync_file
   global import_cues
   global import_lyrics
-  global json_data
+  global sync_file_data
   global sync_file
   global lib_data
 
@@ -292,7 +292,7 @@ def run_sync(window):
   if os.path.exists(sync_file):
     use_sync_file = True
     try:
-      json_data = json.load(open(sync_file))
+      sync_file_data = json.load(open(sync_file))
     except Exception as e:
       print(f'Error importing {sync_file}: {e}')
       sys.exit()
@@ -424,6 +424,7 @@ def run_sync(window):
   }, window)
   log(change_log)
 
+
 def build_lib(root, file, ext):
   global lib_data
   source_file = os.path.join(root, file)
@@ -443,7 +444,6 @@ def build_lib(root, file, ext):
   if not os.path.exists(thumbnail_name):
     file_manager.resizeImage(jpg, 150, thumbnail_name, ext='WEBP')
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
-
 
 
 def create_lib_json(window):
