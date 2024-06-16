@@ -65,8 +65,6 @@
     }
 
     .card {
-      --transition-x: -434px;
-      min-width: 900px;
       color: var(--text-color);
       padding: 0px;
       background: var(--main-color);
@@ -79,6 +77,8 @@
       overflow: hidden;
       transition: auto 300ms ease;
       max-width: 900px;
+      width:100%;
+      min-width:280px;
     }
 
     .wrapper {
@@ -109,8 +109,7 @@
       animation-play-state: running; 
       cursor: auto;
       min-height: 300px;
-      justify-content: flex-start;
-      animation: expand 300ms ease;
+      animation: expand 300ms ease-in;
     }
     @keyframes expand {
       from {
@@ -168,17 +167,18 @@
       top:50%;
       left:50%;
       font-size: 14px;
-      transform: translate(-50%, -50%) translateX(0);
-      transition-property: transform top font-size;
+      transform: translate(-50%, -50%);
+      transition-property: left top font-size;
       transition-duration: 300ms;
       transition-timing-function: ease;
     }
     .wrapper[expanded] > .podcast-title {
       position: absolute;
-      top: 0;
+      top: 36px;
+      left: 90px;
       padding:24px;
       font-size: 22px;
-      transform: translateX(var(--transition-x));
+      transform: translate(-50%, -50%);
     }
 
 
@@ -443,142 +443,6 @@
   </div>
 
   <script>
-    function parseProperties(propertiesString) {
-      const propertiesObject = {};
-      propertiesString = propertiesString.replace('}','');
-      propertiesString
-        .split(';')
-        .filter(prop => prop.trim())
-        .forEach(prop => {
-          const [key, value] = prop.split(':').map(str => str.trim());
-          propertiesObject[key] = value;
-        });
-
-      return propertiesObject;
-    }
-
-    function parseKeyframes(keyframesString) {
-      const keyframes = {};
-
-      // Remove unnecessary whitespace
-      keyframesString = keyframesString.trim();
-
-      // Split the string by line breaks
-      const lines = keyframesString.split('\n');
-
-      let currentKeyframe = null;
-
-      // Iterate over each line
-      for (let line of lines) {
-        line = line.trim();
-
-        // Check if the line contains a keyframe name
-        if (line.includes('{')) {
-          // Extract the keyframe name
-          const keyframeName = line.replace('{', '').trim();
-          // Initialize an object for this keyframe
-          keyframes[keyframeName] = {};
-          // Set currentKeyframe for the following properties
-          currentKeyframe = keyframeName;
-        } else if (line.includes('}')) {
-          // If line contains '}', reset currentKeyframe to null
-          currentKeyframe = null;
-        } else if (currentKeyframe) {
-          // Split the property by ':'
-          const [key, value] = line.split(':').map(str => str.trim());
-          // Add the property to the appropriate keyframe object
-          keyframes[currentKeyframe][key] = value.replace(';', '');
-        }
-      }
-
-      return keyframes;
-    }
-
-
-    function objectToCSS(cssObject) {
-      let cssString = '';
-
-      for (const selector in cssObject) {
-        if (cssObject.hasOwnProperty(selector)) {
-          if (selector.startsWith('@')) {
-            cssString += `${selector} {\n`;
-            const keyframes = cssObject[selector];
-
-            for (const key in keyframes) {
-              if (keyframes.hasOwnProperty(key)) {
-                cssString += `  ${key} {\n`;
-                const properties = keyframes[key];
-
-                for (const property in properties) {
-                  if (properties.hasOwnProperty(property)) {
-                    cssString += `    ${property}: ${properties[property]};\n`;
-                  }
-                }
-
-                cssString += `  }\n`;
-              }
-            }
-
-            cssString += `}\n`;
-          } else {
-            cssString += `${selector} {\n`;
-            const properties = cssObject[selector];
-
-            for (const property in properties) {
-              if (properties.hasOwnProperty(property)) {
-                cssString += `  ${property}: ${properties[property]};\n`;
-              }
-            }
-
-            cssString += `}\n`;
-          }
-        }
-      }
-
-      return cssString.trim();
-    }
-
-
-    function parseCSS(cssString) {
-      const cssObject = {};
-      let currentSelector = null;
-      let braceCount = 0;
-      let buffer = '';
-
-      for (let i = 0; i < cssString.length; i++) {
-        const char = cssString[i];
-        buffer += char;
-
-        if (char === '{') {
-          braceCount++;
-          if (braceCount === 1) {
-            currentSelector = buffer.trim().slice(0, -1).trim(); // Remove the trailing '{'
-            buffer = '';
-          }
-        } else if (char === '}') {
-          braceCount--;
-          if (braceCount === 0) {
-            if (currentSelector.startsWith('@')) {
-              cssObject[currentSelector] = parseKeyframes(buffer);
-            } else {
-              cssObject[currentSelector] = parseProperties(buffer);
-            }
-            currentSelector = null;
-            buffer = '';
-          }
-        }
-      }
-
-      return cssObject;
-    }
-
-    function elementWidth(el) {
-      let elWidth = el.offsetWidth;
-      elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-left'));
-      elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-right'));
-      return elWidth;
-    }
-
 
     function close (e) {
       const svg = e.target;
@@ -600,17 +464,6 @@
 
     const wrappers = document.querySelectorAll('.wrapper');
     wrappers.forEach(wrapper => wrapper.addEventListener('click', expand));
-
-
-    window.addEventListener('resize', _ => {
-      // const styles = parseCSS(document.querySelector('style').textContent);
-      const card = document.querySelector('.card');
-      const titleLeft = (elementWidth(card) / 2) - 16;
-      console.log(titleLeft)
-      document.documentElement.style.setProperty('--transition-x', `-${titleLeft}px`)
-      // styles['.card']['--transition-x'] = `-${titleLeft}px`;
-      // document.querySelector('style').textContent = objectToCSS(styles);
-    });
   </script>
 </body>
 </html>
