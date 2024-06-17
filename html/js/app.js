@@ -48,6 +48,7 @@ function loadTheme(theme) {
   // refresh button color
   qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', 'var(--pop-color)');
   qsa('audiosync-small-button').forEach(el => el.setAttribute('color', 'var(--text-color)'));
+  qsa('audiosync-small-button', qs('audiosync-podcasts').shadowRoot).forEach(el => el.setAttribute('color', 'var(--text-color)'));
   qsa('audiosync-small-button', qs('audiosync-player').shadowRoot).forEach(el => {
     if (el.id !== 'favorite') el.setAttribute('color', 'var(--text-color)');
   });
