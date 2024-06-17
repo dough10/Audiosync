@@ -548,9 +548,10 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   _lazyLoadOnScroll(episodes, scrollEl) {
     let ndx = 0;
+    let pullNumber = 7;
     let self = this;
     function load() {
-      const eps = episodes.slice(ndx, ndx + 10);
+      const eps = episodes.slice(ndx, ndx + pullNumber);
       for (const episode of eps) {
         self._createEpisodeElement(episode, scrollEl);
       }
@@ -558,7 +559,7 @@ class AudioSyncPodcasts extends HTMLElement {
     load();
     scrollEl.onscroll = _ => {
       if (scrollEl.scrollTop / (scrollEl.scrollHeight - scrollEl.clientHeight) === 1) {
-        ndx += 10;
+        ndx += pullNumber;
         load();
       }
     };
@@ -597,7 +598,6 @@ class AudioSyncPodcasts extends HTMLElement {
 
 
     pywebview.api.xmlProxy(url).then(async xmlString => {
-      this.xmlData = xmlString;
       PODCAST_TITLE_ELEMENT.textContent = xmlString.rss.channel.title;
       this._lazyLoadOnScroll(xmlString.rss.channel.item, EPISODE_LIST);
     }).catch(error => {
