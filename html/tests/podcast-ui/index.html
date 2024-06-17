@@ -137,7 +137,7 @@
     }
     @keyframes hide-buttons {
       from {
-        display:block;
+        display:flex;
         opacity:1;
       } 
       to {
@@ -147,7 +147,7 @@
     }
     .wrapper[expanded] > .buttons {
       animation: show-buttons 300ms ease;
-      display: block;
+      display: flex;
       opacity:1;
     }
     @keyframes show-buttons {
@@ -156,7 +156,7 @@
         opacity:0;
       } 
       to {
-        display:block;
+        display:flex;
         opacity:1;
       }
     }
@@ -174,11 +174,11 @@
     }
     .wrapper[expanded] > .podcast-title {
       position: absolute;
-      top: 36px;
-      left: 90px;
+      top: 0;
+      left: 0;
       padding:24px;
       font-size: 22px;
-      transform: translate(-50%, -50%);
+      transform: translate(0, 0);
     }
 
 
@@ -206,6 +206,7 @@
       cursor: pointer;
       border-bottom: var(--seperator-line);
       font-size: 13px;
+      align-items: center;
     }
     .episode:first-child {
       border-top: var(--seperator-line);
@@ -456,6 +457,12 @@
 
 
     function expand(e) {
+      document.querySelectorAll('.wrapper').forEach(el => {
+        if (el.hasAttribute('expanded')) {
+          el.removeAttribute('expanded');
+          el.addEventListener('click', expand);
+        }
+      });
       wrapper = e.target;
       wrapper.removeEventListener('click', expand);
       wrapper.toggleAttribute('expanded');
@@ -466,6 +473,7 @@
 
     const wrappers = document.querySelectorAll('.wrapper');
     wrappers.forEach(wrapper => wrapper.addEventListener('click', expand));
+    
   </script>
 </body>
 </html>
