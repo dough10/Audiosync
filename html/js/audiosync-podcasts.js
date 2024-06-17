@@ -113,11 +113,29 @@ class AudioSyncPodcasts extends HTMLElement {
         'top': '50%',
         'left': '50%',
         'font-size': '14px',
-        'will-change': 'left, top, font-size',
         'transform': 'translate(-50%, -50%)',
-        'transition-property': 'left top font-size',
-        'transition-duration': '300ms',
-        'transition-timing-function': 'ease'
+        'will-change': 'top, left, font-size',
+        animation: 'centered 300ms ease'
+      },
+      '@keyframes centered': {
+        '0%': {
+          'top': 0,
+          'left': 0,
+          'padding': '24px',
+          'transform': 'translate(0, 0)',
+          'font-size': '22px'
+        },
+        '90%': {
+          'padding': '24px',
+          'top': '24px'
+        },
+        '100%': {
+          'top': '50%',
+          'left': '50%',
+          padding: 'initial',
+          'transform': 'translate(-50%, -50%)',
+          'font-size': '14px'
+        }
       },
       '.wrapper[expanded] > .podcast-title': {
         'position': 'absolute',
@@ -125,7 +143,24 @@ class AudioSyncPodcasts extends HTMLElement {
         'left': 0,
         'padding': '24px',
         'font-size': '22px',
-        'transform': 'translate(0, 0)'
+        'transform': 'translate(0, 0)',
+        animation: 'left-align 300ms ease'
+      },
+      '@keyframes left-align': {
+        '0%': {
+          'top': '50%',
+          'left': '50%',
+          padding: 'initial',
+          'transform': 'translate(-50%, -50%)',
+          'font-size': '14px'
+        },
+        '100%': {
+          'top': 0,
+          'left': 0,
+          'padding': '24px',
+          'transform': 'translate(0, 0)',
+          'font-size': '22px'
+        }
       },
       '.podcast-episodes': {
         'list-style-type': 'none',
@@ -148,7 +183,8 @@ class AudioSyncPodcasts extends HTMLElement {
         'flex-direction': 'row',
         'border-bottom': 'var(--seperator-line)',
         'font-size': '13px',
-        'align-items': 'center'
+        'align-items': 'center',
+        padding: '8px'
       },
       '.episode:first-child': {
         'border-top': 'var(--seperator-line)'
@@ -165,6 +201,7 @@ class AudioSyncPodcasts extends HTMLElement {
     this.resetCheckMarks = this.resetCheckMarks.bind(this);
     this._expand = this._expand.bind(this);
     this._close = this._close.bind(this);
+    this._lazyLoadOnScroll = this._lazyLoadOnScroll.bind(this);
 
     const ELEMENT_STYLES = ce('style');
     ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
@@ -486,7 +523,7 @@ class AudioSyncPodcasts extends HTMLElement {
     ep_title.classList.add('ep-name');
     ep_title.textContent = episode.title;
     
-    const ep_wrapper = ce('li');
+    const ep_wrapper = ce('div');
     ep_wrapper.classList.add('episode');
     
     if ('itunes:episode' in episode) {
@@ -504,7 +541,31 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
-   * alot of code just to get the name of a podcast and put it in a html element
+   * progressavly loads episodes on scroll
+   * 
+   * @param {Array} episodes 
+   * @param {HTMLElement} scrollEl 
+   */
+  _lazyLoadOnScroll(episodes, scrollEl) {
+    let ndx = 0;
+    let self = this;
+    function load() {
+      const eps = episodes.slice(ndx, ndx + 10);
+      for (const episode of eps) {
+        self._createEpisodeElement(episode, scrollEl);
+      }
+    }
+    load();
+    scrollEl.onscroll = _ => {
+      if (scrollEl.scrollTop / (scrollEl.scrollHeight - scrollEl.clientHeight) === 1) {
+        ndx += 10;
+        load();
+      }
+    };
+  }
+
+  /**
+   * get the name of a podcast and put it in a html element
    * 
    * @param {String} url podcast url
    */
@@ -531,16 +592,14 @@ class AudioSyncPodcasts extends HTMLElement {
     ].forEach(el => BUTTONS_CONTAINER.appendChild(el));
 
 
-    const EPISODE_LIST = ce('ul');
+    const EPISODE_LIST = ce('div');
     EPISODE_LIST.classList.add('podcast-episodes');
 
 
     pywebview.api.xmlProxy(url).then(async xmlString => {
       this.xmlData = xmlString;
       PODCAST_TITLE_ELEMENT.textContent = xmlString.rss.channel.title;
-      for (const episode of xmlString.rss.channel.item) {
-        await this._createEpisodeElement(episode, EPISODE_LIST);
-      }
+      this._lazyLoadOnScroll(xmlString.rss.channel.item, EPISODE_LIST);
     }).catch(error => {
       PODCAST_TITLE_ELEMENT.textContent = url;
       console.error('Error fetching XML:', error);
@@ -558,145 +617,5 @@ class AudioSyncPodcasts extends HTMLElement {
 
     this.container.appendChild(PODCAST_WRAPPER)
   }
-  // async _fetchAndParseXML(url) {
-
-  //   // title of the podcast
-  //   const PODCAST_TITLE_ELEMENT = ce('div');
-
-  //   // get title from xml URL
-  //   PODCAST_TITLE_ELEMENT.textContent = 'Loading'
-  //   pywebview.api.xmlProxy(url).then(async xmlString => {
-  //     this.xmlData = xmlString;
-  //     PODCAST_TITLE_ELEMENT.textContent = xmlString.rss.channel.title;
-  //   }).catch(error => {
-  //     PODCAST_TITLE_ELEMENT.textContent = url;
-  //     console.error('Error fetching XML:', error);
-  //   });
-
-  //   const UNSUBSCRIBE_PODCAST_BUTTON = ce('audiosync-small-button');
-  //   UNSUBSCRIBE_PODCAST_BUTTON.setAttribute('color', 'red');
-  //   UNSUBSCRIBE_PODCAST_BUTTON.appendChild(await svgIcon('close'));
-  //   UNSUBSCRIBE_PODCAST_BUTTON.style.opacity = 0;
-  //   UNSUBSCRIBE_PODCAST_BUTTON.onClick(async ev => {
-  //     //  loading animation
-  //     const REFRESH_ICON = await svgIcon('refresh');
-  //     REFRESH_ICON.style.height = '40px';
-  //     REFRESH_ICON.style.width = '40px';
-  //     REFRESH_ICON.classList.add('spinning');
-      
-  //     // container for animated loading Icon
-  //     const LOADING_ELEMENT = ce('div');
-  //     LOADING_ELEMENT.classList.add('loading');
-  //     LOADING_ELEMENT.appendChild(REFRESH_ICON);
-  //     LOADING_ELEMENT.style.background = 'rgba(var(--main-rgb), 0.4)';
-
-  //     const DELETE_CONFIRMATION_TEXT = ce('div');
-  //     DELETE_CONFIRMATION_TEXT.classList.add('delete-notification-text');
-  //     DELETE_CONFIRMATION_TEXT.textContent = `Unsubscribe from '${PODCAST_TITLE_ELEMENT.textContent}'?`;
-      
-  //     const DELETE_CONFIRMATION_DIALOG = ce('audiosync-dialog');
-  //     DELETE_CONFIRMATION_DIALOG.toggleAttribute('cleanup');
-
-  //     const YES_BUTTON = ce('audiosync-button');
-  //     const NO_BUTTON = ce('audiosync-button');
-
-  //     const DIALOG_BUTTONS = [YES_BUTTON,NO_BUTTON];
-
-  //     const YES_BUTTON_CONTENTS = fillButton('check', 'yes');
-
-  //     YES_BUTTON.appendChild(YES_BUTTON_CONTENTS);
-  //     YES_BUTTON.setAttribute('color', getCSSVariableValue('--pop-color'));
-  //     YES_BUTTON.toggleAttribute('noshadow');
-  //     YES_BUTTON.onClick(async e => {
-  //       await sleep(200);
-  //       DIALOG_BUTTONS.forEach(button => {
-  //         if (!button.hasAttribute('diabled')) button.toggleAttribute('disabled');
-  //       });
-  //       LOADING_ELEMENT.style.display = 'flex';
-  //       await fadeIn(LOADING_ELEMENT);
-  //       await pywebview.api.unsubscribe(url);
-  //       new Toast(`${PODCAST_TITLE_ELEMENT.textContent} unsubscribed`);
-  //       await sleep(200);
-  //       await DELETE_CONFIRMATION_DIALOG.close();
-  //       this.listPodcasts();
-  //       await sleep(350);
-  //       DELETE_CONFIRMATION_DIALOG.remove();
-  //     });
-
-  //     const NO_BUTTON_CONTENTS = fillButton('close', 'no');
-      
-  //     NO_BUTTON.appendChild(NO_BUTTON_CONTENTS);
-  //     NO_BUTTON.setAttribute('color', 'var(--main-color)');
-  //     NO_BUTTON.toggleAttribute('noshadow');
-  //     NO_BUTTON.onClick(async e => {
-  //       await sleep(200);
-  //       DIALOG_BUTTONS.forEach(button => {
-  //         if (!button.hasAttribute('diabled')) button.toggleAttribute('disabled');
-  //       });
-  //       await DELETE_CONFIRMATION_DIALOG.close();
-  //       await sleep(350);
-  //       DELETE_CONFIRMATION_DIALOG.remove();
-  //     });
-
-  //     [
-  //       LOADING_ELEMENT,
-  //       DELETE_CONFIRMATION_TEXT,
-  //       YES_BUTTON,
-  //       NO_BUTTON
-  //     ].forEach(el => DELETE_CONFIRMATION_DIALOG.appendChild(el));
-      
-  //     qs('body').appendChild(DELETE_CONFIRMATION_DIALOG);
-  //     await sleep(20);
-  //     DELETE_CONFIRMATION_DIALOG.open();
-  //   });
-    
-  //   const UPDATE_COMPLETE_CHECK = await svgIcon('check');
-  //   UPDATE_COMPLETE_CHECK.style.opacity = 0;
-
-  //   // wrapper for title and checkmark
-  //   const PODCAST_WRAPPER = ce('div');
-  //   [
-  //     PODCAST_TITLE_ELEMENT,
-  //     UPDATE_COMPLETE_CHECK
-  //   ].forEach(el => PODCAST_WRAPPER.appendChild(el));
-  //   PODCAST_WRAPPER.classList.add('wrapper');
-  //   PODCAST_WRAPPER.id = url;
-
-  //   // show remove button on mouse over
-  //   PODCAST_WRAPPER.onmouseenter = _ => {
-  //     PODCAST_WRAPPER.appendChild(UNSUBSCRIBE_PODCAST_BUTTON);
-  //     fadeIn(UNSUBSCRIBE_PODCAST_BUTTON);
-  //   };
-
-  //   // hide remove button when mouse leaves element
-  //   PODCAST_WRAPPER.onmouseleave = async _ => {
-  //     await fadeOut(UNSUBSCRIBE_PODCAST_BUTTON);
-  //     UNSUBSCRIBE_PODCAST_BUTTON.remove();
-  //   };
-
-  //   // will be filled with podcast episode filename
-  //   const EPISODE_TITLE = ce('div');
-  //   EPISODE_TITLE.id = 'title';
-
-  //   // download percentage
-  //   const PERCENTAGE_TEXT = ce('div');
-  //   PERCENTAGE_TEXT.id = 'percent';
-
-  //   // file download progress (hidden untill download begins)
-  //   const DOWNLOAD_PROGRESS_BAR = ce('audiosync-progress');
-  //   [
-  //     EPISODE_TITLE,
-  //     PERCENTAGE_TEXT
-  //   ].forEach(el => DOWNLOAD_PROGRESS_BAR.appendChild(el));
-  //   DOWNLOAD_PROGRESS_BAR.id = `${url}-bar`;
-  //   DOWNLOAD_PROGRESS_BAR.style.opacity = 0;
-  //   DOWNLOAD_PROGRESS_BAR.style.display = 'none';
-
-  //   // push content to UI
-  //   [
-  //     PODCAST_WRAPPER,
-  //     DOWNLOAD_PROGRESS_BAR
-  //   ].forEach(el => this.container.appendChild(el));
-  // }
 }
 customElements.define('audiosync-podcasts', AudioSyncPodcasts);
