@@ -168,9 +168,27 @@
       left:50%;
       font-size: 14px;
       transform: translate(-50%, -50%);
-      transition-property: left top font-size;
-      transition-duration: 300ms;
-      transition-timing-function: ease;
+      animation: centered 300ms ease;
+    }
+    @keyframes centered {
+      0% {
+        top: 0;
+        left: 0;
+        padding: 24px;
+        transform: translate(0, 0);
+        font-size: 22px;
+      }
+      90% {
+        padding: 24px;
+        top: 24px;
+      }
+      100% {
+        top: 50%;
+        left: 50%;
+        padding: initial;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
     }
     .wrapper[expanded] > .podcast-title {
       position: absolute;
@@ -179,8 +197,24 @@
       padding:24px;
       font-size: 22px;
       transform: translate(0, 0);
+      animation: left-align 300ms ease;
     }
-
+    @keyframes left-align {
+      0% {
+        top: 50%;
+        left: 50%;
+        padding: initial;
+        transform: translate(-50%, -50%);
+        font-size: 14px;
+      }
+      100% {
+        top: 0;
+        left: 0;
+        padding: 24px;
+        transform: translate(0, 0);
+        font-size: 22px;
+      }
+    }
 
     .podcast-episodes {
       list-style-type: none;
