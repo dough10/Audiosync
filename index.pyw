@@ -9,7 +9,7 @@ import requests
 import xmltodict
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
-from Podcast import Podcast
+from Podcast import Podcast, episodeExists
 import urllib.parse
 
 file_path = os.path.abspath(__file__)
@@ -166,6 +166,7 @@ class Api:
 
   # runs podcast update and sends update info to UI
   def get_podcasts(self):
+    window.evaluate_js(f'document.querySelector("audiosync-podcasts").update();')
     length = len(config['subscriptions'])
     for ndx, url in enumerate(config['subscriptions']):
       Podcast(url).downloadNewest(window)
@@ -185,6 +186,9 @@ class Api:
       return xmltodict.parse(res.content)
     except Exception as e:
       print(f'Error parsing XML {e}')
+
+  def episodeExists(self, title, episode):
+    return episodeExists(title, episode)
 
 
 def main():
