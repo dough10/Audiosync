@@ -178,12 +178,13 @@ class AudioSyncPodcasts extends HTMLElement {
         opacity:1
       },
       '.wrapper[expanded] > .dl-stats': {
-        opacity:0
+        top: '28px',
+        right: '112px'
       },
       '.playing-icon': {
         position: 'absolute',
         top: '11px',
-        right: '44px',
+        left: '52px',
         opacity: 0,
         transition: 'opacity 150ms linear'
       },
@@ -390,6 +391,13 @@ class AudioSyncPodcasts extends HTMLElement {
     await PODCASTS.forEach(url => this._fetchAndParseXML(url));
   }
 
+  /**
+   * syncs ui with currently playing audio
+   * 
+   * @param {Object} details 
+   * 
+   * @returns {void}
+   */
   nowPlaying(details) {
     [
       '.episode',
@@ -481,9 +489,9 @@ class AudioSyncPodcasts extends HTMLElement {
     wrapper.toggleAttribute('expanded');
     const svg = qs('#close', wrapper);
     svg.addEventListener('click', this._close);
+    await sleep(100);
     const playing = qs('.episode[playing]', wrapper);
     if (playing) {
-      await sleep(100);
       playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       qs('.podcast-episodes', wrapper).scrollTop = 0;
@@ -568,8 +576,6 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {HTMLElement} EPISODE_LIST 
    */
   async _createEpisodeElement(title, episode, EPISODE_LIST) {
-
-
     const play_button = ce('audiosync-small-button');
     play_button.appendChild(await svgIcon('play'));
     
@@ -577,7 +583,7 @@ class AudioSyncPodcasts extends HTMLElement {
     ep_title.classList.add('ep-name');
     ep_title.textContent = episode.title;
     
-    const ep_wrapper = ce('div');
+    const ep_wrapper = ce('li');
     ep_wrapper.classList.add('episode');
     ep_wrapper.dataset.episode = episode.title;
     ep_wrapper.dataset.title = title;
@@ -691,7 +697,7 @@ class AudioSyncPodcasts extends HTMLElement {
     ].forEach(el => BUTTONS_CONTAINER.appendChild(el));
 
 
-    const EPISODE_LIST = ce('div');
+    const EPISODE_LIST = ce('ui');
     EPISODE_LIST.classList.add('podcast-episodes');
 
 
