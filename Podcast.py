@@ -521,7 +521,7 @@ class Podcast:
     # reflect download progress on UI
     def prog_update(downloaded, total, start_time): 
       if window:
-        window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{stats.filename}")');
+        window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{stats['filename']}")');
     
     path = os.path.join(folder, stats['path'])
     print(folder, stats['path'], path)
