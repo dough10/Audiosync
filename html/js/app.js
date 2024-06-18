@@ -234,6 +234,7 @@ async function load_app() {
     }
     if (PAGES.getAttribute('selected') === '1') return;
     PAGES.setAttribute('selected', 1);
+    SCROLL_ELEMENT.offScreen()
     MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
     PODCAST_HEADER_BUTTONS.forEach(showElement);
@@ -283,7 +284,6 @@ async function load_app() {
     await pywebview.api.get_podcasts();
     PODCAST_LIBRARY_REFRESH.removeAttribute('disabled');
     new Toast(t.endString());
-    PODCAST_LIBRARY.resetCheckMarks();
   });
 
   // header gear icon
