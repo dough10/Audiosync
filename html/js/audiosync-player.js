@@ -295,6 +295,32 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * toggles display of favorite button in fullscreen
+   * 
+   * @returns {void}
+   */
+  _fullScreenFavoriteDisplay(favEl) {
+    
+    let FULLSCREEN_FAVORITE_TOGGLE_BUTTON = qs('#favorite', this.shadowRoot);
+    if (!FULLSCREEN_FAVORITE_TOGGLE_BUTTON && !favEl) return;
+    
+    if (favEl) FULLSCREEN_FAVORITE_TOGGLE_BUTTON = favEl;
+
+    if (this.isFavorite === null || this.isFavorite === undefined) {
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0;
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'none';
+    } else if (this.isFavorite) {
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'block';
+    } else {  
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
+      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'block';
+    }
+  }
+
+  /**
    * callback for <music-library> favorite added event
    * 
    * @param {Object} data 
@@ -307,15 +333,7 @@ class AudioPlayer extends HTMLElement {
       this.isFavorite = data.favorite;
 
       // update UI
-      const FULLSCREEN_FAVORITE_TOGGLE_BUTTON = qs('#favorite', this.shadowRoot);
-      if (!FULLSCREEN_FAVORITE_TOGGLE_BUTTON) return;
-      if (this.isFavorite) {
-        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
-        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
-      } else {  
-        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
-        FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
-      }
+      this._fullScreenFavoriteDisplay();
     }
   }
 
@@ -411,22 +429,13 @@ class AudioPlayer extends HTMLElement {
     this.fab = PLAYLIST_BUTTON;  
 
     const FAVORITE_TOGGLE_BUTTON = ce('audiosync-small-button');
-    FAVORITE_TOGGLE_BUTTON.setButtonOpacity = _ => {
-      if (this.isFavorite) {
-        FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
-        FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
-      } else {  
-        FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
-        FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
-      }
-    };
     FAVORITE_TOGGLE_BUTTON.id = 'favorite';
-    FAVORITE_TOGGLE_BUTTON.setButtonOpacity()
+    this._fullScreenFavoriteDisplay(FAVORITE_TOGGLE_BUTTON);
     FAVORITE_TOGGLE_BUTTON.appendChild(await svgIcon('favorite'));
     FAVORITE_TOGGLE_BUTTON.setAttribute('color', this.palette.contrast);
     FAVORITE_TOGGLE_BUTTON.onClick(_ => {
       this.isFavorite = !this.isFavorite;
-      FAVORITE_TOGGLE_BUTTON.setButtonOpacity();
+      this._fullScreenFavoriteDisplay();
       // pass favorite to library
       this.library.favoriteAlbum(this.artist, this.albumTitle);
     });
@@ -676,8 +685,15 @@ class AudioPlayer extends HTMLElement {
 
     this.artist = NOW_PLAYING.artist;
     this.albumTitle = NOW_PLAYING.album;
-    this.isFavorite = qs(`[data-artist="${this.artist}"][data-album="${this.albumTitle}"]`, qs('music-library').shadowRoot).hasAttribute('favorite');
     this.art = NOW_PLAYING.art;
+
+    const album_element = qs(`[data-artist="${this.artist}"][data-album="${this.albumTitle}"]`, qs('music-library').shadowRoot);
+    
+    if (album_element) {
+      this.isFavorite = album_element.hasAttribute('favorite');
+    } else {
+      this.isFavorite = null;
+    }
 
     // cache art also sets opacity of favorite button to indicate favorite status
     this._cacheImage(this.art);
@@ -694,6 +710,7 @@ class AudioPlayer extends HTMLElement {
     this.player.load();
     this.player.play();
     this.library.nowPlaying(NOW_PLAYING);
+    qs('audiosync-podcasts').nowPlaying(NOW_PLAYING);
   }
 
   /**
@@ -880,16 +897,7 @@ class AudioPlayer extends HTMLElement {
         // set action button color
         qs('audiosync-fab', FULLSCREEN).setAttribute('color', this.palette.fab);
         
-        // favorite button
-        const FAVORITE_BUTTON = qs('#favorite', FULLSCREEN);
-        FAVORITE_BUTTON.setAttribute('color', this.palette.contrast);
-        if (this.isFavorite) {
-          FAVORITE_BUTTON.title = 'Unfavorite';
-          FAVORITE_BUTTON.style.opacity = 1;
-        } else { 
-          FAVORITE_BUTTON.title = 'Favorite';
-          FAVORITE_BUTTON.style.opacity = 0.2;
-        }
+        this._fullScreenFavoriteDisplay();
       }
 
       // fire event to update app ui element with new color
@@ -973,6 +981,7 @@ class AudioPlayer extends HTMLElement {
     const NOW = new Date().getTime();
     if ((NOW - this.lastUpdate) < 1000) return;
     this.library.nowPlaying(this.playlist[this.playing]);
+    qs('audiosync-podcasts').nowPlaying(this.playlist[this.playing]);
     this.lastUpdate = NOW;
   }
 
@@ -1027,6 +1036,7 @@ class AudioPlayer extends HTMLElement {
    */
   async _pauseTimeOut() {
     this.library.nowPlaying();
+    qs('audiosync-podcasts').nowPlaying();
     await this.minimize();
     const MINI_PLAYER_UI = qs('.background', this.shadowRoot);
     await animateElement(MINI_PLAYER_UI, 'translateY(100%)', 150);
