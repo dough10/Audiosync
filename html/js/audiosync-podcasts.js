@@ -18,12 +18,16 @@ class AudioSyncPodcasts extends HTMLElement {
       '.wrapper': {
         'position': 'relative',
         'padding': '0 8px',
+        display: 'flex', 
+        'justify-content': 'center',
+        'align-items': 'center',
         'border-top': 'var(--seperator-line)',
         'font-weight': 'bold',
         'min-height': '44px',
         'max-height': '44px',
         'overflow': 'hidden',
-        'animation': 'close 300ms ease',
+        'will-change': 'min-height',
+        'animation': 'close 300ms linear',
         'cursor': 'pointer'
       },
       '@keyframes close': {
@@ -41,7 +45,7 @@ class AudioSyncPodcasts extends HTMLElement {
         'animation-play-state': 'running',
         'cursor': 'auto',
         'min-height': '350px',
-        'animation': 'expand 300ms ease-in'
+        'animation': 'expand 300ms linear'
       },
       '@keyframes expand': {
         'from': {
@@ -61,7 +65,8 @@ class AudioSyncPodcasts extends HTMLElement {
         'right': '16px',
         'display': 'none',
         'opacity': '0',
-        'animation': 'hide-buttons 300ms ease'
+        'will-change': 'opacity',
+        'animation': 'hide-buttons 300ms linear'
       },
       '@keyframes hide-buttons': {
         'from': {
@@ -74,7 +79,7 @@ class AudioSyncPodcasts extends HTMLElement {
         }
       },
       '.wrapper[expanded] > .buttons': {
-        'animation': 'show-buttons 300ms ease',
+        'animation': 'show-buttons 300ms linear',
         'display': 'flex',
         'opacity': '1'
       },
@@ -89,31 +94,29 @@ class AudioSyncPodcasts extends HTMLElement {
         }
       },
       '.podcast-title': {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
         'font-size': '14px',
-        transform: 'translate(-50%, -50%)',
-        animation: 'centered 300ms ease'
+        'will-change': 'transform',
+        transform: 'translate(0, 0)',
+        animation: 'centered 300ms linear'
       },
       '@keyframes centered': {
         '0%': {
-          transform: 'translate(var(--translate-x), -146px) scale(1.5)'
+          transform: 'translate(var(--translate-x), -140px) scale(1.5)'
         },
         '100%': {
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(0, 0)'
         }
       },
       '.wrapper[expanded] > .podcast-title': {
-        transform: 'translate(var(--translate-x), -146px) scale(1.5)',
-        animation: 'left-align 300ms ease-in'
+        transform: 'translate(var(--translate-x), -140px) scale(1.5)',
+        animation: 'left-align 300ms linear'
       },
       '@keyframes left-align': {
         '0%': {
-          transform: 'translate(-50%, -50%)'
+          transform: 'translate(0, 0)'
         },
         '100%': {
-          transform: 'translate(var(--translate-x), -146px) scale(1.5)'
+          transform: 'translate(var(--translate-x), -140px) scale(1.5)'
         }
       },
       '.podcast-episodes': {
@@ -175,7 +178,9 @@ class AudioSyncPodcasts extends HTMLElement {
   resize() {
     const wrappers = qsa('.wrapper', this.shadowRoot);
     wrappers.forEach(wrapper => {
-      const w = (elementWidth(wrapper) / 2) - (elementWidth(qs('.podcast-title', wrapper)) / 2)
+      const halfContainer = elementWidth(wrapper) / 2
+      const halfTitle = elementWidth(qs('.podcast-title', wrapper)) / 2
+      const w = (halfContainer - ((halfTitle * 1.5) + 24))
       wrapper.style.setProperty('--translate-x', `-${w}px`);
     });
   }
