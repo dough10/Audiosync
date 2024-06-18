@@ -355,6 +355,25 @@ def notification(podcast_title, episode_title, image):
 def remove_string_from_list(input_list, string_to_remove):
   return [x for x in input_list if x != string_to_remove]
 
+def episodeExists(podcastTitle, episode):
+  # URL!!!
+  download_url = episode['enclosure']['@url']
+  # download file extension
+  file_ext = os.path.splitext(urlparse(download_url).path)[-1]
+  try:
+    filename = fm.formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}{file_ext}").replace(' ','.')
+  except KeyError:
+    filename = fm.formatFilename(f"{episode['title']}{file_ext}").replace(' ','.')
+  __location = os.path.join(folder, fm.formatFilename(podcastTitle))
+  path = os.path.join(__location, filename)
+  return {
+    'exists': os.path.exists(path), 
+    'path': path.replace(folder, ''), 
+    'filename': filename, 
+    'url': download_url
+  }
+
+
 class Podcast:
 
   def __init__(self, url):
@@ -497,33 +516,23 @@ class Podcast:
     Returns:
         None
     """
-    # URL!!!
-    download_url = episode['enclosure']['@url']
-    # download file extension
-    file_ext = os.path.splitext(urlparse(download_url).path)[-1]
-    
-    # name the file
-    try:
-      filename = fm.formatFilename(f"S{episode['itunes:season']}.E{episode['itunes:episode']}.{episode['title']}{file_ext}").replace(' ','.')
-    except KeyError:
-      filename = fm.formatFilename(f"{episode['title']}{file_ext}").replace(' ','.')
-    
-    # file path
-    path = os.path.join(self.__location, filename)
-    
+    stats = episodeExists(self.__title, episode)
+
     # reflect download progress on UI
     def prog_update(downloaded, total, start_time): 
       if window:
-        window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{filename}")');
+        window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{stats.filename}")');
     
+    path = os.path.join(folder, stats['path'])
+    print(folder, stats['path'], path)
     # check if the file exists
     if os.path.isfile(path):
-      print(f'Episode {filename} already downloaded')
+      print(f'Episode {stats['filename']} already downloaded')
       return
     
-    print(f'Downloading - {filename}')
+    print(f'Downloading - {stats['filename']}')
     # download the file and update ui with progress
-    dlWithProgressBar(download_url, path, progress_callback=prog_update)
+    dlWithProgressBar(stats['url'], path, progress_callback=prog_update)
     # tag file with info
     self.__id3tag(episode, path, epNum)
     # notify user 
@@ -638,6 +647,6 @@ if __name__ == "__main__":
   except IndexError:
     try:
       for url in config['subscriptions']:
-        Podcast(url).subscribe(False)
+        Podcast(url).downloadNewest(False)
     except Exception as e:
       print(e)
