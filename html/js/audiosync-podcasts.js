@@ -156,7 +156,6 @@ class AudioSyncPodcasts extends HTMLElement {
     this._expand = this._expand.bind(this);
     this._close = this._close.bind(this);
     this._lazyLoadOnScroll = this._lazyLoadOnScroll.bind(this);
-    this._resize = this._resize.bind(this);
 
     const ELEMENT_STYLES = ce('style');
     ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
@@ -170,13 +169,15 @@ class AudioSyncPodcasts extends HTMLElement {
       ELEMENT_STYLES,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
-    // window.addEventListener('resize', this._resize);
+    window.addEventListener('resize', _ => this.resize());
   }
 
-  _resize() {
-    const wrappers = qsa('.wrapper', this.shadowRoot)
-    const w = (elementWidth(qs('.card')) / 2) - 40
-    document.documentElement.style.setProperty('--translate-x', `-${w}px`);
+  resize() {
+    const wrappers = qsa('.wrapper', this.shadowRoot);
+    wrappers.forEach(wrapper => {
+      const w = (elementWidth(wrapper) / 2) - (elementWidth(qs('.podcast-title', wrapper)) / 2)
+      wrapper.style.setProperty('--translate-x', `-${w}px`);
+    });
   }
 
   /**
@@ -391,6 +392,7 @@ class AudioSyncPodcasts extends HTMLElement {
       }
     });
     const wrapper = e.target;
+    qs('.podcast-episodes', wrapper).scrollTop = 0;
     wrapper.removeEventListener('click', this._expand);
     wrapper.toggleAttribute('expanded');
     const svg = qs('#close', wrapper);
@@ -577,7 +579,6 @@ class AudioSyncPodcasts extends HTMLElement {
     ].forEach(el => PODCAST_WRAPPER.appendChild(el));
 
     this.container.appendChild(PODCAST_WRAPPER);
-    this._resize();
   }
 }
 customElements.define('audiosync-podcasts', AudioSyncPodcasts);

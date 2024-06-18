@@ -237,6 +237,7 @@ async function load_app() {
     MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
     PODCAST_HEADER_BUTTONS.forEach(showElement);
+    PODCAST_LIBRARY.resize();
   });
 
   // header hamburger icon
