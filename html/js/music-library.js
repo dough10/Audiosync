@@ -410,7 +410,7 @@ class MusicLibrary extends HTMLElement {
     if (ALBUM_PLAYING_NOW && !ALBUM_PLAYING_NOW.hasAttribute('playing')) ALBUM_PLAYING_NOW.toggleAttribute('playing');
 
     // unhide the quick link now playing link
-    if (PLAYING_QUICK_LINK) PLAYING_QUICK_LINK.style.removeProperty('display');
+    if (PLAYING_QUICK_LINK && ALBUM_PLAYING_NOW) PLAYING_QUICK_LINK.style.removeProperty('display');
 
     // check for album info dialog
     const OPENED_ALBUM_DIALOG = qs('#album-info');
@@ -782,8 +782,8 @@ class MusicLibrary extends HTMLElement {
   _fixPaths(array) {
     for (let i = 0; i < array.length; i++) {
       const FIXED_PATH = this._fixSlashes(array[i].path);
-      array[i].art = `music${FIXED_PATH}/cover.jpg`;
-      array[i].path = `music${FIXED_PATH}/${array[i].file}`;
+      array[i].art = `music/${FIXED_PATH}/cover.jpg`;
+      array[i].path = `music/${FIXED_PATH}/${array[i].file}`;
       delete array[i].file;
     }
   }
