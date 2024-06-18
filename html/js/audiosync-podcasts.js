@@ -1,4 +1,4 @@
-import {qs, qsa, ce, svgIcon, sleep, fadeIn, fadeOut, Toast, Timer, isValidURL, fillButton, objectToCSS, getCSSVariableValue} from './helpers.js';
+import {qs, qsa, ce, svgIcon, sleep, fadeIn, fadeOut, Toast, elementWidth, isValidURL, fillButton, objectToCSS, getCSSVariableValue} from './helpers.js';
 
 /**
  * displays podcast show info
@@ -15,22 +15,6 @@ class AudioSyncPodcasts extends HTMLElement {
       'svg > *': {
         'pointer-events': 'none'
       },
-      '.card': {
-        'color': 'var(--text-color)',
-        'padding': '0px',
-        'background': 'var(--main-color)',
-        'position': 'relative',
-        'margin': '0 24px',
-        'border-radius': '20px',
-        'box-shadow': '0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2)',
-        'text-align': 'center',
-        'margin-bottom': '100px',
-        'overflow': 'hidden',
-        'transition': 'auto 300ms ease',
-        'max-width': '900px',
-        'width': '100%',
-        'min-width': '280px'
-      },
       '.wrapper': {
         'position': 'relative',
         'padding': '0 8px',
@@ -44,12 +28,10 @@ class AudioSyncPodcasts extends HTMLElement {
       },
       '@keyframes close': {
         'from': {
-          'min-height': '350px',
-          'font-size': '18px'
+          'min-height': '350px'
         },
         'to': {
-          'min-height': '44px',
-          'font-size': 'initial'
+          'min-height': '44px'
         }
       },
       '.wrapper > *': {
@@ -63,12 +45,10 @@ class AudioSyncPodcasts extends HTMLElement {
       },
       '@keyframes expand': {
         'from': {
-          'min-height': '44px',
-          'font-size': 'initial'
+          'min-height': '44px'
         },
         'to': {
-          'min-height': '350px',
-          'font-size': '18px'
+          'min-height': '350px'
         }
       },
       '.wrapper[expanded] > *': {
@@ -109,57 +89,31 @@ class AudioSyncPodcasts extends HTMLElement {
         }
       },
       '.podcast-title': {
-        'position': 'absolute',
-        'top': '50%',
-        'left': '50%',
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
         'font-size': '14px',
-        'transform': 'translate(-50%, -50%)',
-        'will-change': 'top, left, font-size',
+        transform: 'translate(-50%, -50%)',
         animation: 'centered 300ms ease'
       },
       '@keyframes centered': {
         '0%': {
-          'top': 0,
-          'left': 0,
-          'padding': '24px',
-          'transform': 'translate(0, 0)',
-          'font-size': '22px'
-        },
-        '90%': {
-          'padding': '24px',
-          'top': '24px'
+          transform: 'translate(var(--translate-x), -146px) scale(1.5)'
         },
         '100%': {
-          'top': '50%',
-          'left': '50%',
-          padding: 'initial',
-          'transform': 'translate(-50%, -50%)',
-          'font-size': '14px'
+          transform: 'translate(-50%, -50%)'
         }
       },
       '.wrapper[expanded] > .podcast-title': {
-        'position': 'absolute',
-        'top': 0,
-        'left': 0,
-        'padding': '24px',
-        'font-size': '22px',
-        'transform': 'translate(0, 0)',
-        animation: 'left-align 300ms ease'
+        transform: 'translate(var(--translate-x), -146px) scale(1.5)',
+        animation: 'left-align 300ms ease-in'
       },
       '@keyframes left-align': {
         '0%': {
-          'top': '50%',
-          'left': '50%',
-          padding: 'initial',
-          'transform': 'translate(-50%, -50%)',
-          'font-size': '14px'
+          transform: 'translate(-50%, -50%)'
         },
         '100%': {
-          'top': 0,
-          'left': 0,
-          'padding': '24px',
-          'transform': 'translate(0, 0)',
-          'font-size': '22px'
+          transform: 'translate(var(--translate-x), -146px) scale(1.5)'
         }
       },
       '.podcast-episodes': {
@@ -202,6 +156,7 @@ class AudioSyncPodcasts extends HTMLElement {
     this._expand = this._expand.bind(this);
     this._close = this._close.bind(this);
     this._lazyLoadOnScroll = this._lazyLoadOnScroll.bind(this);
+    this._resize = this._resize.bind(this);
 
     const ELEMENT_STYLES = ce('style');
     ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
@@ -215,6 +170,13 @@ class AudioSyncPodcasts extends HTMLElement {
       ELEMENT_STYLES,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
+    // window.addEventListener('resize', this._resize);
+  }
+
+  _resize() {
+    const wrappers = qsa('.wrapper', this.shadowRoot)
+    const w = (elementWidth(qs('.card')) / 2) - 40
+    document.documentElement.style.setProperty('--translate-x', `-${w}px`);
   }
 
   /**
@@ -614,8 +576,8 @@ class AudioSyncPodcasts extends HTMLElement {
       EPISODE_LIST
     ].forEach(el => PODCAST_WRAPPER.appendChild(el));
 
-
-    this.container.appendChild(PODCAST_WRAPPER)
+    this.container.appendChild(PODCAST_WRAPPER);
+    this._resize();
   }
 }
 customElements.define('audiosync-podcasts', AudioSyncPodcasts);
