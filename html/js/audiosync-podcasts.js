@@ -7,6 +7,8 @@ class AudioSyncPodcasts extends HTMLElement {
   constructor() {
     super();
 
+    this.animationTime = 200;
+
     const CSS_OBJECT = {
       'svg': {
         'height': '24px',
@@ -27,7 +29,7 @@ class AudioSyncPodcasts extends HTMLElement {
         'max-height': '44px',
         'overflow': 'hidden',
         'will-change': 'min-height',
-        'animation': 'close 300ms linear',
+        'animation': `close ${this.animationTime}ms linear`,
         'cursor': 'pointer'
       },
       '@keyframes close': {
@@ -41,11 +43,13 @@ class AudioSyncPodcasts extends HTMLElement {
       '.wrapper > *': {
         'pointer-events': 'none'
       },
+      '.wrapper:hover': {
+        background: 'rgba(var(--pop-rgb), 0.4)'
+      },
       '.wrapper[expanded]': {
-        'animation-play-state': 'running',
         'cursor': 'auto',
         'min-height': '350px',
-        'animation': 'expand 300ms linear'
+        'animation': `expand ${this.animationTime}ms linear`
       },
       '@keyframes expand': {
         'from': {
@@ -58,6 +62,9 @@ class AudioSyncPodcasts extends HTMLElement {
       '.wrapper[expanded] > *': {
         'pointer-events': 'all'
       },
+      '.wrapper[expanded]:hover': {
+        background: 'initial'
+      },
       '.buttons': {
         'cursor': 'pointer',
         'position': 'absolute',
@@ -66,7 +73,7 @@ class AudioSyncPodcasts extends HTMLElement {
         'display': 'none',
         'opacity': '0',
         'will-change': 'opacity',
-        'animation': 'hide-buttons 300ms linear'
+        'animation': `hide-buttons ${this.animationTime}ms linear`
       },
       '@keyframes hide-buttons': {
         'from': {
@@ -79,7 +86,7 @@ class AudioSyncPodcasts extends HTMLElement {
         }
       },
       '.wrapper[expanded] > .buttons': {
-        'animation': 'show-buttons 300ms linear',
+        'animation': `show-buttons ${this.animationTime}ms linear`,
         'display': 'flex',
         'opacity': '1'
       },
@@ -97,7 +104,7 @@ class AudioSyncPodcasts extends HTMLElement {
         'font-size': '14px',
         'will-change': 'transform',
         transform: 'translate(0, 0)',
-        animation: 'centered 300ms linear'
+        animation: `centered ${this.animationTime}ms linear 0ms`
       },
       '@keyframes centered': {
         '0%': {
@@ -109,7 +116,7 @@ class AudioSyncPodcasts extends HTMLElement {
       },
       '.wrapper[expanded] > .podcast-title': {
         transform: 'translate(var(--translate-x), -140px) scale(1.5)',
-        animation: 'left-align 300ms linear'
+        animation: `left-align ${this.animationTime}ms linear 0ms`
       },
       '@keyframes left-align': {
         '0%': {
@@ -118,6 +125,73 @@ class AudioSyncPodcasts extends HTMLElement {
         '100%': {
           transform: 'translate(var(--translate-x), -140px) scale(1.5)'
         }
+      },
+      '.updating-icon': {
+        position:'absolute',
+        top: '11px',
+        left: '16px',
+        opacity: 0,
+        transition: 'opacity 150ms linear',
+        animation: 'spin 1s linear infinite'
+      },
+      '.wrapper[updating] > .updating-icon': {
+        opacity: 1
+      },
+      '.wrapper[expanded] > .updating-icon': {
+        top: '22px',
+        left:'50%'
+      },
+      '@keyframes spin': {
+        'from': {
+          transform: 'rotate(0deg)'
+        },
+        'to': {
+          transform: 'rotate(360deg)'
+        }
+      },
+      '.dl-progress': {
+        position: 'absolute',
+        bottom:0,
+        left:0,
+        right:0,
+        'min-height': '5px',
+        background: 'var(--pop-color)',
+        opacity: 0,
+        transform: 'translateX(var(--progress))',
+        transition: 'auto 150ms linear'
+      },
+      '.wrapper[updating] > .dl-progress': {
+        opacity: 1
+      },
+      '.wrapper[expanded] > .dl-progress': {
+        bottom: 'unset',
+        top:'66px',
+      },
+      '.dl-stats': {
+        position: 'absolute',
+        top: '15px',
+        right: '16px',
+        opacity: 0,
+        transition: 'opacity 150ms linear'
+      },
+      '.wrapper[updating] > .dl-stats': {
+        opacity:1
+      },
+      '.wrapper[expanded] > .dl-stats': {
+        opacity:0
+      },
+      '.playing-icon': {
+        position: 'absolute',
+        top: '11px',
+        right: '44px',
+        opacity: 0,
+        transition: 'opacity 150ms linear'
+      },
+      '.wrapper[playing] > .playing-icon': {
+        opacity:0.7
+      },
+      '.wrapper[expanded] > .playing-icon': {
+        opacity:0
       },
       '.podcast-episodes': {
         'list-style-type': 'none',
@@ -143,6 +217,12 @@ class AudioSyncPodcasts extends HTMLElement {
         'align-items': 'center',
         padding: '8px'
       },
+      '.episode:hover': {
+        background: 'rgba(var(--pop-rgb), 0.4)'
+      },
+      '.episode[playing]': {
+        background: 'var(--pop-color)'
+      },
       '.episode:first-child': {
         'border-top': 'var(--seperator-line)'
       },
@@ -155,7 +235,6 @@ class AudioSyncPodcasts extends HTMLElement {
   };
 
     // bind this
-    this.resetCheckMarks = this.resetCheckMarks.bind(this);
     this._expand = this._expand.bind(this);
     this._close = this._close.bind(this);
     this._lazyLoadOnScroll = this._lazyLoadOnScroll.bind(this);
@@ -175,13 +254,16 @@ class AudioSyncPodcasts extends HTMLElement {
     window.addEventListener('resize', _ => this.resize());
   }
 
+  /**
+   * window was resized
+   */
   resize() {
     const wrappers = qsa('.wrapper', this.shadowRoot);
     wrappers.forEach(wrapper => {
-      const halfContainer = elementWidth(wrapper) / 2
-      const halfTitle = elementWidth(qs('.podcast-title', wrapper)) / 2
-      const w = (halfContainer - ((halfTitle * 1.5) + 24))
-      wrapper.style.setProperty('--translate-x', `-${w}px`);
+      const halfContainer = elementWidth(wrapper) / 2;
+      const halfTitle = elementWidth(qs('.podcast-title', wrapper)) / 2;
+      const translateX = (halfContainer - ((halfTitle * 1.5) + 24));
+      wrapper.style.setProperty('--translate-x', `-${translateX}px`);
     });
   }
 
@@ -308,14 +390,15 @@ class AudioSyncPodcasts extends HTMLElement {
     await PODCASTS.forEach(url => this._fetchAndParseXML(url));
   }
 
-  /**
-   * resets all checkmarks 
-   */
-  resetCheckMarks() {
-    qsa('.wrapper', this.shadowRoot).forEach(async el => {
-      await sleep(1000);
-      await fadeOut(qs('svg', el));
-    });
+  nowPlaying(details) {
+    [
+      '.episode',
+      '.wrapper'
+    ].forEach(selector => qsa(selector, this.shadowRoot).forEach(el => el.removeAttribute('playing')));
+    const playing = qs(`[data-title="${details.artist}"][data-episode="${details.album}"]`, this.shadowRoot);
+    if (!playing) return;
+    playing.toggleAttribute('playing');
+    playing.parentElement.parentElement.toggleAttribute('playing');
   }
 
   /**
@@ -348,25 +431,22 @@ class AudioSyncPodcasts extends HTMLElement {
     if (fileName) {
       const TIME_PAST = (new Date().getTime() - startTime) / 1000;
       const DOWNLOAD_SPEED = this._formatDownloadSpeed(bytes / TIME_PAST);
-      const DOWNLOAD_PROGRESS_BAR = this.shadowRoot.getElementById(`${name}-bar`);
       const DOWNLOADED_PRECENTAGE = ((bytes / totalBytes) * 100);
-      
-      DOWNLOAD_PROGRESS_BAR.style.removeProperty('display');
-      fadeIn(DOWNLOAD_PROGRESS_BAR);
-      qs('#title', DOWNLOAD_PROGRESS_BAR).textContent = fileName;
-      qs('#percent', DOWNLOAD_PROGRESS_BAR).textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`;
-      DOWNLOAD_PROGRESS_BAR.setAttribute('percent', DOWNLOADED_PRECENTAGE);
-      
+      const wrapper = this.shadowRoot.getElementById(name);
+      const DL_STATS = qs('.dl-stats', wrapper);
+      DL_STATS.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`
+      wrapper.style.setProperty('--progress', `-${100 - DOWNLOADED_PRECENTAGE}%`);
       if (DOWNLOADED_PRECENTAGE == 100) {
-        await fadeOut(DOWNLOAD_PROGRESS_BAR);
-        DOWNLOAD_PROGRESS_BAR.style.display = 'none';
+        wrapper.style.setProperty('--progress', `-100%`);
         new Toast(`${fileName} downloaded`);
-        qs('#title', DOWNLOAD_PROGRESS_BAR).textContent = '';
-        qs('#percent', DOWNLOAD_PROGRESS_BAR).textContent = '';
+        DL_STATS.textContent = '';
       }
+    } else if (!name) {
+      const wrappers = qsa('.wrapper', this.shadowRoot);
+      wrappers.forEach(wrapper => wrapper.toggleAttribute('updating'));
     } else {
-      const SVG_ICON = qs('svg', this.shadowRoot.getElementById(name));
-      fadeIn(SVG_ICON);
+      const wrapper = this.shadowRoot.getElementById(name);
+      wrapper.removeAttribute('updating');
     }
   }
 
@@ -389,7 +469,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * 
    * @param {Event} e 
    */
-  _expand(e) {
+  async _expand(e) {
     qsa('.wrapper', this.shadowRoot).forEach(el => {
       if (el.hasAttribute('expanded')) {
         el.removeAttribute('expanded');
@@ -397,11 +477,17 @@ class AudioSyncPodcasts extends HTMLElement {
       }
     });
     const wrapper = e.target;
-    qs('.podcast-episodes', wrapper).scrollTop = 0;
     wrapper.removeEventListener('click', this._expand);
     wrapper.toggleAttribute('expanded');
     const svg = qs('#close', wrapper);
     svg.addEventListener('click', this._close);
+    const playing = qs('.episode[playing]', wrapper);
+    if (playing) {
+      await sleep(100);
+      playing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      qs('.podcast-episodes', wrapper).scrollTop = 0;
+    }
   }
 
   /**
@@ -481,32 +567,64 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {Object} episode 
    * @param {HTMLElement} EPISODE_LIST 
    */
-  async _createEpisodeElement(episode, EPISODE_LIST) {
+  async _createEpisodeElement(title, episode, EPISODE_LIST) {
+
+
     const play_button = ce('audiosync-small-button');
     play_button.appendChild(await svgIcon('play'));
-
-    const download_button = ce('audiosync-small-button');
-    download_button.appendChild(await svgIcon('download'));
-
+    
     const ep_title = ce('span');
     ep_title.classList.add('ep-name');
     ep_title.textContent = episode.title;
     
     const ep_wrapper = ce('div');
     ep_wrapper.classList.add('episode');
+    ep_wrapper.dataset.episode = episode.title;
+    ep_wrapper.dataset.title = title;
     
     if ('itunes:episode' in episode) {
       const ep_num = ce('span');
       ep_num.textContent = episode['itunes:episode'];
       ep_num.classList.add('ep-number');
       ep_wrapper.appendChild(ep_num);
-    }
+      }
     [
       ep_title,
-      play_button,
-      download_button
+      play_button
     ].forEach(el => ep_wrapper.appendChild(el));
     EPISODE_LIST.appendChild(ep_wrapper);
+
+    const FILE_STATS = await pywebview.api.episodeExists(title, episode);
+
+    if (!FILE_STATS.exists) {
+      const download_button = ce('audiosync-small-button');
+      download_button.appendChild(await svgIcon('download'));
+      ep_wrapper.appendChild(download_button);
+    }
+    
+    const path = FILE_STATS.path.replace(/\\/g, '/')
+
+    play_button.onClick(_ => {
+      const play_Object = {
+        tracks: [
+          {
+            'art': `podcasts/${path.replace(FILE_STATS.filename, 'cover.jpg')}`,
+            'path': `podcasts/${path}`,
+            'album': episode.title,
+            'artist': title,
+            'title': episode.title,
+            'track': episode['itunes:episode'] || 0,
+            'disc': 0
+          }
+        ]
+      }
+      if (FILE_STATS.exists) {
+        qs('audiosync-player').playAlbum(play_Object);
+      } else {
+        play_Object.tracks[0].path = episode.enclosure['@url'];
+        qs('audiosync-player').playAlbum(play_Object);
+      }
+    });
   }
 
   /**
@@ -515,14 +633,14 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {Array} episodes 
    * @param {HTMLElement} scrollEl 
    */
-  _lazyLoadOnScroll(episodes, scrollEl) {
+  _lazyLoadOnScroll(title, episodes, scrollEl) {
     let ndx = 0;
     let pullNumber = 7;
     let self = this;
     function load() {
       const eps = episodes.slice(ndx, ndx + pullNumber);
       for (const episode of eps) {
-        self._createEpisodeElement(episode, scrollEl);
+        self._createEpisodeElement(title, episode, scrollEl);
       }
     }
     load();
@@ -540,6 +658,17 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {String} url podcast url
    */
   async _fetchAndParseXML(url) {
+    const DL_PROGRESS = ce('div');
+    DL_PROGRESS.classList.add('dl-progress');
+
+    const DL_STATS = ce('div');
+    DL_STATS.classList.add('dl-stats');
+
+    const UPDATING_ICON = await svgIcon('refresh');
+    UPDATING_ICON.classList.add('updating-icon');
+
+    const PLAYING_ICON = await svgIcon('playing');
+    PLAYING_ICON.classList.add('playing-icon');
 
     const PODCAST_TITLE_ELEMENT = ce('span');
     PODCAST_TITLE_ELEMENT.classList.add('podcast-title');
@@ -568,16 +697,22 @@ class AudioSyncPodcasts extends HTMLElement {
 
     pywebview.api.xmlProxy(url).then(async xmlString => {
       PODCAST_TITLE_ELEMENT.textContent = xmlString.rss.channel.title;
-      this._lazyLoadOnScroll(xmlString.rss.channel.item, EPISODE_LIST);
+      this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, EPISODE_LIST);
     }).catch(error => {
       PODCAST_TITLE_ELEMENT.textContent = url;
       console.error('Error fetching XML:', error);
     });
 
     const PODCAST_WRAPPER = ce('div');
+    PODCAST_WRAPPER.id = url;
     PODCAST_WRAPPER.classList.add('wrapper');
+    PODCAST_WRAPPER.style.setProperty('--progress', '-100%');
     PODCAST_WRAPPER.addEventListener('click', this._expand);
     [
+      DL_PROGRESS,
+      DL_STATS,
+      UPDATING_ICON,
+      PLAYING_ICON,
       PODCAST_TITLE_ELEMENT,
       BUTTONS_CONTAINER,
       EPISODE_LIST
