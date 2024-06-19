@@ -277,6 +277,12 @@ class Playlist_manager:
     else:
       disc = 1
 
+    # long file
+    target = 30 * 60
+    duration = flac.info.length
+    if duration > target:
+      pass
+      # print(f'{source_file}: long file')
 
     return {'track': track, 'disc': disc, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
 
@@ -325,6 +331,13 @@ class Playlist_manager:
       except Exception as e:
         pass
     
+    # long file
+    target = 30 * 60
+    duration = id3['#length'].value 
+    if duration > target:
+      pass
+      # print(f'{source_file}: long file')
+
     return {'track': track_number, 'disc': disc_number, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
   
   def create_cue_files(self, folder, window):
