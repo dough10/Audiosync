@@ -80,10 +80,10 @@ def create_cue(release_id, mp3_path, gapless):
   release = d.release(release_id)
   save_cue(release, mp3_path, gapless)
 
-def cue_from_releaseid(releaseID, source_file, changes):
+def cue_from_releaseid(releaseID, file_path, changes):
   try:
     rid = open(releaseID, 'r').read().split('\n')
-    create_cue(rid[0], source_file, rid[1])
+    create_cue(rid[0], file_path, rid[1])
     changes['playlist_created'] += 1
   except:
     log(f'Error reading releaseid {releaseID}')
