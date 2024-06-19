@@ -9,7 +9,7 @@ import requests
 import xmltodict
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
-from Podcast import Podcast, episodeExists, dlWithProgressBar, folder as podcast_dir
+from Podcast import Podcast, episodeExists, dlWithProgressBar, update_ID3, load_saved_image, id3Image, folder as podcast_dir
 import urllib.parse
 
 file_path = os.path.abspath(__file__)
@@ -24,6 +24,7 @@ window = False
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 html_path = os.path.join(script_folder, 'html')
+
 
 class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
   def translate_path(self, path):
@@ -55,6 +56,8 @@ class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
     self.send_header("Accept-Ranges", "bytes")
     return super().end_headers()
 
+
+
 def run_combined_server():
   handler = CustomRequestHandler
   with socketserver.ThreadingTCPServer(("", port), handler) as httpd:
@@ -71,6 +74,7 @@ def reload_config():
   global config
   with open(config_path, 'r') as j:
     config = json.load(j) 
+
 
 
 class Api:
@@ -121,6 +125,7 @@ class Api:
   def close(self):
     window.destroy()
 
+
   def get_themes(self):
     themes = []
     for theme_location in glob.glob(os.path.join(script_folder, 'themes', '*.json')):
@@ -128,12 +133,14 @@ class Api:
       themes.append({'name':name,'path':theme_location})
     return themes
 
+
   def load_theme(self, path):
     try:
       with open(path, 'r') as j:
         return json.load(j)
     except:
       return {}
+
 
   def load_favorites(self):
     try:
@@ -187,15 +194,22 @@ class Api:
     except Exception as e:
       print(f'Error parsing XML {e}')
 
+
   def episodeExists(self, title, episode):
     return episodeExists(title, episode)
 
-  def downloadEpisode(self, download_url, path, filename, xmlURL):
+
+  def downloadEpisode(self, title, epObj, download_url, path, filename, xmlURL):
+
     def callback(bytes_downloaded, total_bytes, start_time):
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{xmlURL}", {bytes_downloaded}, {total_bytes}, {start_time}, "{filename}");')
     
-    dlWithProgressBar(download_url, os.path.join(podcast_dir, path), callback)
+    def image_fallback(file):
+      cover_path = os.path.join(podcast_dir, path.replace(filename, 'cover.jpg'))
+      id3Image(file, load_saved_image(cover_path))
 
+    dlWithProgressBar(download_url, os.path.join(podcast_dir, path), callback)
+    update_ID3(title, epObj, os.path.join(podcast_dir, path), None, image_fallback)
 
 def main():
   global window
