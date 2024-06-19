@@ -9,7 +9,7 @@ import requests
 import xmltodict
 import clipboard
 from process_files import run_sync, sync_file, create_lib_json
-from Podcast import Podcast, episodeExists
+from Podcast import Podcast, episodeExists, dlWithProgressBar, folder as podcast_dir
 import urllib.parse
 
 file_path = os.path.abspath(__file__)
@@ -189,6 +189,12 @@ class Api:
 
   def episodeExists(self, title, episode):
     return episodeExists(title, episode)
+
+  def downloadEpisode(self, download_url, path, filename, xmlURL):
+    def callback(bytes_downloaded, total_bytes, start_time):
+      window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{xmlURL}", {bytes_downloaded}, {total_bytes}, {start_time}, "{filename}");')
+    
+    dlWithProgressBar(download_url, os.path.join(podcast_dir, path), callback)
 
 
 def main():
