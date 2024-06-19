@@ -22,6 +22,7 @@ with open(config_path, 'r') as j:
 
 sorted_dir = select_folder()
 working_dir = config['source']
+radio_file = os.path.join(script_folder, 'radio.txt')
 ignore_folders = config['lrc_ignore_folders'] # folders whos files we will be ignored when attempting tog et lyrics
 remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
@@ -406,6 +407,9 @@ def run_sync(window):
 
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
+
+  # copy radio.txt to sd card root directory
+  file_manager.copy_file(radio_file, sorted_dir, os.path.join(sorted_dir, 'radio.txt'))
 
   # output file containing trouble files
   notify({
