@@ -373,6 +373,85 @@ def episodeExists(podcastTitle, episode):
     'url': download_url
   }
 
+def update_ID3(podcast_title, episode, path, epNum, use_fallback_image):
+  try:
+    file = id3.load_file(path)
+  except Exception as e:
+    print(f"Error loading ID3 file: {str(e)}")
+    return
+  
+  try:
+    print('Updating ID3 tags & encoding artwork')
+    file['title'] = episode['title']
+    file['album'] = podcast_title
+    file['artist'] = podcast_title
+    file['genre'] = 'Podcast'
+    file['album artist'] = 'Various Artist'
+
+    # Set comment tag if 'itunes:subtitle' key exists
+    if 'itunes:subtitle' in episode:
+      file['comment'] = episode['itunes:subtitle']
+
+    # Set year tag
+    try:
+      pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z')
+    except (ValueError, TypeError):
+      try:
+        pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z')
+      except (ValueError, TypeError) as e:
+        print(f"Error setting year tag: {str(e)}")
+        pub_date = None
+    
+    if pub_date:
+        file['year'] = pub_date.year
+
+    # Set track number
+    try:
+      # return list of numbers in episode title (looking for "actualy" episode number)
+      ep = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
+      if podcast_title == 'Hospital Records Podcast' and ep and ep[0] < 2000:
+        file['tracknumber'] = ep[0]
+      else:
+        setTrackNum(file, episode, epNum)
+    except Exception as e:
+      print(f"Error setting track number: {str(e)}")
+
+    # Set ID3 artwork
+    try:
+      if 'itunes:image' in episode:
+        # If the episode metadata contains an 'itunes:image' key
+        img = requests.get(episode['itunes:image']['@href'])
+
+        # Check if the image retrieval was successful
+        if img.status_code == 200 and 'content-type' in img.headers and 'image' in img.headers['content-type']:
+          try:
+            # Open the image using PIL
+            art = Image.open(img.content)
+            # Convert image to RGB mode if it's in RGBA mode
+            if art.mode == 'RGBA':
+                art = art.convert('RGB')
+            # Set ID3 artwork using the retrieved image data
+            id3Image(file, art.tobytes())
+          except:
+            use_fallback_image(file)
+        else:
+          # If retrieval failed, use a fallback image or previously loaded image
+          use_fallback_image(file)
+      else:
+        # If episode metadata does not contain 'itunes:image' key
+        use_fallback_image(file)
+          
+    except Exception as e:
+      # Handle any exceptions that occur during setting ID3 artwork
+      print(f"Error setting ID3 artwork: {str(e)}")
+
+    # Save the modified ID3 tags
+    try:
+      file.save()
+    except Exception as e:
+      print(f"Error saving ID3 tags: {str(e)}")
+  except Exception as e:
+    print(f"Error updating ID3 tags: {str(e)}")
 
 class Podcast:
 
@@ -428,82 +507,7 @@ class Podcast:
       id3Image(file, self.__image)
 
   def __id3tag(self, episode, path, epNum):
-    try:
-      file = id3.load_file(path)
-    except Exception as e:
-      print(f"Error loading ID3 file: {str(e)}")
-      return
-    
-    try:
-      print('Updating ID3 tags & encoding artwork')
-      file['title'] = episode['title']
-      file['album'] = self.__title
-      file['artist'] = self.__title
-      file['genre'] = 'Podcast'
-      file['album artist'] = 'Various Artist'
-
-      # Set comment tag if 'itunes:subtitle' key exists
-      if 'itunes:subtitle' in episode:
-        file['comment'] = episode['itunes:subtitle']
-
-      # Set year tag
-      try:
-        pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %z')
-      except (ValueError, TypeError):
-        try:
-          pub_date = datetime.datetime.strptime(episode['pubDate'], '%a, %d %b %Y %H:%M:%S %Z')
-        except (ValueError, TypeError) as e:
-          print(f"Error setting year tag: {str(e)}")
-          pub_date = None
-      if pub_date:
-          file['year'] = pub_date.year
-
-      # Set track number
-      try:
-        ep = [int(s) for s in re.findall(r'\b\d+\b', episode['title'])]
-        if self.__title == 'Hospital Records Podcast' and ep and ep[0] < 2000:
-          file['tracknumber'] = ep[0]
-        else:
-          setTrackNum(file, episode, epNum)
-      except Exception as e:
-        print(f"Error setting track number: {str(e)}")
-
-      # Set ID3 artwork
-      try:
-        if 'itunes:image' in episode:
-          # If the episode metadata contains an 'itunes:image' key
-          img = requests.get(episode['itunes:image']['@href'])
-
-          # Check if the image retrieval was successful
-          if img.status_code == 200 and 'content-type' in img.headers and 'image' in img.headers['content-type']:
-            try:
-              # Open the image using PIL
-              art = Image.open(img.content)
-              # Convert image to RGB mode if it's in RGBA mode
-              if art.mode == 'RGBA':
-                  art = art.convert('RGB')
-              # Set ID3 artwork using the retrieved image data
-              id3Image(file, art.tobytes())
-            except:
-              self.fallback_image(file)
-          else:
-            # If retrieval failed, use a fallback image or previously loaded image
-            self.fallback_image(file)
-        else:
-          # If episode metadata does not contain 'itunes:image' key
-          self.fallback_image(file)
-            
-      except Exception as e:
-        # Handle any exceptions that occur during setting ID3 artwork
-        print(f"Error setting ID3 artwork: {str(e)}")
-
-      # Save the modified ID3 tags
-      try:
-        file.save()
-      except Exception as e:
-        print(f"Error saving ID3 tags: {str(e)}")
-    except Exception as e:
-      print(f"Error updating ID3 tags: {str(e)}")
+    update_ID3(self.__title, episode, path, epNum, self.fallback_image)
 
   def __fileDL(self, episode, epNum, window):
     """
