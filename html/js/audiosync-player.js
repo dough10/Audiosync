@@ -27,7 +27,8 @@ class AudioPlayer extends HTMLElement {
         transform: 'translateY(100%)',
         color: 'var(--text-color)',
         'z-index': 1,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        'border-top': 'var(--seperator-line)'
       },
       '#fbg': {
         position: 'fixed',
