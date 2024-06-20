@@ -84,7 +84,10 @@ class Playlist_manager:
         track_list.append(str(track['title']))
 
       # ID3 track number  
-      track_number = int(track['tracknumber'])
+      try:
+        track_number = int(track['tracknumber'])
+      except ValueError:
+        track_number = len(audio_files) - audio_files.index(audio_file)
 
       #ID3 disc number
       disc_number = int(track['discnumber']) or 1
