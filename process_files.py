@@ -13,6 +13,7 @@ from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, print_change_log, files_with_issues, need_attention, reset_log
+from lib.parse_radio_txt import main as create_radio_txt
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
@@ -22,12 +23,12 @@ with open(config_path, 'r') as j:
 
 sorted_dir = select_folder()
 working_dir = config['source']
-radio_file = os.path.join(script_folder, 'radio.txt')
 ignore_folders = config['lrc_ignore_folders'] # folders whos files we will be ignored when attempting tog et lyrics
 remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
 import_lyrics = False
+import_custom_radio = False
 sync_file_data = {}
 lib_data = {}
 changes = { # log of file changes 
@@ -281,6 +282,7 @@ def run_sync(window):
   global use_sync_file
   global import_cues
   global import_lyrics
+  global import_custom_radio
   global sync_file_data
   global sync_file
   global lib_data
@@ -304,6 +306,7 @@ def run_sync(window):
   import_cues = config['import_cues']
   import_lyrics = config['import_lyrics']
   remove_lrc_wd = config['remove_lrc_wd']
+  import_custom_radio = config['import_custom_radio']
   podcast = config['podcast']
 
   reset_log()
@@ -374,16 +377,20 @@ def run_sync(window):
 
   # sort tracks by disc then track number
   for artist in lib_data:
+    # sory artists albums alphabeticly
     lib_data[artist].sort(key=lambda x: x["title"])
+    # sort tracks by disc number then track number
     for album in lib_data[artist]:
       album['tracks'].sort(key=lambda x: (x['disc'], x['track']))
 
-  # write data file of all artists and albums
+
   sorted_data = dict(sorted(lib_data.items()))
   sorted_data['lib_size'] = fs_queue.get()
 
+  # library file path
   lib_path = os.path.join(script_folder, 'lib_data.json')
 
+  # write data file of all artists and albums
   with open(lib_path, 'w') as data_file:
     data_file.write(json.dumps(sorted_data))
 
@@ -408,8 +415,14 @@ def run_sync(window):
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
 
-  # copy radio.txt to sd card root directory
-  file_manager.copy_file(radio_file, sorted_dir, os.path.join(sorted_dir, 'radio.txt'))
+  if import_custom_radio:
+    # parse online radio.txt file and reject offline streams
+    create_radio_txt(window)
+
+    radio_file = os.path.join(script_folder, 'radio.txt')
+
+    # copy radio.txt to sd card root directory
+    file_manager.copy_file(radio_file, sorted_dir, os.path.join(sorted_dir, 'radio.txt'))
 
   # output file containing trouble files
   notify({
