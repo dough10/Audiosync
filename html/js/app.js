@@ -364,6 +364,11 @@ async function load_app() {
     RESET_LYRIC_FILES_SWITCH.style.removeProperty('display');
   }
 
+  // radio.txt import enabled?
+  if (!CONFIG_OBJECT.import_custom_radio) {
+    SYNC_UI_ELEMENT.hideBar('#radio-bar');
+  }
+
   // load media library
   MUSIC_LIBRARY.addEventListener('lib_size_updated', e => MENU_DRAWER.footElement(e.detail.lib_size));
 
