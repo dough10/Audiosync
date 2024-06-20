@@ -44,7 +44,8 @@ class SyncUI extends HTMLElement {
     const PROGRESS_BAR_LIST = [
       {id:"files", text: "Copying Files"},
       {id:"podcasts", text: "Copying Podcasts"},
-      {id:"playlists", text: "Creating Playlists"}
+      {id:"playlists", text: "Creating Playlists"},
+      {id:"radio", text: "Creating radio.txt"}
     ]
 
     this.output = ce('div');
@@ -75,6 +76,7 @@ class SyncUI extends HTMLElement {
       this._progressBar(PROGRESS_BAR_LIST[0]),
       this._progressBar(PROGRESS_BAR_LIST[1]),
       this._progressBar(PROGRESS_BAR_LIST[2]),
+      this._progressBar(PROGRESS_BAR_LIST[3]),
       this.summary,
       this.button
     ].forEach(el => this.dialog.appendChild(el));
@@ -224,7 +226,8 @@ class SyncUI extends HTMLElement {
     [
       '#files-bar', 
       '#podcasts-bar', 
-      '#playlists-bar'
+      '#playlists-bar',
+      '#radio-bar'
     ].forEach(async id => {
       await sleep(200);
       qs(id, this.shadowRoot).setAttribute('percent', 0);
