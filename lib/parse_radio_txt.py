@@ -1,4 +1,5 @@
 import requests
+from tqdm import tqdm
 
 txt_src = 'https://masturbatorium.com/hibyradio.txt'
 
@@ -29,27 +30,31 @@ def save_txt(data):
         txt.write(f'{station['comment']}\n')
 
 
-def main():
+def main(window):
   data = []
   lines = fetch_text_file(txt_src).split('\n')
-  for line in lines:
+
+  length = len(lines)
+
+  for ndx, line in enumerate(tqdm(lines, desc ='Creating radio.txt', unit='stream')):
     streams = line.split(',')
     try:
       title = streams[0].strip()
       url = streams[1].strip()
       if is_live_stream(url):
-        print(f'{url} online')
         obj = {'title': title, 'url': url}
         data.append(obj)
-      else: 
-        print(f'{url} offline')
+
     except IndexError:
       # check empty string
       if streams[0]:
         obj = {'comment': streams[0]}
         data.append(obj)
 
+    if window:
+      window.evaluate_js(f'document.querySelector("sync-ui").updateBar("#radio-bar", {ndx}, {length});')
+
   save_txt(data)
   
 if __name__ == "__main__":
-  main()
+  main(False)
