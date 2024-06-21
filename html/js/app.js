@@ -233,12 +233,15 @@ async function load_app() {
       await PLAYER.minimize();
     }
     if (PAGES.getAttribute('selected') === '1') return;
+    PODCAST_LIBRARY.style.setProperty('--animation-time', '0ms');
     PAGES.setAttribute('selected', 1);
     SCROLL_ELEMENT.offScreen()
     MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
     PODCAST_HEADER_BUTTONS.forEach(showElement);
     PODCAST_LIBRARY.resize();
+    // await sleep(200);
+    PODCAST_LIBRARY.style.setProperty('--animation-time', '200ms');
   });
 
   // header hamburger icon
