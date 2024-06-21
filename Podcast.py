@@ -528,7 +528,7 @@ class Podcast:
         window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{self.__xmlURL}", {downloaded}, {total}, {start_time}, "{stats['filename']}")');
     
     path = os.path.join(folder, stats['path'])
-    print(folder, stats['path'], path)
+
     # check if the file exists
     if os.path.isfile(path):
       print(f'Episode {stats['filename']} already downloaded')
@@ -580,7 +580,7 @@ class Podcast:
     return len(self.__list)
 
   def subscribe(self, window):
-    if self.__xmlURL in listCronjobs():
+    if self.__xmlURL in listCronjobs() or self.__xmlURL in config['subscriptions']:
       print(f'Already Subscribed to {self.__title}')
       if window:
         window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Already Subscribed to {self.__title}");')
@@ -594,9 +594,9 @@ class Podcast:
     if window:
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Creating CRONJOB");')
     
-    logLocation = os.path.join(script_folder, 'output')
-    print('Creating cronjob')
-    os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
+    # logLocation = os.path.join(script_folder, 'output')
+    # print('Creating cronjob')
+    # os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
     
     if window:
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Subscribed!");')
@@ -611,9 +611,15 @@ class Podcast:
         config['subscriptions'] = remove_string_from_list(config['subscriptions'], self.__xmlURL)
         with open(config_path, 'w') as file:
           file.write(json.dumps(config, indent=2))
+        if window:
+          try: 
+            shutil.rmtree(self.__location)
+            print(f'Deleteing directory {self.__location}')
+          except:
+            pass
 
-      os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
-      print('Cronjob removed')
+      # os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
+      # print('Cronjob removed')
 
     if window:
       go()
