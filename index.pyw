@@ -211,6 +211,13 @@ class Api:
     dlWithProgressBar(download_url, os.path.join(podcast_dir, path), callback)
     update_ID3(title, epObj, os.path.join(podcast_dir, path), None, image_fallback)
 
+  def deleteEpisode(self, file_object):
+    try:
+      os.remove(os.path.join(config['podcast_folder'], file_object['path']))
+    except Exception as e:
+      print(e)
+
+
 def main():
   global window
   # run UI server
