@@ -444,22 +444,30 @@ def run_sync(window):
 
 def build_lib(root, file, ext):
   global lib_data
+  # current audio file
   source_file = os.path.join(root, file)
+  # cover file
   jpg = os.path.join(root, 'cover.jpg')
+  # cover but 1 folder up (multi disc album)
   alt_jpg = os.path.join(root, '..', 'cover.jpg')
+
   if ext == '.flac':
     info = pl_manager.get_flac_info(source_file, file)
   else:
     info = pl_manager.get_mp3_info(source_file, file, jpg)
   if not info:
     return
+  # copy alt_jpg to normal position
   if not os.path.exists(jpg) and os.path.exists(alt_jpg):
     file_manager.copy_file(alt_jpg, root, jpg)
+  # reject if cover doesn't exist
   if not os.path.exists(jpg):
     return
+  # create 150px thumb.webp
   thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
   if not os.path.exists(thumbnail_name):
     file_manager.resizeImage(jpg, 150, thumbnail_name, ext='WEBP')
+  # add to lib_data
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
 
 
