@@ -56,12 +56,12 @@ class AudioSyncDialog extends HTMLElement {
    */
   close() {
     let t = 0;
-    const closed = async _ => {
+    const closed = _ => {
       if (t) clearTimeout(t);
       this.dialog.removeEventListener('animationend', closed);
       if (this.hasAttribute('cleanup')) this.remove();
     };
-    t = setTimeout(closed, 300);
+    t = setTimeout(closed, 2000);
     this.dialog.addEventListener('animationend', closed);
     requestAnimationFrame( _ => this.dialog.removeAttribute('open'));
   }
