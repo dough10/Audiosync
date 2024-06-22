@@ -8,3 +8,9 @@ lib/__pycache__
 /subscriptions.txt
 /button-test.html
 /favorites.json
+/build
+/output.prof
+/index.spec
+/dist
+/radio.txt
+/node_modules
