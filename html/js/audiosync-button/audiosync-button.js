@@ -1,4 +1,4 @@
-import {qs, ce, createRipple, hexToRgba, convertToHex, getCSSVariableValue, getContrastColor, parseCSS, objectToCSS} from '../helpers.js';
+import {ce} from '../helpers.js';
 
 class AudioSyncButton extends HTMLElement {
   static get observedAttributes() {
