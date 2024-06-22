@@ -59,10 +59,8 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   async openAddPodcastDialog() {
     this.addUI = await this._addPodcastUI();
-    this.addUI.style.setProperty('--animation-time', '0ms');
     qs('body').appendChild(this.addUI);
     await sleep(100);
-    this.addUI.style.setProperty('--animation-time', '200ms');
     this.addUI.open();
   }
 

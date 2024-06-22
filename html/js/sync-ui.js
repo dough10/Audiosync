@@ -78,7 +78,6 @@ class SyncUI extends HTMLElement {
     
     this.dialog = ce('audiosync-dialog'); 
     this.dialog.style.setProperty('--min-width', '445px');
-    this.dialog.style.setProperty('--animation-time', '0ms');
 
     [
       this.output,
@@ -145,7 +144,6 @@ class SyncUI extends HTMLElement {
    * opens the sync ui dialog
    */
   open() {
-    this.dialog.style.setProperty('--animation-time', '200ms');
     this.dialog.open();
   }
 

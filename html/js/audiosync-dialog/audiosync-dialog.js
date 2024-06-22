@@ -21,13 +21,11 @@ class AudioSyncDialog extends HTMLElement {
     this.backdrop.classList.add('backdrop');
     this.backdrop.addEventListener('click', this.close);
 
-
     const slot = ce('slot');
 
     this.dialog = ce('div');
     this.dialog.classList.add('dialog');
     this.dialog.appendChild(slot);
-    this.dialog.addEventListener('transitionend', _ => this.toggleAttribute('open'));
     
     [
       elementStyles,
@@ -37,10 +35,17 @@ class AudioSyncDialog extends HTMLElement {
   }
 
   /**
+   * element connected to DOM
+   */
+  connectedCallback() {
+    this.style.setProperty('--animation-time', '0ms');
+  }
+
+  /**
    * open the dialog
    */
-  async open() {
-    await sleep(100);
+  open() {
+    this.style.setProperty('--animation-time', '200ms');
     requestAnimationFrame(_ => {
       if (!this.dialog.hasAttribute('open')) this.dialog.toggleAttribute('open');
     });
@@ -49,13 +54,15 @@ class AudioSyncDialog extends HTMLElement {
   /**
    * close the dialog
    */
-  async close() {
+  close() {
+    let t = 0;
     const closed = async _ => {
-      this.dialog.removeEventListener('transitionend', closed);
-      console.log(this)
+      if (t) clearTimeout(t);
+      this.dialog.removeEventListener('animationend', closed);
       if (this.hasAttribute('cleanup')) this.remove();
     };
-    this.dialog.addEventListener('transitionend', closed);
+    t = setTimeout(closed, 300);
+    this.dialog.addEventListener('animationend', closed);
     requestAnimationFrame( _ => this.dialog.removeAttribute('open'));
   }
 
