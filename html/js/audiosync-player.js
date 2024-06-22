@@ -504,6 +504,8 @@ class AudioPlayer extends HTMLElement {
     this.playing = ndx || 0;
     if (!ndx) this.library.playlistCleared();
     // set playlist * clone array to prevent album info issue on <music-library>
+    qs('audiosync-podcasts').resetPlaylist();
+    qs('music-library').resetPlaylist();
     this.playlist = albumInfo.tracks.slice();
     if (!this.playlist.length) return;
     this._changeSrc();
