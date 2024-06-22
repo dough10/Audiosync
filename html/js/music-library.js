@@ -380,6 +380,13 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
+   * audioplayer has reset playlist
+   */
+  resetPlaylist() {
+    qsa('[inlist]', this.shadowRoot).forEach(el => el.removeAttribute('inlist'));
+  }
+
+  /**
    * update library ui with currently playing album
    * 
    * @param {Object} details {artist, album, src}
@@ -961,6 +968,7 @@ class MusicLibrary extends HTMLElement {
     DIALOG.id = 'album-info';
     DIALOG.toggleAttribute('nopad');
     DIALOG.toggleAttribute('cleanup');
+    DIALOG.style.setProperty('--animation-time', '0ms');
 
     const FAVORITE_BUTTON = ce('audiosync-small-button');
     FAVORITE_BUTTON.classList.add('fav');
@@ -1089,7 +1097,8 @@ class MusicLibrary extends HTMLElement {
 
 
     qs('body').appendChild(DIALOG);
-    await sleep(20);
+    DIALOG.style.setProperty('--animation-time', '200ms');
+    await sleep(100);
     DIALOG.open();
     await sleep(200);
     const PLAYING_TRACK_ELEMENT = qs('audiosync-dialog > .tracklist > .track[playing]');
