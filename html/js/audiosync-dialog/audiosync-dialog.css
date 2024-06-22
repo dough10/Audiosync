@@ -22,6 +22,7 @@
     opacity: 0;
   }
 }
+
 .dialog[open] + .backdrop {
   display:block;
   opacity: 1;
@@ -49,7 +50,6 @@
   z-index: 4;
   opacity:0;
   display: none;
-  will-change: transform;
   animation: close var(--animation-time, 300ms) cubic-bezier(.33,.17,.85,1.1);
   transform: translate(-50%, -50%) scale3d(0,0,0);
   max-width: 650px;
