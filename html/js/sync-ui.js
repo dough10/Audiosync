@@ -28,6 +28,18 @@ class SyncUI extends HTMLElement {
         'max-width': '457px',
         'text-wrap': 'pretty'
       },
+      'audiosync-button > div': {
+        display: 'flex',
+        'flex-direction': 'row'
+      },
+      'audiosync-button > div > :first-child': {
+        'margin-right': '16px'
+      },
+      'audiosync-button > div > :nth-child(2)': {
+        display: 'flex',
+        'align-items': 'center',
+        'margin-right': '16px'
+      },
       svg: {
         height: "24px",
         width: "24px"
@@ -64,12 +76,9 @@ class SyncUI extends HTMLElement {
       this._closeDialog();
     });
     
-    this.dialog = ce('audiosync-dialog');
-
-    // style the dialog wider the normal 
-    const DIALOG_STYLES = parseCSS(qs('style', this.dialog.shadowRoot).textContent);
-    DIALOG_STYLES[".dialog"]['min-width'] = '445px';
-    qs('style', this.dialog.shadowRoot).textContent = objectToCSS(DIALOG_STYLES);
+    this.dialog = ce('audiosync-dialog'); 
+    this.dialog.style.setProperty('--min-width', '445px');
+    this.dialog.style.setProperty('--animation-time', '0ms');
 
     [
       this.output,
@@ -136,6 +145,7 @@ class SyncUI extends HTMLElement {
    * opens the sync ui dialog
    */
   open() {
+    this.dialog.style.setProperty('--animation-time', '200ms');
     this.dialog.open();
   }
 
