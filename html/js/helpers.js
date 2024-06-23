@@ -935,7 +935,7 @@ function areElementsPresent(arr1, arr2) {
   for (let i = 0; i < arr1.length; i++) {
     // If the element is not present in arr2, return false
     if (!arr2.includes(arr1[i])) {
-        return false;
+      return false;
     }
   }
   // All elements in arr1 are present in arr2
@@ -1018,5 +1018,10 @@ export {
   areElementsPresent,
   indexOfElement,
   containsNumber,
-  getFilenameWithoutExtension
+
+
+  getFilenameWithoutExtension,
+
+
+  rgbToHex
 }
