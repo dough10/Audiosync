@@ -10,7 +10,10 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
-   * element connect to DOM
+   * element connect
+   * Called by DOM
+   * @function
+   * @name connectedCallback
    */
   connectedCallback() {
     // bind this
@@ -30,32 +33,22 @@ class AudioSyncPodcasts extends HTMLElement {
       elementStyles,
       this.container
     ].forEach(el => this.shadowRoot.appendChild(el));
-
-    window.addEventListener('resize', _ => this.resize());
   }
 
   /**
    * audioplayer has reset playlist
+   * Called by <audiosync-player>.playAlbum()
+   * @function
+   * @name resetPlaylist
    */
   resetPlaylist() {
     qsa('.episode[inlist]', this.shadowRoot).forEach(el => el.removeAttribute('inlist'));
   }
 
   /**
-   * window was resized
-   */
-  resize() {
-    const wrappers = qsa('.wrapper', this.shadowRoot);
-    wrappers.forEach(wrapper => {
-      const halfContainer = elementWidth(wrapper) / 2;
-      const halfTitle = elementWidth(qs('.podcast-title', wrapper)) / 2;
-      const translateX = (halfContainer - ((halfTitle * 1.5) + 24));
-      wrapper.style.setProperty('--translate-x', `-${translateX}px`);
-    });
-  }
-
-  /**
    * creates and opens the add podcast UI
+   * @function
+   * @name openAddPodcastDialog
    */
   async openAddPodcastDialog() {
     this.addUI = await this._addPodcastUI();
@@ -133,10 +126,9 @@ class AudioSyncPodcasts extends HTMLElement {
     ADD_PODCAST_BUTTON.onClick(async e => {
       await sleep(200);
       ADD_PODCAST_BUTTON.toggleAttribute('disabled');
-      const LOADING_ELEMENT = qs('.loading');
-      LOADING_ELEMENT.style.display = 'flex';
-      pywebview.api.subscribe(INPUT_ELEMENT.value);
-      await fadeIn(LOADING_ELEMENT);
+      this.dispatchEvent(new CustomEvent('add-url', {
+        detail:{url: INPUT_ELEMENT.value}
+      }));
     });
     
     // if clipboard data is a url fill in the input element

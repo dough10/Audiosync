@@ -1,5 +1,5 @@
 import { fixture, expect } from '@open-wc/testing';
-import '../../html/js/audiosync-dialog/audiosync-dialog.js'
+import '../../js/audiosync-dialog/audiosync-dialog.js'
 
 describe('audiosync-dialog', _ => {
   it('renders correctly', async _ => {
