@@ -207,6 +207,8 @@ async function load_app() {
     }
   });
 
+  PODCAST_LIBRARY.addEventListener('add-url', e => pywebview.api.subscribe(e.detail.url))
+
   SYNC_UI_ELEMENT.addEventListener('total-progress', e => SYNC_BUTTON.setAttribute('percent', e.detail.percent));
 
   /**
@@ -239,8 +241,6 @@ async function load_app() {
     MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
     PODCAST_HEADER_BUTTONS.forEach(showElement);
-    PODCAST_LIBRARY.resize();
-    // await sleep(200);
     PODCAST_LIBRARY.style.setProperty('--animation-time', '200ms');
   });
 
