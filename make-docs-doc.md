@@ -1,7 +1,7 @@
 <a name="make-docs.module_js"></a>
 
 ## make-docs.js
-Create markdown documentation from JsDocs comments. Edit head.txt and foot.txt to customize the generated [README.md](./README.md) file
+Create markdown documentation from JsDocs comments. Edit assets/head.txt and assets/foot.txt to customize the generated [README.md](./README.md) file
 
 **Requires**: <code>module:fs</code>, <code>module:jsdoc-to-markdown</code>, <code>module:package.json</code>  
 **Author**: Jimmy Doughten <https://github.com/dough10>  

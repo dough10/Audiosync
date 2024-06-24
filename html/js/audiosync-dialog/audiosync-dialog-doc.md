@@ -5,7 +5,6 @@ UI dialog box w/ backdrop
 
 **Kind**: global class  
 **Extends**: <code>HTMLElement</code>  
-**Element**:   
 **Attribute**: <code>String</code> nopad  
 
 * [AudioSyncDialog](#AudioSyncDialog) ⇐ <code>HTMLElement</code>

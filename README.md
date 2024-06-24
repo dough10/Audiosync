@@ -1,7 +1,15 @@
 # audiosync V:1.0.0
-A python application with HTML GUI for downloading podcast audio files and audio file transfer to a SD Card for use in a Digital Audio Player.
+A python application with HTML GUI for writing a SD Card for use in a Digital Audio Player.
 
-## Documentation
+- writes files to sdcard (audio files, cover iamges, playlists)
+- play audio files
+- creates playlist (.cue, .m3u8) for each album transfered
+- generate a playlist of files with a modified date newer then a month old
+- podcast downloading, deleting, subscribing
+- generates radio.txt from MrNaturalAZ's file posted to head-fi forum
+- working on getting .lrc file generation for song lyrics 
+
+## JSDocs Documentation
 
 - [make-docs-doc.md](make-docs-doc.md)
   - [html/js/audiosync-podcasts/audiosync-podcasts-doc.md](html/js/audiosync-podcasts/audiosync-podcasts-doc.md)
@@ -9,11 +17,11 @@ A python application with HTML GUI for downloading podcast audio files and audio
   - [html/js/helpers-doc.md](html/js/helpers-doc.md)
 
 
-## Dependencies
+## NPM Dependencies
 
-No Dependencies
+No NPM Dependencies
 
-## Dev Dependencies
+## NPM Dev Dependencies
 
 - @babel/core: ^7.24.7
 - @babel/preset-env: ^7.24.7
