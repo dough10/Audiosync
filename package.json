@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "test-helper-functions": "web-test-runner \"html/tests/helpers/*.test.js\" --node-resolve"
+    "test-JS": "web-test-runner \"html/tests/**/*.test.js\" --node-resolve",
+    "make docs": "node make-docs"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
@@ -12,15 +13,12 @@
     "@web/test-runner-chrome": "^0.16.0",
     "@web/test-runner-mocha": "^0.9.0",
     "@web/test-runner-playwright": "^0.11.0",
+    "jsdoc-to-markdown": "^8.0.1",
     "mocha": "^10.4.0"
-  },
-  "dependencies": {
-    "@webcomponents/webcomponentsjs": "^2.8.0"
   },
   "name": "audiosync",
   "version": "1.0.0",
-  "description": "A python application with HTML GUI for podcast download and audio file transfer to a SD Card for portable audio player.",
-  "main": "web-test-runner.config.js",
+  "description": "A python application with HTML GUI for downloading podcast audio files and audio file transfer to a SD Card for use in a Digital Audio Player.",
   "directories": {
     "lib": "lib"
   },
