@@ -49,12 +49,12 @@ pl_manager = Playlist_manager(changes)
 
 
 
-def is_ignored(source_file):
+def is_ignored(source_file:str):
   return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
 
 
 
-def add_to_lib(artist, album, location, file, title, track, disc):
+def add_to_lib(artist:str, album:str, location:str, file:str, title:str, track:int, disc:int):
   """
   add audio file to data dict.
 
@@ -64,8 +64,8 @@ def add_to_lib(artist, album, location, file, title, track, disc):
   - location  (str): file path
   - file (str): audio filename
   - title (str): track title
-  - track (num): track number
-  - disc (num): disc number
+  - track (int): track number
+  - disc (int): disc number
   
   Returns:
   None
@@ -109,7 +109,7 @@ def add_to_lib(artist, album, location, file, title, track, disc):
 
 
 
-def move_file(root, file, ext):
+def move_file(root:str, file:str, ext:str):
   """
   Process audio file in the specified root directory.
 
@@ -223,7 +223,13 @@ def move_file(root, file, ext):
 
 
 def get_audio_files():
-  audio_files = []
+  """
+  generate list of audio files in the working_dir
+
+  Returns:
+  list
+  """
+  audio_files:list = []
   for root, dirs, files in os.walk(working_dir):
     for file in files:
       if is_audio_file(file) and not file.startswith('._'):
@@ -233,7 +239,7 @@ def get_audio_files():
 
 
 
-def process_audio_files(window):
+def process_audio_files(window:dict):
   """
   Process all audio files in the working directory.
 
@@ -252,7 +258,7 @@ def process_audio_files(window):
 
 
 
-def notify(s, window):
+def notify(s:str, window:dict):
   try:
     if window:
       window.evaluate_js(f'document.querySelector("sync-ui").syncUpdate({json.dumps(s)});')
@@ -264,16 +270,25 @@ def notify(s, window):
 
 
 def get_lib_size(queue):
+  """
+  Returns library size.
+
+  Parameters:
+  - queue: threading queue
+
+  Returns:
+  None 
+  """
   queue.put(get_folder_size(config['source']))
 
 
 
-def run_sync(window):
+def run_sync(window:dict):
   """
   Main function to organize and process audio files.
 
   Parameters:
-  None
+  - window (object): pywebview window object.
 
   Returns:
   None
@@ -442,7 +457,18 @@ def run_sync(window):
   log(change_log)
 
 
-def build_lib(root, file, ext):
+def build_lib(root:str, file:str, ext:str):
+  """
+  create db entry for audio file.
+
+  Parameters:
+  - root (string): root path to the file
+  - file (string): file name
+  - ext (string): file extention
+
+  Returns: 
+  None
+  """
   global lib_data
   # current audio file
   source_file = os.path.join(root, file)
@@ -471,7 +497,16 @@ def build_lib(root, file, ext):
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
 
 
-def create_lib_json(window):
+def create_lib_json(window:dict):
+  """
+  creates the lib_data.json library file
+
+  Parameters:
+  - window (object): pywebview window object.
+
+  Returns:
+  None
+  """
   global lib_data
   # clear data object
   lib_data = {}
