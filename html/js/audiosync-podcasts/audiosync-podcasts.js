@@ -697,6 +697,7 @@ class AudioSyncPodcasts extends HTMLElement {
         unsub_button
       ));
       // if downloading an episode toggle disabled attribute
+      if (parent.hasAttribute('updating')) toggleAttribute(download_button, 'disabled');
       if (parent.hasAttribute('downloading')) toggleAttribute(download_button, 'disabled');
       ep_wrapper.appendChild(download_button);
     } else {
