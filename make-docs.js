@@ -1,5 +1,5 @@
 /**
- * @fileOverview processes javascript files creating markdown documentation from comments. Edit head.txt and foot.txt to customize the generated [README.md](./README.md) file
+ * @fileOverview Create markdown documentation from JsDocs comments. Edit head.txt and foot.txt to customize the generated [README.md](./README.md) file
  * @author Jimmy Doughten <https://github.com/dough10>
  * @exports make-doc.js
  * @requires fs
@@ -93,7 +93,7 @@ function devDependencies() {
 }
 
 /**
- * parse through files array and generate docs.
+ * parse through assets/files.js array and generate docs.
  * 
  * @returns {String} list of files
  * 

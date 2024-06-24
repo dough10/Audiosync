@@ -1,12 +1,27 @@
-import {ce, sleep} from '../helpers.js';
+import {ce} from '../helpers.js';
+
+
 
 /**
- * dialog box 
+ * UI dialog box w/ backdrop
+ * @class
+ * @extends HTMLElement
+ * 
+ * @attribute {String} nopad
  */
 class AudioSyncDialog extends HTMLElement {
   static get observedAttributes() {
     return ['nopad'];
   }
+  /**
+   * creates the dialog and backdrop elements
+   * @constructor
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * const dialog = document.createElement('audiosync-dialog');
+   */
   constructor() {
     super();
     this.attachShadow({mode: "open"});
@@ -35,14 +50,29 @@ class AudioSyncDialog extends HTMLElement {
   }
 
   /**
-   * element connected to DOM
+   * element connected to DOM. defaults --animation-time to 0ms to prevent flash of content
+   * @function
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * const dialog = document.createElement('audiosync-dialog');
+   * document.querySelector('body').appendChild(dialog);
    */
   connectedCallback() {
     this.style.setProperty('--animation-time', '0ms');
   }
 
   /**
-   * open the dialog
+   * open the dialog element
+   * @function
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * const dialog = document.createElement('audiosync-dialog');
+   * document.querySelector('body').appendChild(dialog);
+   * dialog.open();
    */
   open() {
     this.style.setProperty('--animation-time', '200ms');
@@ -53,6 +83,13 @@ class AudioSyncDialog extends HTMLElement {
 
   /**
    * close the dialog
+   * @function
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * const dialog = document.querySelector('audiosync-dialog');
+   * dialog.close();
    */
   close() {
     let t = 0;
@@ -68,6 +105,13 @@ class AudioSyncDialog extends HTMLElement {
 
   /**
    * attribute has changed 
+   * @function
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * const dialog = document.querySelector('audiosync-dialog');
+   * dialog.toggleAttribue('nopad')
    */
   attributeChangedCallback() {
     if (this.hasAttribute('nopad')) {

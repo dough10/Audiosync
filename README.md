@@ -3,7 +3,9 @@ A python application with HTML GUI for downloading podcast audio files and audio
 
 ## Documentation
 
-- [html/js/audiosync-podcasts/audiosync-podcasts-doc.md](html/js/audiosync-podcasts/audiosync-podcasts-doc.md)
+- [make-docs-doc.md](make-docs-doc.md)
+  - [html/js/audiosync-podcasts/audiosync-podcasts-doc.md](html/js/audiosync-podcasts/audiosync-podcasts-doc.md)
+  - [html/js/audiosync-dialog/audiosync-dialog-doc.md](html/js/audiosync-dialog/audiosync-dialog-doc.md)
   - [html/js/helpers-doc.md](html/js/helpers-doc.md)
 
 
