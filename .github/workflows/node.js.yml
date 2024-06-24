@@ -30,5 +30,3 @@ jobs:
     # - run: npm run build --if-present
     - run: npm run make-docs
     - run: npm run test-JS
-    - name: Test Reporter
-      uses: dorny/test-reporter@v1.9.1
