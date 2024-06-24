@@ -85,7 +85,7 @@ class AudioSyncSettings extends HTMLElement {
     ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     const CLOSE_BUTTON = ce('audiosync-small-button');
-    svgIcon('close').then(svg => CLOSE_BUTTON.appendChild(svg));
+    CLOSE_BUTTON.appendChild(svgIcon('close'));
     CLOSE_BUTTON.setAttribute('color', 'var(--close-red)');
     CLOSE_BUTTON.onClick(async _ => {
       await sleep(200);

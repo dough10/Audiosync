@@ -1,20 +1,15 @@
 import {
-  Toast,
-  Timer,
-  animateElement,
   ce,
   qs,
   qsa,
   sleep,
-  createRipple,
-  alertUser,
   fadeIn,
   fadeOut,
   parseCSS,
   objectToCSS,
   getFilenameWithoutExtension
 } from './helpers.js';
-
+import { Toast } from './Toast/Toast.js';
   
 let _loadTimer = 0
 
@@ -151,7 +146,6 @@ async function load_app() {
   const PODCAST_LIBRARY_REFRESH = qs('#refresh');
   const HEADER_SETTING_BUTTON = qs('#settings');
   const SETTINGS_DRAWER = qs('audiosync-settings');
-  const ALERT_ELEMENT = qs('#alert');
   const PODCAST_LIBRARY = qs('audiosync-podcasts');
   const THEME_DROPDOWN = qs('.select-text');
   const IMPORT_PLAYLISTS_SWITCH = qs('#cues');
@@ -283,10 +277,9 @@ async function load_app() {
   PODCAST_LIBRARY_REFRESH.onClick(async _ => {
     await sleep(100);
     PODCAST_LIBRARY_REFRESH.toggleAttribute('disabled');
-    const t = new Timer('Podcasts Update');
     await pywebview.api.get_podcasts();
     PODCAST_LIBRARY_REFRESH.removeAttribute('disabled');
-    new Toast(t.endString());
+    new Toast('Update Complete');
   });
 
   // header gear icon
@@ -310,13 +303,6 @@ async function load_app() {
     SYNC_UI_ELEMENT.startSync();
     await pywebview.api.run_sync();
     PODCAST_LIBRARY_ADD_BUTTON.removeAttribute('disabled');
-  });
-
-  // top of screen alert
-  ALERT_ELEMENT.addEventListener('click', async clickEvent => {
-    createRipple(clickEvent);
-    await sleep(20);
-    await animateElement(clickEvent.target, 'translateY(-120%)', 800, 0);
   });
 
   // when a switch is changed update config & UI
@@ -410,8 +396,3 @@ window.addEventListener('pywebviewready', load_app);
 // sometimes the previous ever doesn't fire
 _loadTimer = setTimeout(load_app, 2000);
 
-window.onerror = async function(message, source, lineno, colno, error) {
-  console.error('Error:', message, 'at', source, 'line:', lineno, 'column:', colno);
-  alertUser(`Error: ${message} at ${source} line:${lineno} column:${colno}`);
-  return true;
-};

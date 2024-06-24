@@ -152,6 +152,9 @@ svg > * {
     font-size: 22px;
   }
 }
+.wrapper[expanded][updating] > .podcast-title {
+  max-width: 420px;
+}
 
 @media screen and (max-width: 575px) {
   .wrapper[expanded][updating] > .podcast-title {
@@ -200,7 +203,7 @@ svg > * {
   transform: translateX(var(--progress));
   transition: auto var(--animation-time, 200ms) linear;
 }
-.wrapper[updating] > .dl-progress {
+.wrapper[downloading] > .dl-progress {
   opacity: 1;
 }
 .wrapper[expanded] > .dl-progress {
@@ -225,7 +228,7 @@ svg > * {
     right: 16px;
   }
 }
-.wrapper[updating] > .dl-stats {
+.wrapper[downloading] > .dl-stats {
   opacity: 1;
 }
 .wrapper[expanded] > .dl-stats {
@@ -319,6 +322,16 @@ svg > * {
 }
 .episode[downloading] {
   background: var(--selected-color);
+}
+.episode > .updating-icon {
+  top: 17px;
+  left: 50%;
+  transition: opacity var(--animation-time, 200ms) linear;
+  animation: spin 1s linear infinite;
+  opacity: 0;
+}
+.episode[updating] > .updating-icon {
+  opacity: 1;
 }
 .episode[inlist] > .ep-add {
   display: none;

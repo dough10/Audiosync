@@ -76,7 +76,7 @@ class ScrollElement extends HTMLElement {
 
     // floating action button
     this.fab = ce('audiosync-fab');
-    svgIcon("up").then(svg => this.fab.appendChild(svg));
+    this.fab.appendChild(svgIcon("up"));
     this.fab.onClick(this.animateScroll);
 
     // content body

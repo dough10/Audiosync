@@ -1,4 +1,5 @@
-import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, getIcon, qsa, createRipple, convertToHex, parseCSS, fadeOut, fadeIn} from './helpers.js';
+import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, qsa, createRipple, convertToHex, parseCSS, fadeOut, fadeIn, calcPercentage} from './helpers.js';
+import {getIcon} from './getIcon/getIcon.js';
 
 class AudioPlayer extends HTMLElement {
   constructor() {
@@ -249,8 +250,8 @@ class AudioPlayer extends HTMLElement {
     this._pauseTimer = 0;
 
     // cache svg icon data strings
-    getIcon('play').then(svg => this.playIcon = svg.d);
-    getIcon('pause').then(svg => this.pauseIcon = svg.d);
+    this.playIcon = getIcon('play');
+    this.pauseIcon = getIcon('pause');
 
     // bind this
     this._showMini = this._showMini.bind(this);
@@ -423,7 +424,7 @@ class AudioPlayer extends HTMLElement {
     // playlist fab
     const PLAYLIST_BUTTON = ce('audiosync-fab');
     PLAYLIST_BUTTON.id = 'playlist';
-    PLAYLIST_BUTTON.appendChild(await svgIcon('list'));
+    PLAYLIST_BUTTON.appendChild(svgIcon('list'));
     PLAYLIST_BUTTON.onClick(ev => this._playlistPopup(ev));
     PLAYLIST_BUTTON.setAttribute('color', this.palette.fab);
     PLAYLIST_BUTTON.title = 'Playlist';
@@ -432,7 +433,7 @@ class AudioPlayer extends HTMLElement {
     const FAVORITE_TOGGLE_BUTTON = ce('audiosync-small-button');
     FAVORITE_TOGGLE_BUTTON.id = 'favorite';
     this._fullScreenFavoriteDisplay(FAVORITE_TOGGLE_BUTTON);
-    FAVORITE_TOGGLE_BUTTON.appendChild(await svgIcon('favorite'));
+    FAVORITE_TOGGLE_BUTTON.appendChild(svgIcon('favorite'));
     FAVORITE_TOGGLE_BUTTON.setAttribute('color', this.palette.contrast);
     FAVORITE_TOGGLE_BUTTON.onClick(_ => {
       this.isFavorite = !this.isFavorite;
@@ -541,7 +542,7 @@ class AudioPlayer extends HTMLElement {
       for (let i = 0; i < this.player.buffered.length; i++) {
         buffered = Math.max(buffered, this.player.buffered.end(i));
       }
-      const BUFFERED_PRECENTAGE = (buffered / this.player.duration) * 100;
+      const BUFFERED_PRECENTAGE = calcPercentage(buffered, this.player.duration);
       BUFFER_BAR.style.transform = `translateX(-${100 - BUFFERED_PRECENTAGE}%)`;
     } else {
       BUFFER_BAR.style.transform = `translateX(-100%)`;
@@ -595,7 +596,7 @@ class AudioPlayer extends HTMLElement {
     // fullscreen toggle
     const FULLSCREEN_TOGGLE_BUTTON = ce('audiosync-small-button');
     FULLSCREEN_TOGGLE_BUTTON.id = 'expand';
-    FULLSCREEN_TOGGLE_BUTTON.appendChild(await svgIcon('expand'));
+    FULLSCREEN_TOGGLE_BUTTON.appendChild(svgIcon('expand'));
     FULLSCREEN_TOGGLE_BUTTON.onClick(_ => {
       if (this.hasAttribute('fullscreen')) {
         this.minimize();
@@ -608,7 +609,7 @@ class AudioPlayer extends HTMLElement {
     const PREVIOUS_TRACK_BUTTON = ce('audiosync-small-button');
     PREVIOUS_TRACK_BUTTON.id = 'back';
     PREVIOUS_TRACK_BUTTON.style.display = 'none';
-    PREVIOUS_TRACK_BUTTON.appendChild(await svgIcon('previous'));
+    PREVIOUS_TRACK_BUTTON.appendChild(svgIcon('previous'));
     PREVIOUS_TRACK_BUTTON.onClick(_ => {
       // block back if beginning of playlist
       if (this.playing <= 0) return;
@@ -619,7 +620,7 @@ class AudioPlayer extends HTMLElement {
     });
     
 
-    const PLAY_PAUSE_ICON = await svgIcon('pause');
+    const PLAY_PAUSE_ICON = svgIcon('pause');
     qs('path', PLAY_PAUSE_ICON).id = 'playIcon';
 
     // play button
@@ -638,7 +639,7 @@ class AudioPlayer extends HTMLElement {
     // next track button
     const NEXT_TRACK_BUTTON = ce('audiosync-small-button');
     NEXT_TRACK_BUTTON.id = 'next';
-    NEXT_TRACK_BUTTON.appendChild(await svgIcon('next'));
+    NEXT_TRACK_BUTTON.appendChild(svgIcon('next'));
     NEXT_TRACK_BUTTON.onClick(_ => {
       // block next if end of playlist
       if (this.playing >= this.playlist.length) return;
@@ -968,7 +969,7 @@ class AudioPlayer extends HTMLElement {
     const DURATION = PLAYER.duration - CT;
     const MINS = Math.floor(CT / 60);
     const SECS = Math.floor(CT % 60).toString().padStart(2, '0');
-    const PROGRESS = (CT / PLAYER.duration) * 100;
+    const PROGRESS = calcPercentage(CT, PLAYER.duration);
     const PROGRESS_BAR = qs('.progress', this.shadowRoot);
     const DURATION_TEXT = qs('#duration', this.shadowRoot);
     // if (duration < 100) this._cacheNext();
@@ -1059,7 +1060,7 @@ class AudioPlayer extends HTMLElement {
     const ICON = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
     if (ICON.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
-    ICON.setAttribute('d', this.playIcon);
+    ICON.setAttribute('d', this.playIcon.d);
     this._pauseTimer = setTimeout(this._pauseTimeOut, 30000)
   }
 
@@ -1072,7 +1073,7 @@ class AudioPlayer extends HTMLElement {
     const ICON = qs('#playIcon', qs('#play', this.shadowRoot));
     // wants to change menu icon when first loading a playlist
     if (ICON.getAttribute('d') === "M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z") return;
-    ICON.setAttribute('d', this.pauseIcon);
+    ICON.setAttribute('d', this.pauseIcon.d);
   }
 
   /**

@@ -1,42 +1,506 @@
+import {getIcon} from '../js/getIcon/getIcon.js'
+
 
 /**
- * A class for timing duration of things
+ * wait an ammout of time
+ * 
+ * 
+ * @param {ms} milliseconds
+ * 
+ * @returns {Promise<Void>} Nothing 
  */
-class Timer {
-  constructor(label) {
-    if (label) this.label = label;
-    this.startTime = new Date().getTime();
-  }
-  end() {
-    var ms = new Date().getTime() - this.startTime;
-    var seconds = ms / 1000;
-    var hours = parseInt(seconds / 3600);
-    seconds = seconds % 3600;
-    var minutes = parseInt(seconds / 60);
-    seconds = seconds % 60;
-    return [
-      hours,
-      minutes,
-      Number(seconds.toFixed(2)),
-    ];
-  }
-  endString() {
-    var endTime = this.end();
-    let str = '';
-    if (this.label) str += `${this.label}: `;
-    if (endTime[0]) {
-      str += `${endTime[0]} hours `;
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
+
+
+/**
+ * returns value of a css variable
+ * 
+ * 
+ * @param {String} variableName
+ * 
+ * @return {String}
+ */
+function getCSSVariableValue(variableName) {
+  // Get the computed style of the document root
+  var rootStyles = getComputedStyle(document.documentElement);
+  // Use getProperty() method to get the value of the variable
+  var value = rootStyles.getPropertyValue(variableName);
+  return value.trim(); // Trim the value to remove any leading or trailing whitespace
+}
+
+/**
+ * parse keyframe string into an object
+ * 
+ * 
+ * @param {String} keyframesString 
+ * 
+ * @returns {Object}
+ */
+function parseKeyframes(keyframesString) {
+  const keyframes = {};
+  
+  // Remove unnecessary whitespace
+  keyframesString = keyframesString.trim();
+  
+  // Split the string by line breaks
+  const lines = keyframesString.split('\n');
+  
+  // Remove the last line (containing "}")
+  lines.pop();
+  
+  let currentKeyframe = null;
+  
+  // Iterate over each line
+  for (const line of lines) {
+    // Check if the line contains a keyframe name
+    if (line.includes('{')) {
+      // Extract the keyframe name
+      const keyframeName = line.trim().replace('{', '').trim();
+      // Initialize an object for this keyframe
+      keyframes[keyframeName] = {};
+      // Set currentKeyframe for the following properties
+      currentKeyframe = keyframeName;
+    } else if (line.includes('}')) {
+      // If line contains '}', reset currentKeyframe to null
+      currentKeyframe = null;
+    } else {
+      // Split the property by ':'
+      const [key, value] = line.split(':').map(str => str.trim());
+      // Add the property to the appropriate keyframe object
+      keyframes[currentKeyframe][key] = value.replace(';','');
     }
-    if (endTime[1]) {
-      str += `${endTime[1]} minutes `;
+  }
+  
+  return keyframes;
+}
+
+/**
+ * parse css into an object
+ * 
+ * 
+ * @param {String} cssString css string to be parsed
+ * 
+ * @returns {Object}
+ */
+function parseCSS(cssString) {
+  const cssObject = {};
+  let currentSelector = null;
+  let braceCount = 0;
+  let buffer = '';
+
+  for (let i = 0; i < cssString.length; i++) {
+    const char = cssString[i];
+    buffer += char;
+
+    if (char === '{') {
+      braceCount++;
+      if (braceCount === 1) {
+        currentSelector = buffer.trim().slice(0, -1).trim(); // Remove the trailing '{'
+        buffer = '';
+      }
+    } else if (char === '}') {
+      braceCount--;
+      if (braceCount === 0) {
+        if (currentSelector.startsWith('@')) {
+          cssObject[currentSelector] = parseKeyframes(buffer);
+        } else {
+          cssObject[currentSelector] = parseProperties(buffer);
+        }
+        currentSelector = null;
+        buffer = '';
+      }
     }
-    str += `${endTime[2]} seconds`;
-    return str;
+  }
+
+  return cssObject;
+}
+
+/**
+ * parse string of css properties into an Object
+ * 
+ * 
+ * @param {String} propertiesString 
+ * 
+ * @returns {Object}
+ */
+function parseProperties(propertiesString) {
+  const propertiesObject = {};
+  propertiesString = propertiesString.replace('}','');
+  propertiesString
+    .split(';')
+    .filter(prop => prop.trim())
+    .forEach(prop => {
+      const [key, value] = prop.split(':').map(str => str.trim());
+      propertiesObject[key] = value;
+    });
+
+  return propertiesObject;
+}
+
+/**
+ * smash an object into a string of css
+ * 
+ * 
+ * @param {Object} cssObject object to be stringified
+ * 
+ * @returns {String}
+ */
+function objectToCSS(cssObject) {
+  let cssString = '';
+
+  for (const selector in cssObject) {
+    if (cssObject.hasOwnProperty(selector)) {
+      if (selector.startsWith('@')) {
+        cssString += `${selector} {\n`;
+        const keyframes = cssObject[selector];
+
+        for (const key in keyframes) {
+          if (keyframes.hasOwnProperty(key)) {
+            cssString += `  ${key} {\n`;
+            const properties = keyframes[key];
+
+            for (const property in properties) {
+              if (properties.hasOwnProperty(property)) {
+                cssString += `    ${property}: ${properties[property]};\n`;
+              }
+            }
+
+            cssString += `  }\n`;
+          }
+        }
+
+        cssString += `}\n`;
+      } else {
+        cssString += `${selector} {\n`;
+        const properties = cssObject[selector];
+
+        for (const property in properties) {
+          if (properties.hasOwnProperty(property)) {
+            cssString += `  ${property}: ${properties[property]};\n`;
+          }
+        }
+
+        cssString += `}\n`;
+      }
+    }
+  }
+
+  return cssString.trim();
+}
+
+
+
+
+/**
+ * convers text color ot RGB color to hex 
+ *  
+ * 
+ * @param {String} color
+ * 
+ * @returns {String} HEX color code 
+ */
+function convertToHex(color) {
+  // If color is already in hex format or not a string, return it as is
+  if (typeof color !== 'string' || /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(color)) {
+    return color;
+  }
+  
+  // Check if color is a named color
+  var tempElem = document.createElement('div');
+  tempElem.style.color = color;
+  document.body.appendChild(tempElem);
+  var computedColor = window.getComputedStyle(tempElem).color;
+  document.body.removeChild(tempElem);
+  if (/^rgb/.test(computedColor)) {
+    // Convert RGB to hex
+    var rgbArray = computedColor.match(/\d+/g).map(function(num) {
+      return parseInt(num, 10);
+    });
+    return '#' + rgbArray.map(function(num) {
+      return ('0' + num.toString(16)).slice(-2);
+    }).join('');
+  } else {
+    // Color is not a named color
+    return color;
   }
 }
 
 /**
+ * returns contrasting color to input hex code
+ * 
+ * 
+ * @param {String} hexColor hex color code
+ * 
+ * @returns {String} hex color code
+ */
+function getContrastColor(hexColor) {
+  // Convert hex color to RGB
+  let r = parseInt(hexColor.substr(1, 2), 16);
+  let g = parseInt(hexColor.substr(3, 2), 16);
+  let b = parseInt(hexColor.substr(5, 2), 16);
+
+  // Calculate the relative luminance
+  let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+
+  // Return contrasting color based on luminance
+  return luminance > 0.5 ? "#333333" : "#FFFFFF";
+}
+
+/**
+ * convers hex to rgba
+ * 
+ * 
+ * @param {String} hex
+ * 
+ * @returns {String} rgba color
+ */
+function hexToRgba(hex) {
+  // Remove # if present
+  hex = hex.replace(/^#/, '');
+
+  // Parse hex values
+  var bigint = parseInt(hex, 16);
+
+  // Extract RGB components
+  var r = (bigint >> 16) & 255;
+  var g = (bigint >> 8) & 255;
+  var b = bigint & 255;
+
+  // Return RGB as an object
+  return `rgba(${r},${g},${b}, 0.4)`;
+}
+
+/**
+ * returs average color around a point of a canvas element
+ * 
+ * 
+ * @param {HTMLElement} canvas 
+ * @param {Number} x 
+ * @param {Number} y 
+ * @param {Number} radius 
+ * 
+ * @returns {String}
+ */
+function getColorAtPoint(canvas, x, y, radius) {
+  const ctx = canvas.getContext('2d');
+  const pixelData = ctx.getImageData(x - radius, y - radius, radius * 2, radius * 2).data;
+  let totalRed = 0, totalGreen = 0, totalBlue = 0;
+
+  for (let i = 0; i < pixelData.length; i += 4) {
+    totalRed += pixelData[i];
+    totalGreen += pixelData[i + 1];
+    totalBlue += pixelData[i + 2];
+  }
+
+  const numPixels = pixelData.length / 4; // Number of pixels sampled
+  const averageRed = Math.round(totalRed / numPixels);
+  const averageGreen = Math.round(totalGreen / numPixels);
+  const averageBlue = Math.round(totalBlue / numPixels);
+
+  return rgbToHex(averageRed, averageGreen, averageBlue);
+}
+
+
+
+
+
+
+
+// string generated by the generateRandomString() function
+const _generatedStrings = new Set();
+
+/**
+ * random string generator
+ * 
+ * 
+ * @param {Number} length length of the returned string
+ * 
+ * @returns {String}
+ */
+function generateRandomString(length = 8) {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const charactersLength = characters.length;
+  let result;
+  do {
+    result = '';
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charactersLength);
+      result += characters[randomIndex];
+    }
+  } while (_generatedStrings.has(result));
+
+  _generatedStrings.add(result);
+  return result;
+}
+
+
+
+
+
+
+/**
+ * validate Podcast rss URL 
+ * Called by {audiosync-podcast}
+ * @function
+ * 
+ * 
+ * @param {String} url
+ * 
+ * @returns {Boolean}
+ */
+function isValidURL(url) {
+  const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
+  return urlRegex.test(url);
+}
+
+/**
+ * retrns a hx value from r,g,b value given
+ * 
+ * 
+ * @param {Number} r 
+ * @param {Number} g 
+ * @param {Number} b 
+ * 
+ * @returns {String}
+ */
+function rgbToHex(r, g, b) {
+  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+}
+
+/**
+ * convers number to hex value
+ * 
+ * 
+ * @param {Number} c 
+ * @returns {String}
+ */
+function componentToHex(c) {
+  var hex = c.toString(16);
+  return hex.length == 1 ? "0" + hex : hex;
+}
+
+/**
+ * is array1 present in array2?
+ * 
+ * 
+ * @param {Array} arr1 
+ * @param {Array} arr2 
+ * 
+ * @returns {Boolean}
+ */
+function areElementsPresent(arr1, arr2) {
+  // Loop through each element of arr1
+  for (let i = 0; i < arr1.length; i++) {
+    // If the element is not present in arr2, return false
+    if (!arr2.includes(arr1[i])) {
+      return false;
+    }
+  }
+  // All elements in arr1 are present in arr2
+  return true;
+}
+
+/**
+ * test if element is in an array
+ * 
+ * 
+ * @param {Array} arr 
+ * @param {Object} element 
+ * 
+ * @returns {Boolean}
+ */
+function indexOfElement(arr, element) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === element) {
+      return i;
+    }
+  }
+  return -1; 
+}
+
+/**
+ * check if any number is in a given array
+ * 
+ * 
+ * @param {Array} array 
+ * 
+ * @returns {Boolean}
+ */
+function containsNumber(array) {
+  return array.some(value => Number(value));
+}
+
+/**
+ * return the filename without path and extension 
+ * @function
+ * 
+ * 
+ * @param {String} filePath 
+ * 
+ * @returns {Number}
+ */
+function getFilenameWithoutExtension(filePath) {
+  const parts = filePath.split('/');
+  const filenameWithExtension = parts.pop();
+  const lastDotPosition = filenameWithExtension.lastIndexOf('.');
+  if (lastDotPosition === -1) {
+      return filenameWithExtension;
+  }
+  return filenameWithExtension.substring(0, lastDotPosition);
+}
+
+/**
+ * calculates percentage value
+ * @function
+ * 
+ * @param {Number} small 
+ * @param {Number} big
+ * 
+ * @returns {Number} 
+ * 
+ * @example
+ * const bytes = 100;
+ * const totalBytes = 1000;
+ * 
+ * const percent = calcPercentage(bytes, totalBytes);
+ * console.log(percent);
+ * //logs: 10
+ */
+function calcPercentage(small, big) {
+  return (small / big) * 100;
+}
+
+
+/**
+ * Convert bytes per second (bps) to a human-readable format
+ * @function
+ * 
+ * 
+ * @param {Number} bps - Download speed in bytes per second
+ * 
+ * @returns {String} - Download speed in a human-readable format
+ */
+function formatDownloadSpeed(bps) {
+  if (bps < 1000) {
+    return bps.toFixed(2) + ' bps';
+  } else if (bps < 1000000) {
+    return (bps / 1000).toFixed(2) + ' kbps';
+  } else {
+    return (bps / 1000000).toFixed(2) + ' Mbps';
+  }
+}
+
+
+
+/**
  * Query Selector
+ * @function 
+ * 
+ * 
  * 
  * @param {String} selector
  * @param {Scope} scope
@@ -49,6 +513,8 @@ function qs(selector, scope) {
 
 /**
  * Query Selector All
+ * @function 
+ * 
  * 
  * @param {String} selector
  * @param {Scope} scope
@@ -61,6 +527,8 @@ function qsa(selector, scope) {
 
 /**
  * createElement shorthand
+ * @function
+ * 
  * 
  * @returns {HTMLElement}
  */
@@ -69,170 +537,147 @@ function ce(el) {
 }
 
 /**
- * wait an ammout of time
+ * returns the height of the html element
+ * @function 
  * 
- * @param {ms} milliseconds
  * 
- * @returns {Promise<Void>} Nothing 
+ * @param {Element} el - html 
+ * 
+ * @returns {Number} height of the given element
  */
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function elementHeight(el) {
+  let elHeight = el.offsetHeight;
+  elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-top'));
+  elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-bottom'));
+  return elHeight;
 }
 
 /**
- * Overflow Toasts.
- * when more then one toast happens in a short period of time overflow will be pushed here
+ * returns the width of the html element
+ * @function 
+ * 
+ * 
+ * 
+ * @param {Element} el - html 
+ * 
+ * @returns {Number} width of the given element
  */
-const _toastCache = [];
+function elementWidth(el) {
+  let elWidth = el.offsetWidth;
+  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-left'));
+  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-right'));
+  return elWidth;
+}
+
 
 /**
- * display a toast message
- *
- * @param {String} message - text to be displayed in the toast
- * @param {Number} _timeout - in seconds  || defualt 3.5 seconds  ** optional
- * @param {String} link - url to go to when toast is clicked
- * @param {String} linkText - yellow text
+ * append elements to a parent element
+ * Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]
+ * @function
+ * 
+ * 
+ * @param {HTMLElement} parent 
+ * @param {HTMLElement[]} elements 
+ * 
+ * @returns {void}
  */
-class Toast {
-  constructor(message, _timeout, link, linkText) {
-    // push toast to cache if currently displaying a toast
-    if (qs('#toast')) {
-      _toastCache.push([
-        message,
-        _timeout,
-        link,
-        linkText
-      ]);
-      return;
-    }
-    // bind this to internal functions
-    this._transitionEnd = this._transitionEnd.bind(this);
-    this._cleanUp = this._cleanUp.bind(this);
-    this._clicked = this._clicked.bind(this);
+function appendElements(parent, elements) {
+  elements.forEach(el => parent.appendChild(el));
+}
 
-    // log to console
-    console.log(message);
-
-    // create the toast
-    this._timer = false;
-    this._timeout = _timeout * 1000 || 3500;
-    this.toast = this._createToast();
-    if (link && linkText) {
-      this.link = link;
-      this.toast.appendChild(this._withLink(message, link, linkText));
-    } else {
-      this.toast.textContent = message;
-    }
-    qs('body').appendChild(this.toast);
-    sleep(25).then(_ => requestAnimationFrame(_ => {
-      this.toast.style.opacity = 1;
-      this.toast.style.transform = 'translateY(0px)';
-    }));
-  }
-
-  /**
-   * returns a new toast html element
-   * 
-   * @returns {HTMLElement} hot toast
-   */
-  _createToast() {
-    const toast = document.createElement('div');
-    toast.id ='toast';
-    toast.classList.add('toast');
-    toast.style.opacity = 0;
-    toast.style.transform = 'translateY(80px)';
-    toast.style.willChange = 'auto';
-    toast.style.transition = 'all 300ms cubic-bezier(.33,.17,.85,1.1) 0ms';
-    toast.addEventListener(transitionEvent, this._transitionEnd, true);
-    toast.addEventListener('click', this._clicked, true)
-    return toast;
-  }
-
-  /**
-   * butter in the toast with some link info
-   * @param {String} message - text string
-   * @param {String} link - URL
-   * @param {String} linkText - text string
-   * 
-   * @returns {HTMLElement} link wrapper
-   */
-  _withLink(message, link, linkText) {
-    
-    var mText = document.createElement('div');
-    mText.textContent = message;
-    
-    var lText = document.createElement('div');
-    lText.textContent = linkText;
-    lText.classList.add('yellow-text');
-    
-    const wrapper = document.createElement('div');
-    wrapper.style.display = 'flex';
-    wrapper.style.justifyContent = 'space-between';
-    wrapper.style.alignItems = 'center';
-    wrapper.style.overflow = 'none';
-    [mText, lText].forEach(el => wrapper.appendChild(el));
-    return wrapper;
-  }
-
-  /**
-   * event handler for toast click
-   */
-  _clicked(e) {
-    if (this.link) {
-      window.open(this.link, "_blank");
-    }
-    createRipple(e);
-    this._cleanUp();
-  }
-
-  /**
-   * play closing animation and remove element from document
-   */
-  _cleanUp() {
-    if (this._timer) {
-      clearTimeout(this._timer);
-      this._timer = false;
-    }
-    this.toast.addEventListener(transitionEvent, _ => {
-      if (this.toast) {
-        this.toast.remove();
-      }
-    });
-    requestAnimationFrame(_ => {
-      this.toast.style.opacity = 0;
-      this.toast.style.transform = 'translateY(80px)';
-    });
-  }
-
-  /**
-   * called after opening animation
-   * sets up closing animation
-   */
-  _transitionEnd() {
-    this._timer = setTimeout(this._cleanUp, this._timeout);
-    this.toast.removeEventListener(transitionEvent, this._transitionEnd);
+/**
+ * 
+ * Called by {audiosync-podcast}
+ * @function
+ * 
+ * 
+ * @param {HTMLElement}
+ * @param {String}
+ */
+function toggleAttribute(element, attribute) {
+  if (!element.hasAttribute(attribute)) {
+    element.toggleAttribute(attribute);
   }
 }
 
-// checks overflow for messages and displays them after the last toast has expired
-setInterval(_ => {
-  if (!_toastCache.length) {
-    return;
+/**
+ * creates a button element with an svg icon 
+ * @function 
+ * 
+ * @param {String} buttonType 
+ * @param {String} iconType 
+ * @param {String} classes 
+ * 
+ * @returns {HTMLElement}
+ */
+function createButtonWithIcon(buttonType, iconType, classes) {
+  const button = ce(buttonType);
+  button.appendChild(svgIcon(iconType));
+  classes.forEach(cssClass => button.classList.add(cssClass));
+  return button;
+}
+
+/**
+ * creates an SVG icon 
+ * 
+ * 
+ * @param {String} name
+ * @param {String} color
+ * 
+ * @returns {HTMLElement} SVG element with nested path
+ */
+function svgIcon(name, color) {
+  const iconData = getIcon(name);
+  const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
+  path.setAttribute("d", iconData.d);
+  if (color) {
+    path.setAttribute('fill', color);
+  } else {
+    path.setAttribute('fill', 'currentColor');
   }
-  if (qs('#toast')) {
-    return;
-  }
-  new Toast(
-    _toastCache[0][0],
-    _toastCache[0][1],
-    _toastCache[0][2],
-    _toastCache[0][3]
-  );
-  _toastCache.splice(0,1);
-}, 500);
+  
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+  svg.appendChild(path);
+  svg.setAttribute('viewBox', iconData.viewBox);
+
+  return svg;
+}
+
+/**
+ * creates elemets to text spacing in the button
+ * @function
+ * 
+ * 
+ * @param {String} name
+ * @param {String} txt
+ * 
+ * @returns {HTMLElement}
+*/
+function fillButton(name, txt) {
+  const text = document.createElement('div');
+  text.textContent = txt;
+
+  const div = document.createElement('div');
+  [
+    svgIcon(name),
+    text
+  ].forEach(el => div.appendChild(el));
+  return div;
+}
+
+
+
+
+
+
+
+
+
 
 /**
  * determine what transition event to listen for
+ * @function 
+ * 
  * 
  * @returns {String} transition event name
  */
@@ -258,6 +703,8 @@ const transitionEvent = whichTransitionEvent();
 
 /**
  * animate transform of transform and opacity on a HTML element
+ * @function 
+ * 
  *
  * @param {HTMLElement} el the HTML element to be animated *required*
  * @param {String} transform transform value *required*
@@ -308,28 +755,20 @@ function animateElement(el, transform, time, opacity, delay) {
 }
 
 /**
- * fade in opacity of a given element
+ * animate transform / opacity on a give element
+ * @function 
+ * 
  *
- * @param {HTMLElement} el HTML element to fade
- * @param {Number} time duration of the fade animation
+ * @param {HTMLElement} el HTML element *required*
+ * @param {String} height height value *required*
+ * @param {Number} time duration for the animation to complete
  * 
- * @returns {Promise<Void>} nothing
- * 
- * @example <caption>Example usage of fadeIn() function.</caption>
- * fadeIn(card, 200).then(_ => {
- * // animation complete
- * });
+ * @returns {Promise<void>}
  */
-function fadeIn(el, time) {
+function animateHeight(el, height, time) {
   return new Promise(resolve => {
     if (!el) {
       return resolve();
-    }
-    if (el.style.opacity === 1) {
-      return resolve();
-    }
-    if (!time) {
-      time = 200;
     }
     var t = 0;
     const animationEnd = _ => {
@@ -342,11 +781,14 @@ function fadeIn(el, time) {
       el.style.removeProperty('transition');
       resolve();
     };
+    if (!time) {
+      time = 300;
+    }
     el.addEventListener(transitionEvent, animationEnd, true);
-    el.style.willChange = 'opacity';
-    el.style.transition = `opacity ${time}ms cubic-bezier(.33,.17,.85,1.1) 0s`;
+    el.style.willChange = 'height';
+    el.style.transition = `height ${time}ms cubic-bezier(.33,.17,.85,1.1) 0s`;
     requestAnimationFrame(_ => {
-      el.style.opacity = 1;
+      el.style.height = height;
       t = setTimeout(animationEnd, time + 10);
     });
   });
@@ -354,6 +796,8 @@ function fadeIn(el, time) {
 
 /**
  * fade out opacity of a given element
+ * @function 
+ * 
  *
  * @param {HTMLElement} el HTML element to fade
  * @param {Number} time duration of the fade animation
@@ -398,18 +842,30 @@ function fadeOut(el, time) {
 }
 
 /**
- * animate transform / opacity on a give element
- *
- * @param {HTMLElement} el HTML element *required*
- * @param {String} height height value *required*
- * @param {Number} time duration for the animation to complete
+ * fade in opacity of a given element
+ * @function 
  * 
- * @returns {Promise<void>}
+ * 
+ * @param {HTMLElement} el HTML element to fade
+ * @param {Number} time duration of the fade animation
+ * 
+ * @returns {Promise<Void>} nothing
+ * 
+ * @example <caption>Example usage of fadeIn() function.</caption>
+ * fadeIn(card, 200).then(_ => {
+ * // animation complete
+ * });
  */
-function animateHeight(el, height, time) {
+function fadeIn(el, time) {
   return new Promise(resolve => {
     if (!el) {
       return resolve();
+    }
+    if (el.style.opacity === 1) {
+      return resolve();
+    }
+    if (!time) {
+      time = 200;
     }
     var t = 0;
     const animationEnd = _ => {
@@ -422,49 +878,20 @@ function animateHeight(el, height, time) {
       el.style.removeProperty('transition');
       resolve();
     };
-    if (!time) {
-      time = 300;
-    }
     el.addEventListener(transitionEvent, animationEnd, true);
-    el.style.willChange = 'height';
-    el.style.transition = `height ${time}ms cubic-bezier(.33,.17,.85,1.1) 0s`;
+    el.style.willChange = 'opacity';
+    el.style.transition = `opacity ${time}ms cubic-bezier(.33,.17,.85,1.1) 0s`;
     requestAnimationFrame(_ => {
-      el.style.height = height;
+      el.style.opacity = 1;
       t = setTimeout(animationEnd, time + 10);
     });
   });
 }
 
 /**
- * returns the height of the html element
- * 
- * @param {Element} el - html 
- * 
- * @returns {Number} height of the given element
- */
-function elementHeight(el) {
-  let elHeight = el.offsetHeight;
-  elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-top'));
-  elHeight += parseInt(window.getComputedStyle(el).getPropertyValue('margin-bottom'));
-  return elHeight;
-}
-
-/**
- * returns the width of the html element
- * 
- * @param {Element} el - html 
- * 
- * @returns {Number} width of the given element
- */
-function elementWidth(el) {
-  let elWidth = el.offsetWidth;
-  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-left'));
-  elWidth += parseInt(window.getComputedStyle(el).getPropertyValue('margin-right'));
-  return elWidth;
-}
-
-/**
  * triggers a ripple effect in a clicked element
+ * @function 
+ * 
  * 
  * @param (Event) event - click event
  * 
@@ -490,506 +917,10 @@ async function createRipple(event) {
   }
 }
 
-// icon cache
-let _cachedIcons = false;
 
-/**
- * return an Object containing svg icon path data
- * 
- * @param {String} name 
- * 
- * @returns {Object} svg data object
- */
-async function getIcon(name) {
-  if (_cachedIcons) return _cachedIcons.find(icon => icon.name === name);
-  const iconData = await fetch('./../../icons.json').then(res => res.json());
-  _cachedIcons = iconData.icons;
-  return _cachedIcons.find(icon => icon.name === name);
-}
-
-/**
- * creates an SVG icon 
- * 
- * @param {String} name
- * @param {String} color
- * 
- * @returns {HTMLElement} SVG element with nested path
- */
-async function svgIcon(name, color) {
-  const iconData = await getIcon(name);
-  const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-  path.setAttribute("d", iconData.d);
-  if (color) {
-    path.setAttribute('fill', color);
-  } else {
-    path.setAttribute('fill', 'currentColor');
-  }
-  
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-  svg.appendChild(path);
-  svg.setAttribute('viewBox', iconData.viewBox);
-
-  return svg;
-}
-
-/**
- * validate URL
- * 
- * @param {String} url
- * 
- * @returns {Boolean}
- */
-function isValidURL(url) {
-  const urlRegex = /^(ftp|http|https):\/\/[^ "]+$/;
-  return urlRegex.test(url);
-}
-
-/**
- * convers text color ot RGB color to hex 
- * 
- * @param {String} color
- * 
- * @returns {String} HEX color code 
- */
-function convertToHex(color) {
-  // If color is already in hex format or not a string, return it as is
-  if (typeof color !== 'string' || /^#(?:[0-9a-fA-F]{3}){1,2}$/.test(color)) {
-    return color;
-  }
-  
-  // Check if color is a named color
-  var tempElem = document.createElement('div');
-  tempElem.style.color = color;
-  document.body.appendChild(tempElem);
-  var computedColor = window.getComputedStyle(tempElem).color;
-  document.body.removeChild(tempElem);
-  if (/^rgb/.test(computedColor)) {
-    // Convert RGB to hex
-    var rgbArray = computedColor.match(/\d+/g).map(function(num) {
-      return parseInt(num, 10);
-    });
-    return '#' + rgbArray.map(function(num) {
-      return ('0' + num.toString(16)).slice(-2);
-    }).join('');
-  } else {
-    // Color is not a named color
-    return color;
-  }
-}
-
-/**
- * convers hex to rgba
- * 
- * @param {String} hex
- * 
- * @returns {String} rgba color
- */
-function hexToRgba(hex) {
-  // Remove # if present
-  hex = hex.replace(/^#/, '');
-
-  // Parse hex values
-  var bigint = parseInt(hex, 16);
-
-  // Extract RGB components
-  var r = (bigint >> 16) & 255;
-  var g = (bigint >> 8) & 255;
-  var b = bigint & 255;
-
-  // Return RGB as an object
-  return `rgba(${r},${g},${b}, 0.4)`;
-}
-
-/**
- * create a rendom color code
- * 
- * @returns {String} hex color code
- */
-function generateRandomHexCode() {
-  // Generate random integer between 0 and 16777215 (2^24 - 1)
-  var randomInt = Math.floor(Math.random() * 16777215);
-  
-  // Convert integer to hexadecimal string
-  var hexCode = randomInt.toString(16);
-
-  // Pad with zeros if necessary to ensure 6 characters
-  while (hexCode.length < 6) {
-    hexCode = '0' + hexCode;
-  }
-
-  // Prepend '#' symbol
-  hexCode = '#' + hexCode;
-
-  return hexCode;
-}
-
-/**
- * creates elemets to text spacing in the button
- * 
- * @param {String} name
- * @param {String} txt
- * 
- * @returns {HTMLElement}
-*/
-function fillButton(name, txt) {
-  const text = document.createElement('div');
-  text.textContent = txt;
-
-  const div = document.createElement('div');
-  svgIcon(name).then(icon => [icon ,text].forEach(el => div.appendChild(el)));
-  return div;
-}
-
-/**
- * user alert at top of screen
- * 
- * @param {String} message
- */
-async function alertUser(message) {
-  qs('#alert-text').textContent = message;
-  await sleep(20);
-  await animateElement(qs('#alert'), 'translateY(0%)', 800, 1);
-}
-
-/**
- * returns value of a css variable
- * 
- * @param {String} variableName
- * 
- * @return {String}
- */
-function getCSSVariableValue(variableName) {
-  // Get the computed style of the document root
-  var rootStyles = getComputedStyle(document.documentElement);
-  // Use getProperty() method to get the value of the variable
-  var value = rootStyles.getPropertyValue(variableName);
-  return value.trim(); // Trim the value to remove any leading or trailing whitespace
-}
-
-/**
- * returns contrasting color to input hex code (thanks ChatGPT) =D
- * 
- * @param {String} hexColor hex color code
- * 
- * @returns {String} hex color code
- */
-function getContrastColor(hexColor) {
-  // Convert hex color to RGB
-  let r = parseInt(hexColor.substr(1, 2), 16);
-  let g = parseInt(hexColor.substr(3, 2), 16);
-  let b = parseInt(hexColor.substr(5, 2), 16);
-
-  // Calculate the relative luminance
-  let luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-
-  // Return contrasting color based on luminance
-  return luminance > 0.5 ? "#333333" : "#FFFFFF";
-}
-
-// string generated by the generateRandomString() function
-const _generatedStrings = new Set();
-
-/**
- * random string generator
- * 
- * @param {Number} length length of the returned string
- * 
- * @returns {String}
- */
-function generateRandomString(length = 8) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-  const charactersLength = characters.length;
-  let result;
-  do {
-    result = '';
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * charactersLength);
-      result += characters[randomIndex];
-    }
-  } while (_generatedStrings.has(result));
-
-  _generatedStrings.add(result);
-  return result;
-}
-
-/**
- * parse keyframe string into an object
- * 
- * @param {String} keyframesString 
- * 
- * @returns {Object}
- */
-function parseKeyframes(keyframesString) {
-  const keyframes = {};
-  
-  // Remove unnecessary whitespace
-  keyframesString = keyframesString.trim();
-  
-  // Split the string by line breaks
-  const lines = keyframesString.split('\n');
-  
-  // Remove the last line (containing "}")
-  lines.pop();
-  
-  let currentKeyframe = null;
-  
-  // Iterate over each line
-  for (const line of lines) {
-    // Check if the line contains a keyframe name
-    if (line.includes('{')) {
-      // Extract the keyframe name
-      const keyframeName = line.trim().replace('{', '').trim();
-      // Initialize an object for this keyframe
-      keyframes[keyframeName] = {};
-      // Set currentKeyframe for the following properties
-      currentKeyframe = keyframeName;
-    } else if (line.includes('}')) {
-      // If line contains '}', reset currentKeyframe to null
-      currentKeyframe = null;
-    } else {
-      // Split the property by ':'
-      const [key, value] = line.split(':').map(str => str.trim());
-      // Add the property to the appropriate keyframe object
-      keyframes[currentKeyframe][key] = value.replace(';','');
-    }
-  }
-  
-  return keyframes;
-}
-
-/**
- * parse css into an object
- * 
- * @param {String} cssString css string to be parsed
- * 
- * @returns {Object}
- */
-function parseCSS(cssString) {
-  const cssObject = {};
-  let currentSelector = null;
-  let braceCount = 0;
-  let buffer = '';
-
-  for (let i = 0; i < cssString.length; i++) {
-    const char = cssString[i];
-    buffer += char;
-
-    if (char === '{') {
-      braceCount++;
-      if (braceCount === 1) {
-        currentSelector = buffer.trim().slice(0, -1).trim(); // Remove the trailing '{'
-        buffer = '';
-      }
-    } else if (char === '}') {
-      braceCount--;
-      if (braceCount === 0) {
-        if (currentSelector.startsWith('@')) {
-          cssObject[currentSelector] = parseKeyframes(buffer);
-        } else {
-          cssObject[currentSelector] = parseProperties(buffer);
-        }
-        currentSelector = null;
-        buffer = '';
-      }
-    }
-  }
-
-  return cssObject;
-}
-
-/**
- * parse string of css properties into an Object
- * 
- * @param {String} propertiesString 
- * 
- * @returns {Object}
- */
-function parseProperties(propertiesString) {
-  const propertiesObject = {};
-  propertiesString = propertiesString.replace('}','');
-  propertiesString
-    .split(';')
-    .filter(prop => prop.trim())
-    .forEach(prop => {
-      const [key, value] = prop.split(':').map(str => str.trim());
-      propertiesObject[key] = value;
-    });
-
-  return propertiesObject;
-}
-
-/**
- * smash an object into a string of css
- * 
- * @param {Object} cssObject object to be stringified
- * 
- * @returns {String}
- */
-function objectToCSS(cssObject) {
-  let cssString = '';
-
-  for (const selector in cssObject) {
-    if (cssObject.hasOwnProperty(selector)) {
-      if (selector.startsWith('@')) {
-        cssString += `${selector} {\n`;
-        const keyframes = cssObject[selector];
-
-        for (const key in keyframes) {
-          if (keyframes.hasOwnProperty(key)) {
-            cssString += `  ${key} {\n`;
-            const properties = keyframes[key];
-
-            for (const property in properties) {
-              if (properties.hasOwnProperty(property)) {
-                cssString += `    ${property}: ${properties[property]};\n`;
-              }
-            }
-
-            cssString += `  }\n`;
-          }
-        }
-
-        cssString += `}\n`;
-      } else {
-        cssString += `${selector} {\n`;
-        const properties = cssObject[selector];
-
-        for (const property in properties) {
-          if (properties.hasOwnProperty(property)) {
-            cssString += `  ${property}: ${properties[property]};\n`;
-          }
-        }
-
-        cssString += `}\n`;
-      }
-    }
-  }
-
-  return cssString.trim();
-}
-
-
-/**
- * returs average color around a point of a canvas element
- * 
- * @param {HTMLElement} canvas 
- * @param {Number} x 
- * @param {Number} y 
- * @param {Number} radius 
- * 
- * @returns {String}
- */
-function getColorAtPoint(canvas, x, y, radius) {
-  const ctx = canvas.getContext('2d');
-  const pixelData = ctx.getImageData(x - radius, y - radius, radius * 2, radius * 2).data;
-  let totalRed = 0, totalGreen = 0, totalBlue = 0;
-
-  for (let i = 0; i < pixelData.length; i += 4) {
-    totalRed += pixelData[i];
-    totalGreen += pixelData[i + 1];
-    totalBlue += pixelData[i + 2];
-  }
-
-  const numPixels = pixelData.length / 4; // Number of pixels sampled
-  const averageRed = Math.round(totalRed / numPixels);
-  const averageGreen = Math.round(totalGreen / numPixels);
-  const averageBlue = Math.round(totalBlue / numPixels);
-
-  return rgbToHex(averageRed, averageGreen, averageBlue);
-}
-
-/**
- * retrns a hx value from r,g,b value given
- * 
- * @param {Number} r 
- * @param {Number} g 
- * @param {Number} b 
- * 
- * @returns {String}
- */
-function rgbToHex(r, g, b) {
-  return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-}
-
-/**
- * convers number to hex value
- * 
- * @param {Number} c 
- * @returns {String}
- */
-function componentToHex(c) {
-  var hex = c.toString(16);
-  return hex.length == 1 ? "0" + hex : hex;
-}
-
-/**
- * is array1 present in array2?
- * 
- * @param {Array} arr1 
- * @param {Array} arr2 
- * 
- * @returns {Boolean}
- */
-function areElementsPresent(arr1, arr2) {
-  // Loop through each element of arr1
-  for (let i = 0; i < arr1.length; i++) {
-    // If the element is not present in arr2, return false
-    if (!arr2.includes(arr1[i])) {
-      return false;
-    }
-  }
-  // All elements in arr1 are present in arr2
-  return true;
-}
-
-/**
- * test if element is in an array
- * 
- * @param {Array} arr 
- * @param {Object} element 
- * 
- * @returns {Boolean}
- */
-function indexOfElement(arr, element) {
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] === element) {
-      return i;
-    }
-  }
-  return -1; 
-}
-
-/**
- * check if any number is in a given array
- * 
- * @param {Array} array 
- * 
- * @returns {Boolean}
- */
-function containsNumber(array) {
-  return array.some(value => Number(value));
-}
-
-/**
- * return the filename without path and extension 
- * 
- * @param {String} filePath 
- * 
- * @returns {Number}
- */
-function getFilenameWithoutExtension(filePath) {
-  const parts = filePath.split('/');
-  const filenameWithExtension = parts.pop();
-  const lastDotPosition = filenameWithExtension.lastIndexOf('.');
-  if (lastDotPosition === -1) {
-      return filenameWithExtension;
-  }
-  return filenameWithExtension.substring(0, lastDotPosition);
-}
 
 export {
-  Timer,
-  Toast,
+  formatDownloadSpeed,
   elementHeight,
   elementWidth,
   animateElement,
@@ -1005,9 +936,7 @@ export {
   createRipple,
   convertToHex,
   hexToRgba,
-  generateRandomHexCode,
   fillButton,
-  alertUser,
   getCSSVariableValue,
   getContrastColor,
   generateRandomString,
@@ -1018,10 +947,11 @@ export {
   areElementsPresent,
   indexOfElement,
   containsNumber,
-
-
   getFilenameWithoutExtension,
-
-
-  rgbToHex
+  rgbToHex,
+  calcPercentage,
+  appendElements,
+  toggleAttribute,
+  createButtonWithIcon,
+  transitionEvent
 }
