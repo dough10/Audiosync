@@ -1,7 +1,7 @@
 {
   "scripts": {
     "test-JS": "web-test-runner \"html/tests/**/*.test.js\" --node-resolve",
-    "make docs": "node make-docs"
+    "make-docs": "node make-docs"
   },
   "devDependencies": {
     "@babel/core": "^7.24.7",
