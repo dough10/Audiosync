@@ -1,5 +1,5 @@
 /**
- * @fileOverview Create markdown documentation from JsDocs comments. Edit head.txt and foot.txt to customize the generated [README.md](./README.md) file
+ * @fileOverview Create markdown documentation from JsDocs comments. Edit assets/head.txt and assets/foot.txt to customize the generated [README.md](./README.md) file
  * @author Jimmy Doughten <https://github.com/dough10>
  * @exports make-doc.js
  * @requires fs
@@ -63,12 +63,12 @@ function renderDoc(filename) {
  */
 function dependencies() {
   let dep = pack.dependencies;
-  let output = '## Dependencies\n\n';
+  let output = '## NPM Dependencies\n\n';
   for (let item in dep) {
     output += `- ${item}: ${dep[item]}\n`;
   }
   if (!dep || Object.keys(dep).length === 0) {
-    output += "No Dependencies\n";
+    output += "No NPM Dependencies\n";
   }
   return output;
 }
@@ -82,12 +82,12 @@ function dependencies() {
  */
 function devDependencies() {
   let dep = pack.devDependencies;
-  let output = '## Dev Dependencies\n\n';
+  let output = '## NPM Dev Dependencies\n\n';
   for (let item in dep) {
     output += `- ${item}: ${dep[item]}\n`;
   }
   if (!dep) {
-    output += "No Dev Dependencies\n";
+    output += "No NPM Dev Dependencies\n";
   }
   return output;
 }
@@ -102,7 +102,7 @@ function devDependencies() {
  */
 function processDocs() {
   let files = require('./assets/files.js');
-  let output = '\n## Documentation\n\n';
+  let output = '\n## JSDocs Documentation\n\n';
   for (let i = 0; i < files.length; i++) {
     renderDoc(files[i]);
     let str = `- [${files[i]}-doc.md](${files[i]}-doc.md)\n`;
