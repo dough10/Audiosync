@@ -1,13 +1,10 @@
 import {
-  Timer,
-  Toast,
   fadeIn,
   fadeOut,
   qs,
   qsa,
   sleep,
   createRipple,
-  alertUser,
   objectToCSS,
   ce,
   fillButton,
@@ -16,8 +13,10 @@ import {
   getContrastColor,
   areElementsPresent,
   indexOfElement,
-  containsNumber
+  containsNumber,
+  calcPercentage
 } from './helpers.js';
+import { Toast } from './Toast/Toast.js';
 
 /**
  * displays the music library in a selectable form
@@ -535,7 +534,7 @@ class MusicLibrary extends HTMLElement {
    * @param {Number} length - total 
    */
   async updateBar(ndx, length) {
-    const PERCENTAGE = ((ndx + 1) / length) * 100;
+    const PERCENTAGE = calcPercentage((ndx + 1), length);
     if (this.bar) this.bar.setAttribute('percent', PERCENTAGE);
     if (this.percent) this.percent.textContent = `${PERCENTAGE.toFixed(1)}%`;
 
@@ -656,10 +655,7 @@ class MusicLibrary extends HTMLElement {
   /**
    * fired when ther is no lib_data.json file
    */
-  _emptyLib() {
-    // empty library notification
-    alertUser('Click the Scan button to load library');
-    
+  _emptyLib() {    
     // UI buttons that will be disabled
     const HEADER_BUTTONS = [
       '#menu-button',
@@ -713,15 +709,14 @@ class MusicLibrary extends HTMLElement {
 
       //  uphide the progress bar
       await fadeIn(this.bar);
-      const SCAN_TIMER = new Timer('Initial Scan');
 
       // do the scan actual in python
       await pywebview.api.create_json();
 
       // scan finished
       HEADER_BUTTONS.forEach(id => qs(id).removeAttribute('disabled'));
-      const s = SCAN_TIMER.endString();
-      new Toast(s);
+
+      new Toast('Scan Complete');
     });
     this.content.appendChild(LIBRARY_WRAPPER);
   }
@@ -1120,19 +1115,19 @@ class MusicLibrary extends HTMLElement {
     IMG.setAttribute('alt', 'cover.jpg');
     IMG.src = album.tracks[0].art.replace('cover.jpg', 'thumb.webp');
 
-    const PLAYING_ICON = await svgIcon('playing');
+    const PLAYING_ICON = svgIcon('playing');
     PLAYING_ICON.classList.add('playing-svg');
     PLAYING_ICON.title = 'Playing';
 
-    const INLIST_ICON = await svgIcon('list');
+    const INLIST_ICON = svgIcon('list');
     INLIST_ICON.classList.add('listed');
     INLIST_ICON.title = 'In Playlist';
 
-    const FAVORITE_ICON = await svgIcon('favorite');
+    const FAVORITE_ICON = svgIcon('favorite');
     FAVORITE_ICON.classList.add('fav');
     FAVORITE_ICON.title = 'Favorite';
 
-    const SELECTED_ICON = await svgIcon('check');
+    const SELECTED_ICON = svgIcon('check');
     SELECTED_ICON.classList.add('selected');
     SELECTED_ICON.title = 'Selected';
 
@@ -1169,6 +1164,22 @@ class MusicLibrary extends HTMLElement {
    */
   _displayAlbumList(artist, album) {
     this._fixPaths(album.tracks);
+
+    const playingIcon = svgIcon('playing');
+    playingIcon.classList.add('playing-svg');
+    playingIcon.title = 'Playing';
+
+    const playlistIcon = svgIcon('list');
+    playingIcon.classList.add('listed');
+    playingIcon.title = 'In Playlist';
+
+    const favIcon = svgIcon('favorite');
+    favIcon.classList.add('fav');
+    favIcon.title = 'Favorite';
+
+    const text = ce('div');
+    text.textContent = album['title'];
+
     let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
     albumContainer.dataset.album = album.title;
@@ -1176,24 +1187,14 @@ class MusicLibrary extends HTMLElement {
     albumContainer.classList.add('album-list');
     albumContainer.addEventListener('click', this._makeSelection);
     albumContainer.addEventListener('contextmenu', ev => this._openContexMenu(ev, albumContainer, artist, album));
-    svgIcon('playing').then(svg => {
-      svg.classList.add('playing-svg');
-      svg.title = 'Playing';
-      albumContainer.appendChild(svg);
-    });
-    svgIcon('list').then(svg => {
-      svg.classList.add('listed');
-      svg.title = 'In Playlist';
-      albumContainer.appendChild(svg);
-    });
-    svgIcon('favorite').then(svg => {
-      svg.classList.add('fav');
-      svg.title = 'Favorite';
-      albumContainer.appendChild(svg);
-      const text = ce('div');
-      text.textContent = album['title']
-      albumContainer.appendChild(text);
-    });
+    
+    [
+      playingIcon,
+      playlistIcon,
+      favIcon,
+      text
+    ].forEach(el => albumContainer.appendChild(el));
+
     this.content.appendChild(albumContainer);
   }
 
@@ -1266,7 +1267,6 @@ class MusicLibrary extends HTMLElement {
     if (Object.keys(data).length === 0) {
       const STRING = 'No sync file... Running sync now will sync all music';
       console.log(STRING);
-      alertUser(STRING);
       return;
     }
     for (const artist in data) {

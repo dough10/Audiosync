@@ -1,4 +1,5 @@
-import {qs, qsa, ce, Toast, sleep, fadeIn, fillButton, objectToCSS, parseCSS} from './helpers.js'
+import {qs, qsa, ce, sleep, fadeIn, fillButton, objectToCSS, calcPercentage} from './helpers.js'
+import { Toast } from './Toast/Toast.js';
 
 /**
  * sync ui 
@@ -212,7 +213,7 @@ class SyncUI extends HTMLElement {
    * @param {Number} length
    */
   updateBar(name, ndx, length) {
-    const PERCENT = ((ndx + 1) / length) * 100;
+    const PERCENT = calcPercentage((ndx + 1), length);
     qs(name, this.shadowRoot).setAttribute('percent', PERCENT);
     qs(`${name}-text`, this.shadowRoot).textContent = PERCENT.toFixed(1) + '%';
   }

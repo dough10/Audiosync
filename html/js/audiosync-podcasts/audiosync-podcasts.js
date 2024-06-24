@@ -1,9 +1,20 @@
-import {qs, qsa, ce, svgIcon, sleep, fadeIn, Toast, elementWidth, isValidURL, fillButton, getCSSVariableValue} from '../helpers.js';
+import {qs, qsa, ce, svgIcon, sleep, formatDownloadSpeed, calcPercentage, isValidURL, fillButton, getCSSVariableValue, appendElements, toggleAttribute, createButtonWithIcon} from '../helpers.js';
+import {Toast} from '../Toast/Toast.js'
 
 /**
  * displays podcast show info
+ * @class
+ * @extends HTMLElement
+ * 
  */
 class AudioSyncPodcasts extends HTMLElement {
+  /**
+   * create the podcast ui instance
+   * @constructor
+   * 
+   * @example
+   * const podcastLibrary = document.createElement('audiosync-podcasts');
+   */
   constructor() {
     super();
     this.attachShadow({mode: 'open'});
@@ -11,9 +22,12 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * element connect
-   * Called by DOM
    * @function
-   * @name connectedCallback
+   *
+   * @returns {Void}
+   * 
+   * @example
+   * document.querySelector('body').appendChild(podcastLibrary);
    */
   connectedCallback() {
     // bind this
@@ -25,30 +39,46 @@ class AudioSyncPodcasts extends HTMLElement {
     elementStyles.setAttribute("rel", "stylesheet");
     elementStyles.setAttribute("href", "./js/audiosync-podcasts/audiosync-podcasts.css");
         
-    // element to append podcasts to
+    /**
+     * container for content
+     * @type {HTMLElement}
+     * 
+     * @example
+     * this.container.appendChild(elements);
+     */
     this.container = ce('div');
     this.container.classList.add('container');
 
-    [
+    appendElements(this.shadowRoot, [
       elementStyles,
       this.container
-    ].forEach(el => this.shadowRoot.appendChild(el));
+    ]);
   }
 
   /**
-   * audioplayer has reset playlist
-   * Called by <audiosync-player>.playAlbum()
+   * audioplayer has reset playlist. (unmarks elements marked with 'inlist') 
+   * Used in <audiosync-player>.playAlbum()
    * @function
-   * @name resetPlaylist
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * podcastLibrary.resetPlaylist();
    */
   resetPlaylist() {
     qsa('.episode[inlist]', this.shadowRoot).forEach(el => el.removeAttribute('inlist'));
   }
 
   /**
-   * creates and opens the add podcast UI
+   * creates and opens a dislog with options to add a url
+   * Used in <audiosync-podcasts>
+   * @async
    * @function
-   * @name openAddPodcastDialog
+   * 
+   * @returns {Promise<Void>}
+   * 
+   * @example
+   * button.onClick(_ => audiosyncPodcasts.openAddPodcastDialog());
    */
   async openAddPodcastDialog() {
     this.addUI = await this._addPodcastUI();
@@ -57,12 +87,166 @@ class AudioSyncPodcasts extends HTMLElement {
     this.addUI.open();
   }
 
+  /**
+   * responds to subscription input. 
+   * refreshes podcast ui data and closes add url dialog
+   * @async
+   * @function
+   * 
+   * @param {String} message
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * podcastLibrary.subResponse('Podcast Added');
+   */
+  async subResponse(message) {
+    new Toast(message);
+    await sleep(100);
+
+    if (message === 'Subscribed!') {
+      await this.listPodcasts();
+    }
+
+    if (!this.addUI) return;
+    this.addUI.close();
+    await sleep(100);
+    this.addUI.remove();
+  }
+
+  /**
+   * get list of podcasts and fills UI with data
+   * @async
+   * @function
+   * 
+   * @returns {Promise<Array | Objects>}
+   * 
+   * @example
+   * podcastLibrary.listPodcasts();
+   */
+  async listPodcasts() {
+    const PODCASTS = await pywebview.api.list_subscriptions();
+    this.container.innerHTML = '';
+    await PODCASTS.forEach(url => this._fetchAndParseXML(url));
+  }
+
+  /**
+   * syncs ui with currently playing audio
+   * @function
+   * 
+   * @param {Object} details 
+   * 
+   * @returns {void}
+   * 
+   * @example 
+   * pocastLibrary.nowPlaying({
+   *   "art" : "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\cover.jpg"
+   *   "path": "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\09 Stink Bug.mp3",
+   *   "album": "Hello Nasty Remastered (Disc 2)",
+   *   "artist": "The Beastie Boys",
+   *   "title": "Stink Bug",
+   *   "track": 9,
+   *   "disc": 2
+   * });
+   */
+  nowPlaying(details) {
+    [
+      '.episode',
+      '.wrapper'
+    ].forEach(selector => qsa(selector, this.shadowRoot).forEach(el => el.removeAttribute('playing')));
+    if (!details) {
+      qsa('.ep-add', this.shadowRoot).forEach(el => el.classList.add('hidden'));
+      this.resetPlaylist();
+      return;
+    }
+    qsa('.ep-add', this.shadowRoot).forEach(el => el.classList.remove('hidden'));
+    const playing = qs(`[data-title="${details.artist}"][data-episode="${details.album}"]`, this.shadowRoot);
+    if (!playing) return;
+    playing.toggleAttribute('playing');
+    playing.parentElement.parentElement.toggleAttribute('playing');
+  }
+
+  /**
+   * update UI with podcast download and update progress
+   * @async
+   * @function
+   * 
+   * @param {String} name
+   * @param {Number} bytes
+   * @param {Number} totalBytes
+   * @param {Number} startTime
+   * @param {String} filname
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example 
+   * podcastLibrary.update('https://example.com/rssfeed.xml', 1000, 345890, 1719235139547, 'cool.podcast.mp3');
+   */
+  async update(name, bytes, totalBytes, startTime, fileName) {
+    if (fileName) {
+
+      // how long the download has ran
+      const TIME_PAST = (new Date().getTime() - startTime) / 1000;
+      
+      // speed of the download
+      const DOWNLOAD_SPEED = formatDownloadSpeed(bytes / TIME_PAST);
+
+      // percentage of download
+      const DOWNLOADED_PRECENTAGE = calcPercentage(bytes, totalBytes);
+
+      // podcast html wrapper
+      const wrapper = this.shadowRoot.getElementById(name);
+
+      const download_buttons = qsa('.dl', wrapper);
+      download_buttons.forEach(el => toggleAttribute(el, 'disabled'));
+
+      const download_ep = qs(`[data-filename="${fileName}"]`, wrapper);
+      if (download_ep) toggleAttribute(download_ep, 'downloading');
+
+      // dowload stats element in podcast wrapper
+      const DL_STATS = qs('.dl-stats', wrapper);
+      DL_STATS.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`
+      
+      // enables display of ui elements showing progress of update
+      wrapper.removeAttribute('updating');
+      toggleAttribute(wrapper, 'downloading');
+      wrapper.style.setProperty('--progress', `-${100 - DOWNLOADED_PRECENTAGE}%`);
+      
+      // download completed
+      if (DOWNLOADED_PRECENTAGE == 100) {
+        wrapper.style.setProperty('--progress', `-100%`);
+        new Toast(`${fileName} downloaded`);
+        DL_STATS.textContent = '';
+        wrapper.removeAttribute('updating');
+        if (download_ep) download_ep.removeAttribute('downloading');
+        this._updateEpisodeList(name, qs('.podcast-episodes', wrapper));
+      }
+    } else if (!name) {
+      const wrappers = qsa('.wrapper', this.shadowRoot);
+      wrappers.forEach(wrapper => {
+        wrapper.toggleAttribute('updating');
+        qsa('.dl', wrapper).forEach(el => toggleAttribute(el, 'disabled'));
+      });
+    } else {
+      const wrapper = this.shadowRoot.getElementById(name);
+      qsa('.dl', wrapper).forEach(el => el.removeAttribute('disabled'));
+      wrapper.removeAttribute('updating');
+    }
+  }
+
   /** 
    * creates the UI for adding podcasts to subscriptions
+   * @async
+   * @function
+   * 
+   * @returns {Promise<Void>}
+   * 
+   * @example
+   * button.onClick(_ => this._addPodcastUI());
    */
   async _addPodcastUI() {
     //  loading animation
-    const ICON = await svgIcon('refresh');
+    const ICON = svgIcon('refresh');
     ICON.style.height = '40px';
     ICON.style.width = '40px';
     ICON.classList.add('spinning');
@@ -88,10 +272,11 @@ class AudioSyncPodcasts extends HTMLElement {
     // input and label wrapper
     const INPUT_GROUP = ce('div');
     INPUT_GROUP.classList.add('form__group');
-    [
+
+    appendElements(INPUT_GROUP, [
       INPUT_ELEMENT,
       INPUT_LABEL
-    ].forEach(el => INPUT_GROUP.appendChild(el));
+    ]);
     
     // submit / add button
     const BUTTON_CONTENTS = fillButton('add', 'add');
@@ -104,11 +289,11 @@ class AudioSyncPodcasts extends HTMLElement {
     const ADD_PODCAST_DIALOG = ce('audiosync-dialog');
     ADD_PODCAST_DIALOG.toggleAttribute('cleanup');
 
-    [
+    appendElements(ADD_PODCAST_DIALOG, [
       INPUT_GROUP,
       ADD_PODCAST_BUTTON,
       LOADER_ELEMENT
-    ].forEach(el => ADD_PODCAST_DIALOG.appendChild(el));
+    ]);
     
     // input callback
     INPUT_ELEMENT.oninput = e => {
@@ -116,9 +301,7 @@ class AudioSyncPodcasts extends HTMLElement {
       if (isValidURL(INPUT_ELEMENT.value)) {
         ADD_PODCAST_BUTTON.removeAttribute('disabled');
       } else {
-        if (!ADD_PODCAST_BUTTON.hasAttribute('disabled')) {
-          ADD_PODCAST_BUTTON.toggleAttribute('disabled');
-        }
+        toggleAttribute(ADD_PODCAST_BUTTON, 'disabled');
       }
     };
     
@@ -142,142 +325,16 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
-   * responds to subscription input
-   * 
-   * @param {String} message
-   */
-  async subResponse(message) {
-    new Toast(message);
-    await sleep(100);
-
-    if (message === 'Subscribed!') {
-      await this.listPodcasts();
-    }
-
-    if (!this.addUI) return;
-    this.addUI.close();
-    await sleep(100);
-    this.addUI.remove();
-  }
-
-  /**
-   * list podcasts
-   */
-  async listPodcasts() {
-    const PODCASTS = await pywebview.api.list_subscriptions();
-    this.container.innerHTML = '';
-    await PODCASTS.forEach(url => this._fetchAndParseXML(url));
-  }
-
-  /**
-   * syncs ui with currently playing audio
-   * 
-   * @param {Object} details 
-   * 
-   * @returns {void}
-   */
-  nowPlaying(details) {
-    [
-      '.episode',
-      '.wrapper'
-    ].forEach(selector => qsa(selector, this.shadowRoot).forEach(el => el.removeAttribute('playing')));
-    if (!details) {
-      qsa('.ep-add', this.shadowRoot).forEach(el => el.classList.add('hidden'));
-      this.resetPlaylist();
-      return;
-    }
-    qsa('.ep-add', this.shadowRoot).forEach(el => el.classList.remove('hidden'));
-    const playing = qs(`[data-title="${details.artist}"][data-episode="${details.album}"]`, this.shadowRoot);
-    if (!playing) return;
-    playing.toggleAttribute('playing');
-    playing.parentElement.parentElement.toggleAttribute('playing');
-  }
-
-  /**
-   * Convert bytes per second (bps) to a human-readable format
-   * 
-   * @param {Number} bps - Download speed in bytes per second
-   * 
-   * @returns {String} - Download speed in a human-readable format
-   */
-  _formatDownloadSpeed(bps) {
-    if (bps < 1000) {
-      return bps.toFixed(2) + ' bps';
-    } else if (bps < 1000000) {
-      return (bps / 1000).toFixed(2) + ' kbps';
-    } else {
-      return (bps / 1000000).toFixed(2) + ' Mbps';
-    }
-  }
-
-  /**
-   * update bar wirh podcast download progress
-   * 
-   * @param {String} name
-   * @param {Number} bytes
-   * @param {Number} totalBytes
-   * @param {Number} startTime
-   * @param {String} filname
-   */
-  async update(name, bytes, totalBytes, startTime, fileName) {
-    if (fileName) {
-
-      // how long the download has ran
-      const TIME_PAST = (new Date().getTime() - startTime) / 1000;
-      
-      // speed of the download
-      const DOWNLOAD_SPEED = this._formatDownloadSpeed(bytes / TIME_PAST);
-
-      // percentage of download
-      const DOWNLOADED_PRECENTAGE = ((bytes / totalBytes) * 100);
-
-      // podcast html wrapper
-      const wrapper = this.shadowRoot.getElementById(name);
-
-      const download_buttons = qsa('.dl', wrapper);
-      download_buttons.forEach(el => {
-        if (!el.hasAttribute('disabled')) el.toggleAttribute('disabled');
-      });
-
-      const download_ep = qs(`[data-filename="${fileName}"]`, wrapper);
-      if (download_ep && !download_ep.hasAttribute('downloading')) download_ep.toggleAttribute('downloading');
-
-      // dowload stats element in podcast wrapper
-      const DL_STATS = qs('.dl-stats', wrapper);
-      DL_STATS.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`
-      
-      // enables display of ui elements showing progress of update
-      if (!wrapper.hasAttribute('updating')) wrapper.toggleAttribute('updating');
-      wrapper.style.setProperty('--progress', `-${100 - DOWNLOADED_PRECENTAGE}%`);
-      
-      // download completed
-      if (DOWNLOADED_PRECENTAGE == 100) {
-        wrapper.style.setProperty('--progress', `-100%`);
-        new Toast(`${fileName} downloaded`);
-        DL_STATS.textContent = '';
-        wrapper.removeAttribute('updating');
-        if (download_ep) download_ep.removeAttribute('downloading');
-        this._updateEpisodeList(name, qs('.podcast-episodes', wrapper));
-      }
-    } else if (!name) {
-      const wrappers = qsa('.wrapper', this.shadowRoot);
-      wrappers.forEach(wrapper => {
-        wrapper.toggleAttribute('updating');
-        qsa('.dl', wrapper).forEach(el => {
-          if (!el.hasAttribute('disabled')) el.toggleAttribute('disabled');
-        });
-      });
-    } else {
-      const wrapper = this.shadowRoot.getElementById(name);
-      qsa('.dl', wrapper).forEach(el => el.removeAttribute('disabled'));
-      wrapper.removeAttribute('updating');
-    }
-  }
-
-  /**
-   * closes podcast wrapper hiding it's contentt
+   * closes podcast wrapper hiding it's content
+   * @async
+   * @function
    * 
    * @param {Event} e 
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * button.onClick(e => this._close(e));
    */
   async _close (e) {
     const svg = e.target;
@@ -290,8 +347,15 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * Expands podcast wrapper revealing additional elements
+   * @async
+   * @function
    * 
    * @param {Event} e 
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * button.onClick(e => this._expand(e));
    */
   async _expand(e) {
     qsa('.wrapper', this.shadowRoot).forEach(el => {
@@ -320,15 +384,18 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * opens a dialog with option to unsub from podcast
+   * @function
    * 
    * @param {HTMLElement} PODCAST_TITLE_ELEMENT 
+   * @param {String} url
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * button.onClick(_ => this._createUnsubDialog(<div podcast title>, 'https://example.com/rssfeed.xml'));
    */
   async _createUnsubDialog(PODCAST_TITLE_ELEMENT, url) {
     // container for animated loading Icon
-    const LOADING_ELEMENT = ce('div');
-    LOADING_ELEMENT.classList.add('loading');
-    LOADING_ELEMENT.style.background = 'rgba(var(--main-rgb), 0.4)';
-
     const DELETE_CONFIRMATION_TEXT = ce('div');
     DELETE_CONFIRMATION_TEXT.classList.add('delete-notification-text');
     DELETE_CONFIRMATION_TEXT.textContent = `Unsubscribe from '${PODCAST_TITLE_ELEMENT.textContent}'?`;
@@ -350,13 +417,8 @@ class AudioSyncPodcasts extends HTMLElement {
     YES_BUTTON.appendChild(YES_BUTTON_CONTENTS);
     YES_BUTTON.setAttribute('color', getCSSVariableValue('--pop-color'));
     YES_BUTTON.toggleAttribute('noshadow');
-    YES_BUTTON.onClick(async e => {
-      await sleep(200);
-      DIALOG_BUTTONS.forEach(button => {
-        if (!button.hasAttribute('diabled')) button.toggleAttribute('disabled');
-      });
-      LOADING_ELEMENT.style.display = 'flex';
-      await fadeIn(LOADING_ELEMENT);
+    YES_BUTTON.onClick(async _ => {
+      DIALOG_BUTTONS.forEach(button => toggleAttribute(button, 'disabled'));
       await pywebview.api.unsubscribe(url);
       new Toast(`${PODCAST_TITLE_ELEMENT.textContent} unsubscribed`);
       await sleep(200);
@@ -371,23 +433,19 @@ class AudioSyncPodcasts extends HTMLElement {
     NO_BUTTON.appendChild(NO_BUTTON_CONTENTS);
     NO_BUTTON.setAttribute('color', 'var(--main-color)');
     NO_BUTTON.toggleAttribute('noshadow');
-    NO_BUTTON.onClick(async e => {
-      await sleep(200);
-      DIALOG_BUTTONS.forEach(button => {
-        if (!button.hasAttribute('diabled')) button.toggleAttribute('disabled');
-      });
+    NO_BUTTON.onClick(async _ => {
+      DIALOG_BUTTONS.forEach(button => toggleAttribute(button, 'disabled'));
       await DELETE_CONFIRMATION_DIALOG.close();
       await sleep(350);
       DELETE_CONFIRMATION_DIALOG.remove();
     });
 
-    [
-      LOADING_ELEMENT,
+    appendElements(DELETE_CONFIRMATION_DIALOG, [
       DELETE_CONFIRMATION_TEXT,
       WILL_REMOVE_FILES,
       YES_BUTTON,
       NO_BUTTON
-    ].forEach(el => DELETE_CONFIRMATION_DIALOG.appendChild(el));
+    ]);
     
     qs('body').appendChild(DELETE_CONFIRMATION_DIALOG);
     await sleep(20);
@@ -396,19 +454,34 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * clears and repopulates episode list
+   * @function
    * 
    * @param {String} xmlURL 
    * @param {HTMLElement} scrollEl 
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * this._updateEpisodeList('https://example.com/rssfeed.xml', <ui podcast list>);
    */
   _updateEpisodeList(xmlURL, scrollEl) {
+    // cache items marked as 'inlist'
     const inPlaylist = qsa('.episode[inlist]', scrollEl);
+
+    // get podcast data
     pywebview.api.xmlProxy(xmlURL).then(async xmlString => {
+
+      // clear parent element
       scrollEl.innerHTML = '';
+
+      // push element with callback to load more
       this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, scrollEl, xmlURL);
       await sleep(200);
+
+      // remark 'inlist' elements
       for (const ep of inPlaylist) {
         const wrapper = qs(`[data-filename="${ep.dataset.filename}"]`, scrollEl);
-        if (!wrapper.hasAttribute('inlist')) wrapper.toggleAttribute('inlist');
+        toggleAttribute(wrapper, 'inlist');
       }
     }).catch(error => {
       console.error('Error fetching XML:', error);
@@ -417,8 +490,15 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * Adds an eipsode to current playlist
+   * @function
    * 
-   * @param {Event} e 
+   * @param {HTMLElement} wrapper
+   * @param {Object|String} play_object 
+   * 
+   * @returns {void}
+   * 
+   * @example
+   * button.onClick(_ => this._addEpisodeToPlaylist(<podcast episode>, {}));
    */
   _addEpisodeToPlaylist(wrapper, play_object) {
     wrapper.toggleAttribute('inlist');
@@ -427,15 +507,31 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * starts download of a podcast episode
-   * 
+   * @async
+   * @function
+   *  
    * @param {String} title 
    * @param {Object} episode 
-   * @param {Object} FILE_STATS 
+   * @param {Object|String} FILE_STATS 
    * @param {String} xmlURL 
    * @param {HTMLElement} EPISODE_LIST 
    * @param {HTMLElement} ep_wrapper 
    * @param {HTMLElement} parent 
    * @param {HTMLElement} unsub_button 
+   * 
+   * @returns {Promise<void>}
+   * 
+   * @example
+   * button.onClick(_ => this._downloadEpisode(
+   *   'cool podcast',
+   *   {path, art, title, artist},
+   *   {exists, },
+   *   'https://example.com/rssfeed.xml',
+   *   <ul scroll container>,
+   *   <li podcast episode>,
+   *   <parent>,
+   *   <button>
+   * ));
    */
   async _downloadEpisode(title, episode, FILE_STATS, xmlURL, EPISODE_LIST, ep_wrapper, parent, unsub_button) {
     const dlButtons = qsa('.dl', EPISODE_LIST);
@@ -448,7 +544,7 @@ class AudioSyncPodcasts extends HTMLElement {
     unsub_button.toggleAttribute('disabled');
 
     // toggle updating attribute (update function will remove)
-    parent.toggleAttribute('updating');
+    parent.toggleAttribute('downloading');
 
     // download file
     await pywebview.api.downloadEpisode(
@@ -460,8 +556,9 @@ class AudioSyncPodcasts extends HTMLElement {
       xmlURL
     );
     
+    parent.removeAttribute('downloading');
+
     // reenable buttons
-    dlButtons.forEach(el => el.removeAttribute('disabled'));
     unsub_button.removeAttribute('disabled');
     
     // get refresh xml data 
@@ -470,25 +567,39 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * ask backend to delete a podcast episode
+   * @async
+   * @function
    * 
+   * @param {HTMLElement} ep_wrapper 
    * @param {Object} FILE_STATS
+   * @param {String} xmlURL
+   * @param {HTMLElement} scrollEl
+   * 
+   * @returns {Void}
    */
-  async _deleteEpisode(FILE_STATS, xmlURL, scrollEl) {
+  async _deleteEpisode(ep_wrapper, FILE_STATS, xmlURL, scrollEl) {
+    qsa('audiosync-small-button', ep_wrapper).forEach(button => toggleAttribute(button, 'disabled'));
+    toggleAttribute(ep_wrapper, 'updating');
     await pywebview.api.deleteEpisode(FILE_STATS);
     this._updateEpisodeList(xmlURL, scrollEl);  
   }
 
   /**
    * trigger episode playback
+   * @async
+   * @function
    * 
+   * @param {HTMLElement} ep_wrapper
    * @param {Object} FILE_STATS 
    * @param {Object} play_Object 
    * @param {Object} episode 
+   * 
+   * @returns {Promise<Void>}
    */
   async _playEpisode(ep_wrapper, FILE_STATS, play_Object, episode) {
     qsa('.episode[inlist]').forEach(el => el.removeAttribute('inlist'));
     await sleep(200);
-    if (!ep_wrapper.hasAttribute('inlist')) ep_wrapper.toggleAttribute('inlist');
+    toggleAttribute(ep_wrapper, 'inlist');
     if (FILE_STATS.exists) {
       // play local file
       qs('audiosync-player').playAlbum(play_Object);
@@ -501,9 +612,13 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * appends a li element with podcast episode details to podcast-episodes 
+   * @async
+   * @function
    * 
    * @param {Object} episode 
    * @param {HTMLElement} EPISODE_LIST 
+   * 
+   * @returns {Promise<Void>}
    */
   async _createEpisodeElement(title, episode, EPISODE_LIST, xmlURL) {
     const parent = EPISODE_LIST.parentElement;
@@ -512,17 +627,16 @@ class AudioSyncPodcasts extends HTMLElement {
     const prog_bar = ce('div');
     prog_bar.classList.add('ep-prog-bar');
 
-    const play_button = ce('audiosync-small-button');
-    play_button.appendChild(await svgIcon('play'));
-    play_button.classList.add('ep-play');
+    const play_button = createButtonWithIcon('audiosync-small-button', 'play', ['ep-play']);
 
-    const add_to_playlist_button = ce('audiosync-small-button');
-    add_to_playlist_button.appendChild(await svgIcon('add'));
-    [
+    const add_to_playlist_button = createButtonWithIcon('audiosync-small-button', 'add', [
       'ep-add',
       'hidden'
-    ].forEach(cssclass => add_to_playlist_button.classList.add(cssclass));
+    ]);
     
+    const updatingIcon = svgIcon('refresh');
+    updatingIcon.classList.add('updating-icon');
+
     const ep_title = ce('span');
     ep_title.classList.add('ep-name');
     ep_title.textContent = episode.title;
@@ -539,12 +653,13 @@ class AudioSyncPodcasts extends HTMLElement {
       ep_wrapper.appendChild(ep_num);
     }
 
-    [
+    appendElements(ep_wrapper, [
+      updatingIcon,
       prog_bar,
       ep_title,
       play_button,
       add_to_playlist_button
-    ].forEach(el => ep_wrapper.appendChild(el));
+    ]);
 
     EPISODE_LIST.appendChild(ep_wrapper);
 
@@ -570,9 +685,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
     if (!FILE_STATS.exists) {
       // download button if file doesn't exist
-      const download_button = ce('audiosync-small-button');
-      download_button.appendChild(await svgIcon('download'));
-      download_button.classList.add('dl');
+      const download_button = createButtonWithIcon('audiosync-small-button', 'download', ['dl']);
       download_button.onClick(_ => this._downloadEpisode(
         title, 
         episode, 
@@ -584,13 +697,11 @@ class AudioSyncPodcasts extends HTMLElement {
         unsub_button
       ));
       // if downloading an episode toggle disabled attribute
-      if (parent.hasAttribute('updating')) download_button.toggleAttribute('disabled');
+      if (parent.hasAttribute('downloading')) toggleAttribute(download_button, 'disabled');
       ep_wrapper.appendChild(download_button);
     } else {
-      const DELETE_EPISODE_BUTTON = ce('audiosync-small-button');
-      DELETE_EPISODE_BUTTON.appendChild(await svgIcon('delete'));
-      DELETE_EPISODE_BUTTON.classList.add('ep-del');
-      DELETE_EPISODE_BUTTON.onClick(_ => this._deleteEpisode(FILE_STATS, xmlURL, EPISODE_LIST));
+      const DELETE_EPISODE_BUTTON = createButtonWithIcon('audiosync-small-button', 'delete', ['ep-del']);
+      DELETE_EPISODE_BUTTON.onClick(_ => this._deleteEpisode(ep_wrapper, FILE_STATS, xmlURL, EPISODE_LIST));
       ep_wrapper.appendChild(DELETE_EPISODE_BUTTON);
     }
 
@@ -601,11 +712,14 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * progressavly loads episodes on scroll
+   * @function
    * 
    * @param {String} title
    * @param {Array} episodes 
    * @param {HTMLElement} scrollEl 
    * @param {String} xmlURL
+   * 
+   * @returns {Promise<Void>}
    */
   _lazyLoadOnScroll(title, episodes, scrollEl, xmlURL) {
     let ndx = 0;
@@ -628,8 +742,12 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * get the name of a podcast and put it in a html element
+   * @async
+   * @function
    * 
    * @param {String} url podcast url
+   * 
+   * @returns {Promise<Void>}
    */
   async _fetchAndParseXML(url) {
     const DL_PROGRESS = ce('div');
@@ -638,33 +756,29 @@ class AudioSyncPodcasts extends HTMLElement {
     const DL_STATS = ce('div');
     DL_STATS.classList.add('dl-stats');
 
-    const UPDATING_ICON = await svgIcon('refresh');
+    const UPDATING_ICON = svgIcon('refresh');
     UPDATING_ICON.classList.add('updating-icon');
 
-    const PLAYING_ICON = await svgIcon('playing');
+    const PLAYING_ICON = svgIcon('playing');
     PLAYING_ICON.classList.add('playing-icon');
 
     const PODCAST_TITLE_ELEMENT = ce('span');
     PODCAST_TITLE_ELEMENT.classList.add('podcast-title');
     PODCAST_TITLE_ELEMENT.textContent = 'Loading'
 
-    const UNSUBSCRIBE_PODCAST_BUTTON = ce('audiosync-small-button');
-    UNSUBSCRIBE_PODCAST_BUTTON.appendChild(await svgIcon('delete'));
-    UNSUBSCRIBE_PODCAST_BUTTON.classList.add('unsub');
+    const UNSUBSCRIBE_PODCAST_BUTTON = createButtonWithIcon('audiosync-small-button', 'delete', ['unsub']);
     UNSUBSCRIBE_PODCAST_BUTTON.onClick(_ => this._createUnsubDialog(PODCAST_TITLE_ELEMENT, url));
 
-    const CLOSE_BUTTON = ce('audiosync-small-button');
+    const CLOSE_BUTTON = createButtonWithIcon('audiosync-small-button', 'close', []);
     CLOSE_BUTTON.id = 'close';
-    CLOSE_BUTTON.appendChild(await svgIcon('close'));
-
 
     const BUTTONS_CONTAINER = ce('div');
     BUTTONS_CONTAINER.classList.add('buttons');
-    [
+
+    appendElements( BUTTONS_CONTAINER, [
       UNSUBSCRIBE_PODCAST_BUTTON,
       CLOSE_BUTTON
-    ].forEach(el => BUTTONS_CONTAINER.appendChild(el));
-
+    ]);
 
     const EPISODE_LIST = ce('ui');
     EPISODE_LIST.classList.add('podcast-episodes');
@@ -688,7 +802,8 @@ class AudioSyncPodcasts extends HTMLElement {
     PODCAST_WRAPPER.classList.add('wrapper');
     PODCAST_WRAPPER.style.setProperty('--progress', '-100%');
     PODCAST_WRAPPER.addEventListener('click', this._expand);
-    [
+
+    appendElements(PODCAST_WRAPPER, [
       DL_PROGRESS,
       DL_STATS,
       UPDATING_ICON,
@@ -696,7 +811,7 @@ class AudioSyncPodcasts extends HTMLElement {
       PODCAST_TITLE_ELEMENT,
       BUTTONS_CONTAINER,
       EPISODE_LIST
-    ].forEach(el => PODCAST_WRAPPER.appendChild(el));
+    ]);
 
     this.container.appendChild(PODCAST_WRAPPER);
   }
