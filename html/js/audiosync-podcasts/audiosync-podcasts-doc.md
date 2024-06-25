@@ -13,19 +13,19 @@ displays podcast show info
     * [.resetPlaylist()](#AudioSyncPodcasts+resetPlaylist) ⇒ <code>Void</code>
     * [.openAddPodcastDialog()](#AudioSyncPodcasts+openAddPodcastDialog) ⇒ <code>Promise.&lt;Void&gt;</code>
     * [.subResponse(message)](#AudioSyncPodcasts+subResponse) ⇒ <code>Void</code>
-    * [.listPodcasts()](#AudioSyncPodcasts+listPodcasts) ⇒ <code>Promise.&lt;(Array\|Objects)&gt;</code>
+    * [.listPodcasts(podcastURLs)](#AudioSyncPodcasts+listPodcasts) ⇒ <code>Promise.&lt;Void&gt;</code>
     * [.nowPlaying(details)](#AudioSyncPodcasts+nowPlaying) ⇒ <code>void</code>
     * [.update(name, bytes, totalBytes, startTime, filname)](#AudioSyncPodcasts+update) ⇒ <code>Promise.&lt;void&gt;</code>
     * [._addPodcastUI()](#AudioSyncPodcasts+_addPodcastUI) ⇒ <code>Promise.&lt;Void&gt;</code>
     * [._close(e)](#AudioSyncPodcasts+_close) ⇒ <code>Promise.&lt;void&gt;</code>
     * [._expand(e)](#AudioSyncPodcasts+_expand) ⇒ <code>Promise.&lt;void&gt;</code>
-    * [._createUnsubDialog(PODCAST_TITLE_ELEMENT, url)](#AudioSyncPodcasts+_createUnsubDialog) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [._createUnsubDialog(podcastTitleElement, url)](#AudioSyncPodcasts+_createUnsubDialog) ⇒ <code>Promise.&lt;void&gt;</code>
     * [._updateEpisodeList(xmlURL, scrollEl)](#AudioSyncPodcasts+_updateEpisodeList) ⇒ <code>Void</code>
     * [._addEpisodeToPlaylist(wrapper, play_object)](#AudioSyncPodcasts+_addEpisodeToPlaylist) ⇒ <code>void</code>
-    * [._downloadEpisode(title, episode, FILE_STATS, xmlURL, EPISODE_LIST, ep_wrapper, parent, unsub_button)](#AudioSyncPodcasts+_downloadEpisode) ⇒ <code>Promise.&lt;void&gt;</code>
-    * [._deleteEpisode(ep_wrapper, FILE_STATS, xmlURL, scrollEl)](#AudioSyncPodcasts+_deleteEpisode) ⇒ <code>Void</code>
-    * [._playEpisode(ep_wrapper, FILE_STATS, play_Object, episode)](#AudioSyncPodcasts+_playEpisode) ⇒ <code>Promise.&lt;Void&gt;</code>
-    * [._createEpisodeElement(episode, EPISODE_LIST)](#AudioSyncPodcasts+_createEpisodeElement) ⇒ <code>Promise.&lt;Void&gt;</code>
+    * [._downloadEpisode(title, episode, fileStats, xmlURL, episodeList, ep_wrapper, parent, unsub_button)](#AudioSyncPodcasts+_downloadEpisode) ⇒ <code>Promise.&lt;void&gt;</code>
+    * [._deleteEpisode(ep_wrapper, fileStats, xmlURL, scrollEl)](#AudioSyncPodcasts+_deleteEpisode) ⇒ <code>Void</code>
+    * [._playEpisode(ep_wrapper, fileStats, play_Object, episode)](#AudioSyncPodcasts+_playEpisode) ⇒ <code>Promise.&lt;Void&gt;</code>
+    * [._createEpisodeElement(episode, episodeList)](#AudioSyncPodcasts+_createEpisodeElement) ⇒ <code>Promise.&lt;Void&gt;</code>
     * [._lazyLoadOnScroll(title, episodes, scrollEl, xmlURL)](#AudioSyncPodcasts+_lazyLoadOnScroll) ⇒ <code>Promise.&lt;Void&gt;</code>
     * [._fetchAndParseXML(url)](#AudioSyncPodcasts+_fetchAndParseXML) ⇒ <code>Promise.&lt;Void&gt;</code>
 
@@ -98,10 +98,15 @@ podcastLibrary.subResponse('Podcast Added');
 ```
 <a name="AudioSyncPodcasts+listPodcasts"></a>
 
-### audioSyncPodcasts.listPodcasts() ⇒ <code>Promise.&lt;(Array\|Objects)&gt;</code>
-get list of podcasts and fills UI with data
+### audioSyncPodcasts.listPodcasts(podcastURLs) ⇒ <code>Promise.&lt;Void&gt;</code>
+fills UI with data
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
+
+| Param | Type |
+| --- | --- |
+| podcastURLs | <code>Array</code> \| <code>Strings</code> | 
+
 **Example**  
 ```js
 podcastLibrary.listPodcasts();
@@ -190,14 +195,14 @@ button.onClick(e => this._expand(e));
 ```
 <a name="AudioSyncPodcasts+_createUnsubDialog"></a>
 
-### audioSyncPodcasts.\_createUnsubDialog(PODCAST_TITLE_ELEMENT, url) ⇒ <code>Promise.&lt;void&gt;</code>
+### audioSyncPodcasts.\_createUnsubDialog(podcastTitleElement, url) ⇒ <code>Promise.&lt;void&gt;</code>
 opens a dialog with option to unsub from podcast
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
 
 | Param | Type |
 | --- | --- |
-| PODCAST_TITLE_ELEMENT | <code>HTMLElement</code> | 
+| podcastTitleElement | <code>HTMLElement</code> | 
 | url | <code>String</code> | 
 
 **Example**  
@@ -238,7 +243,7 @@ button.onClick(_ => this._addEpisodeToPlaylist(<podcast episode>, {}));
 ```
 <a name="AudioSyncPodcasts+_downloadEpisode"></a>
 
-### audioSyncPodcasts.\_downloadEpisode(title, episode, FILE_STATS, xmlURL, EPISODE_LIST, ep_wrapper, parent, unsub_button) ⇒ <code>Promise.&lt;void&gt;</code>
+### audioSyncPodcasts.\_downloadEpisode(title, episode, fileStats, xmlURL, episodeList, ep_wrapper, parent, unsub_button) ⇒ <code>Promise.&lt;void&gt;</code>
 starts download of a podcast episode
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
@@ -247,9 +252,9 @@ starts download of a podcast episode
 | --- | --- |
 | title | <code>String</code> | 
 | episode | <code>Object</code> | 
-| FILE_STATS | <code>Object</code> \| <code>String</code> | 
+| fileStats | <code>Object</code> \| <code>String</code> | 
 | xmlURL | <code>String</code> | 
-| EPISODE_LIST | <code>HTMLElement</code> | 
+| episodeList | <code>HTMLElement</code> | 
 | ep_wrapper | <code>HTMLElement</code> | 
 | parent | <code>HTMLElement</code> | 
 | unsub_button | <code>HTMLElement</code> | 
@@ -269,7 +274,7 @@ button.onClick(_ => this._downloadEpisode(
 ```
 <a name="AudioSyncPodcasts+_deleteEpisode"></a>
 
-### audioSyncPodcasts.\_deleteEpisode(ep_wrapper, FILE_STATS, xmlURL, scrollEl) ⇒ <code>Void</code>
+### audioSyncPodcasts.\_deleteEpisode(ep_wrapper, fileStats, xmlURL, scrollEl) ⇒ <code>Void</code>
 ask backend to delete a podcast episode
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
@@ -277,13 +282,13 @@ ask backend to delete a podcast episode
 | Param | Type |
 | --- | --- |
 | ep_wrapper | <code>HTMLElement</code> | 
-| FILE_STATS | <code>Object</code> | 
+| fileStats | <code>Object</code> | 
 | xmlURL | <code>String</code> | 
 | scrollEl | <code>HTMLElement</code> | 
 
 <a name="AudioSyncPodcasts+_playEpisode"></a>
 
-### audioSyncPodcasts.\_playEpisode(ep_wrapper, FILE_STATS, play_Object, episode) ⇒ <code>Promise.&lt;Void&gt;</code>
+### audioSyncPodcasts.\_playEpisode(ep_wrapper, fileStats, play_Object, episode) ⇒ <code>Promise.&lt;Void&gt;</code>
 trigger episode playback
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
@@ -291,13 +296,13 @@ trigger episode playback
 | Param | Type |
 | --- | --- |
 | ep_wrapper | <code>HTMLElement</code> | 
-| FILE_STATS | <code>Object</code> | 
+| fileStats | <code>Object</code> | 
 | play_Object | <code>Object</code> | 
 | episode | <code>Object</code> | 
 
 <a name="AudioSyncPodcasts+_createEpisodeElement"></a>
 
-### audioSyncPodcasts.\_createEpisodeElement(episode, EPISODE_LIST) ⇒ <code>Promise.&lt;Void&gt;</code>
+### audioSyncPodcasts.\_createEpisodeElement(episode, episodeList) ⇒ <code>Promise.&lt;Void&gt;</code>
 appends a li element with podcast episode details to podcast-episodes
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
@@ -305,7 +310,7 @@ appends a li element with podcast episode details to podcast-episodes
 | Param | Type |
 | --- | --- |
 | episode | <code>Object</code> | 
-| EPISODE_LIST | <code>HTMLElement</code> | 
+| episodeList | <code>HTMLElement</code> | 
 
 <a name="AudioSyncPodcasts+_lazyLoadOnScroll"></a>
 
