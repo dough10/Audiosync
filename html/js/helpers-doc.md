@@ -245,8 +245,7 @@ random string generator
 <a name="isValidURL"></a>
 
 ## isValidURL(url) ⇒ <code>Boolean</code>
-validate Podcast rss URL 
-Called by {audiosync-podcast}
+validate Podcast rss URL Called by {audiosync-podcast}
 
 **Kind**: global function  
 
@@ -338,12 +337,7 @@ calculates percentage value
 
 **Example**  
 ```js
-const bytes = 100;
-const totalBytes = 1000;
-
-const percent = calcPercentage(bytes, totalBytes);
-console.log(percent);
-//logs: 10
+const bytes = 100;const totalBytes = 1000;const percent = calcPercentage(bytes, totalBytes);console.log(percent);//logs: 10
 ```
 <a name="formatDownloadSpeed"></a>
 
@@ -414,8 +408,7 @@ returns the width of the html element
 <a name="appendElements"></a>
 
 ## appendElements(parent, elements) ⇒ <code>void</code>
-append elements to a parent element
-Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]
+append elements to a parent elementCalled by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]
 
 **Kind**: global function  
 
@@ -427,8 +420,7 @@ Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpis
 <a name="toggleAttribute"></a>
 
 ## toggleAttribute(element, attribute)
-sets an attribute true
-Called by {audiosync-podcast}
+sets an attribute trueCalled by {audiosync-podcast}
 
 **Kind**: global function  
 

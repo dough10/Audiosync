@@ -31,8 +31,7 @@ element connected to DOM. defaults --animation-time to 0ms to prevent flash of c
 **Kind**: instance method of [<code>AudioSyncDialog</code>](#AudioSyncDialog)  
 **Example**  
 ```js
-const dialog = document.createElement('audiosync-dialog');
-document.querySelector('body').appendChild(dialog);
+const dialog = document.createElement('audiosync-dialog');document.querySelector('body').appendChild(dialog);
 ```
 <a name="AudioSyncDialog+open"></a>
 
@@ -42,9 +41,7 @@ open the dialog element
 **Kind**: instance method of [<code>AudioSyncDialog</code>](#AudioSyncDialog)  
 **Example**  
 ```js
-const dialog = document.createElement('audiosync-dialog');
-document.querySelector('body').appendChild(dialog);
-dialog.open();
+const dialog = document.createElement('audiosync-dialog');document.querySelector('body').appendChild(dialog);dialog.open();
 ```
 <a name="AudioSyncDialog+close"></a>
 
@@ -54,8 +51,7 @@ close the dialog
 **Kind**: instance method of [<code>AudioSyncDialog</code>](#AudioSyncDialog)  
 **Example**  
 ```js
-const dialog = document.querySelector('audiosync-dialog');
-dialog.close();
+const dialog = document.querySelector('audiosync-dialog');dialog.close();
 ```
 <a name="AudioSyncDialog+attributeChangedCallback"></a>
 
@@ -65,6 +61,5 @@ attribute has changed
 **Kind**: instance method of [<code>AudioSyncDialog</code>](#AudioSyncDialog)  
 **Example**  
 ```js
-const dialog = document.querySelector('audiosync-dialog');
-dialog.toggleAttribue('nopad')
+const dialog = document.querySelector('audiosync-dialog');dialog.toggleAttribue('nopad')
 ```
