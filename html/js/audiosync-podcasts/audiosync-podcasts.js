@@ -9,6 +9,9 @@ import {Toast} from '../Toast/Toast.js'
  * 
  */
 class AudioSyncPodcasts extends HTMLElement {
+  static get observedAttributes() {
+    return ['alt-css'];
+  }
 
   /**
    * create the podcast ui instance
