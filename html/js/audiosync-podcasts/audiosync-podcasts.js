@@ -73,7 +73,7 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   attributeChangedCallback(name, oldVal, newVal) {
     if (name != 'alt-css') return;
-    qs('link',this.shadowRoot).href = newVal;
+    if (qs('link',this.shadowRoot)) qs('link',this.shadowRoot).href = newVal;
   }
 
   /**
