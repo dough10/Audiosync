@@ -197,8 +197,8 @@ class AudioSyncPodcasts extends HTMLElement {
       // podcast html wrapper
       const wrapper = this.shadowRoot.getElementById(name);
 
-      const download_buttons = qsa('.dl', wrapper);
-      download_buttons.forEach(el => toggleAttribute(el, 'disabled'));
+      // disable download button
+      qsa('.dl', wrapper).forEach(el => toggleAttribute(el, 'disabled'));
 
       const download_ep = qs(`[data-filename="${fileName}"]`, wrapper);
       if (download_ep) toggleAttribute(download_ep, 'downloading');
@@ -219,11 +219,11 @@ class AudioSyncPodcasts extends HTMLElement {
         DL_STATS.textContent = '';
         wrapper.removeAttribute('updating');
         if (download_ep) download_ep.removeAttribute('downloading');
+        qsa('.dl', wrapper).forEach(el => el.removeAttribute('disabled'));
         this._updateEpisodeList(name, qs('.podcast-episodes', wrapper));
       }
     } else if (!name) {
-      const wrappers = qsa('.wrapper', this.shadowRoot);
-      wrappers.forEach(wrapper => {
+      qsa('.wrapper', this.shadowRoot).forEach(wrapper => {
         wrapper.toggleAttribute('updating');
         qsa('.dl', wrapper).forEach(el => toggleAttribute(el, 'disabled'));
       });
@@ -557,6 +557,7 @@ class AudioSyncPodcasts extends HTMLElement {
     );
     
     parent.removeAttribute('downloading');
+    dlButtons.forEach(el => el.removeAttribute('disabled'));
 
     // reenable buttons
     unsub_button.removeAttribute('disabled');
