@@ -2,9 +2,10 @@ import {qs, qsa, ce, svgIcon, sleep, formatDownloadSpeed, calcPercentage, isVali
 import {Toast} from '../Toast/Toast.js'
 
 /**
- * displays podcast show info
+ * Ui for managing podcast shows and episodes
  * @class
  * @extends HTMLElement
+ * @this AudioSyncPodcasts
  * 
  */
 class AudioSyncPodcasts extends HTMLElement {
@@ -24,6 +25,7 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * element connect
    * @function
+   * @private
    *
    * @returns {Void}
    * 
@@ -31,6 +33,8 @@ class AudioSyncPodcasts extends HTMLElement {
    * document.querySelector('body').appendChild(podcastLibrary);
    */
   connectedCallback() {
+    const altCss = this.getAttribute('alt-css');
+
     // bind this
     this._expand = this._expand.bind(this);
     this._close = this._close.bind(this);
@@ -38,28 +42,42 @@ class AudioSyncPodcasts extends HTMLElement {
 
     const elementStyles = ce('link');
     elementStyles.setAttribute("rel", "stylesheet");
-    elementStyles.setAttribute("href", "./js/audiosync-podcasts/audiosync-podcasts.css");
+    elementStyles.setAttribute("href", altCss || "./js/audiosync-podcasts/audiosync-podcasts.css");
         
-    /**
-     * container for content
-     * @type {HTMLElement}
-     * 
-     * @example
-     * this.container.appendChild(elements);
-     */
-    this.container = ce('div');
-    this.container.classList.add('container');
+    this._container = ce('div');
+    this._container.classList.add('container');
 
     appendElements(this.shadowRoot, [
       elementStyles,
-      this.container
+      this._container
     ]);
   }
 
   /**
-   * audioplayer has reset playlist. (unmarks elements marked with 'inlist') 
-   * Used in <audiosync-player>.playAlbum()
+   * attribute has changed
+   * @async
    * @function
+   * @private
+   * 
+   * @param {String} name
+   * @param {Number} oldVal
+   * @param {Number} newVal
+   * 
+   * @returns {Void}
+   * 
+   * @example
+   * podcasstLibrary.setAttribute('alt-css', './new/path.css');
+   */
+  attributeChangedCallback(name, oldVal, newVal) {
+    if (name != 'alt-css') return;
+    qs('link',this.shadowRoot).href = newVal;
+  }
+
+  /**
+   * audioplayer has reset playlist. (unmarks elements marked with 'inlist') 
+   * Used in audiosync-player.playAlbum()
+   * @function
+   * @public
    * 
    * @returns {Void}
    * 
@@ -75,11 +93,12 @@ class AudioSyncPodcasts extends HTMLElement {
    * Used in <audiosync-podcasts>
    * @async
    * @function
+   * @public
    * 
    * @returns {Promise<Void>}
    * 
    * @example
-   * button.onClick(_ => audiosyncPodcasts.openAddPodcastDialog());
+   * button.onClick(_ => poscastLibrary.openAddPodcastDialog());
    */
   async openAddPodcastDialog() {
     this.addUI = await this._addPodcastUI();
@@ -93,6 +112,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * refreshes podcast ui data and closes add url dialog
    * @async
    * @function
+   * @public
    * 
    * @param {String} message
    * 
@@ -116,26 +136,26 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
-   * fills UI with data
+   * get list of podcasts and fills UI with data
    * @async
    * @function
+   * @public
    * 
-   * @param {Array | Strings} podcastURLs 
-   * 
-   * @returns {Promise<Void>}
+   * @returns {Promise<Array | Objects>}
    * 
    * @example
    * podcastLibrary.listPodcasts();
    */
   async listPodcasts() {
     const podcastURLs = await pywebview.api.list_subscriptions();
-    this.container.innerHTML = '';
+    this._container.innerHTML = '';
     podcastURLs.forEach(url => this._fetchAndParseXML(url));
   }
 
   /**
    * syncs ui with currently playing audio
    * @function
+   * @public
    * 
    * @param {Object} details 
    * 
@@ -173,6 +193,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * update UI with podcast download and update progress
    * @async
    * @function
+   * @public
    * 
    * @param {String} name
    * @param {Number} bytes
@@ -241,6 +262,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * creates the UI for adding podcasts to subscriptions
    * @async
    * @function
+   * @private
    * 
    * @returns {Promise<Void>}
    * 
@@ -310,9 +332,7 @@ class AudioSyncPodcasts extends HTMLElement {
     addPodcastButton.onClick(async e => {
       await sleep(200);
       toggleAttribute(addPodcastButton, 'disabled');
-      this.dispatchEvent(new CustomEvent('add-url', {
-        detail:{url: inputElement.value}
-      }));
+      pywebview.api.subscribe(inputElement.value);
     });
     
     // if clipboard data is a url fill in the input element
@@ -329,6 +349,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * closes podcast wrapper hiding it's content
    * @async
    * @function
+   * @private
    * 
    * @param {Event} e 
    * 
@@ -350,6 +371,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * Expands podcast wrapper revealing additional elements
    * @async
    * @function
+   * @private
    * 
    * @param {Event} e 
    * 
@@ -393,8 +415,9 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * opens a dialog with option to unsub from podcast
    * @function
+   * @private
    * 
-   * @param {HTMLElement} podcastTitleElement 
+   * @param {HTMLElement} PODCAST_TITLE_ELEMENT 
    * @param {String} url
    * 
    * @returns {Promise<void>}
@@ -458,6 +481,7 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * clears and repopulates episode list
    * @function
+   * @private
    * 
    * @param {String} xmlURL 
    * @param {HTMLElement} scrollEl 
@@ -497,6 +521,7 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * Adds an eipsode to current playlist
    * @function
+   * @private
    * 
    * @param {HTMLElement} wrapper
    * @param {Object|String} play_object 
@@ -515,12 +540,13 @@ class AudioSyncPodcasts extends HTMLElement {
    * starts download of a podcast episode
    * @async
    * @function
+   * @private
    *  
    * @param {String} title 
    * @param {Object} episode 
-   * @param {Object|String} fileStats 
+   * @param {Object|String} FILE_STATS 
    * @param {String} xmlURL 
-   * @param {HTMLElement} episodeList 
+   * @param {HTMLElement} EPISODE_LIST 
    * @param {HTMLElement} ep_wrapper 
    * @param {HTMLElement} parent 
    * @param {HTMLElement} unsub_button 
@@ -576,13 +602,17 @@ class AudioSyncPodcasts extends HTMLElement {
    * ask backend to delete a podcast episode
    * @async
    * @function
+   * @private
    * 
    * @param {HTMLElement} ep_wrapper 
-   * @param {Object} fileStats
+   * @param {Object} FILE_STATS
    * @param {String} xmlURL
    * @param {HTMLElement} scrollEl
    * 
    * @returns {Void}
+   * 
+   * @example
+   * button.onClick(_ => this._deleteEpisode(<podcast episode>, {}, 'https://example.com/rssfeed.xml',<episode lists>));
    */
   async _deleteEpisode(ep_wrapper, fileStats, xmlURL, scrollEl) {
     qsa('audiosync-small-button', ep_wrapper).forEach(button => toggleAttribute(button, 'disabled'));
@@ -595,13 +625,17 @@ class AudioSyncPodcasts extends HTMLElement {
    * trigger episode playback
    * @async
    * @function
+   * @private
    * 
    * @param {HTMLElement} ep_wrapper
-   * @param {Object} fileStats 
+   * @param {Object} FILE_STATS 
    * @param {Object} play_Object 
    * @param {Object} episode 
    * 
    * @returns {Promise<Void>}
+   * 
+   * @example
+   * button.onClick(_ => this._playEpisode(<podcast episode>, {}, {},{}));
    */
   async _playEpisode(ep_wrapper, fileStats, play_Object, episode) {
     qsa('.episode[inlist]').forEach(el => el.removeAttribute('inlist'));
@@ -621,11 +655,15 @@ class AudioSyncPodcasts extends HTMLElement {
    * appends a li element with podcast episode details to podcast-episodes 
    * @async
    * @function
+   * @private
    * 
    * @param {Object} episode 
-   * @param {HTMLElement} episodeList 
+   * @param {HTMLElement} EPISODE_LIST 
    * 
    * @returns {Promise<Void>}
+   * 
+   * @example
+   * button.onClick(_ => this._playEpisode(<podcast episode>, {}, <podcast list>, 'https://example.com/rssfeed.xml'));
    */
   async _createEpisodeElement(title, episode, episodeList, xmlURL) {
     const parent = episodeList.parentElement;
@@ -721,6 +759,7 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * progressavly loads episodes on scroll
    * @function
+   * @private
    * 
    * @param {String} title
    * @param {Array} episodes 
@@ -728,6 +767,11 @@ class AudioSyncPodcasts extends HTMLElement {
    * @param {String} xmlURL
    * 
    * @returns {Promise<Void>}
+   * 
+   * @example
+   * episodeList.onscroll = e => {
+   *   const scrolltop = e.target.scrollTop;
+   * };
    */
   _lazyLoadOnScroll(title, episodes, scrollEl, xmlURL) {
     let ndx = 0;
@@ -752,10 +796,17 @@ class AudioSyncPodcasts extends HTMLElement {
    * get the name of a podcast and put it in a html element
    * @async
    * @function
+   * @private
    * 
    * @param {String} url podcast url
    * 
    * @returns {Promise<Void>}
+   * 
+   * @example
+   * const podcastList = [
+   *   'https://example.com/rssfeed.xml'
+   * ]
+   * podcastList.forEach(url => this._fetchAndParseXML(url));
    */
   async _fetchAndParseXML(url) {
     const dlProgess = ce('div');
@@ -809,7 +860,7 @@ class AudioSyncPodcasts extends HTMLElement {
       episodeList
     ]);
 
-    this.container.appendChild(podcastWrapper);
+    this._container.appendChild(podcastWrapper);
   }
 }
 customElements.define('audiosync-podcasts', AudioSyncPodcasts);

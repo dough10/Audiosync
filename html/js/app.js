@@ -200,9 +200,7 @@ async function load_app() {
       new Toast('Scan complete');
     }
   });
-
-  PODCAST_LIBRARY.addEventListener('add-url', e => pywebview.api.subscribe(e.detail.url))
-
+  
   SYNC_UI_ELEMENT.addEventListener('total-progress', e => SYNC_BUTTON.setAttribute('percent', e.detail.percent));
 
   /**
