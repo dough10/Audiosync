@@ -20,11 +20,11 @@ class File_manager:
   def __init__(self, changes):
     self.changes = changes
 
-  def resizeImage(self, image_path, size, destination, ext='JPEG'):
+  def resizeImage(self, image_path:str, size:int, destination:str, ext='JPEG'):
     options = {
-      "quality": 60,  # Adjust the quality (0-100, higher is better quality)
-      "method": 6,    # Compression method (0-6, 6 is slowest but provides better compression)
-      "lossless": False  # Set to True for lossless compression
+      "quality": 100 if ext == 'JPEG' else 60,
+      "method": 0 if ext == 'JPEG' else 6,
+      "lossless": True if ext == 'JPEG' else False 
     }
     try:
       img = Image.open(image_path)
@@ -45,7 +45,7 @@ class File_manager:
           img.save(destination, ext)
       except OSError:
         img.save(destination, 'PNG')
-    except:
+    except Exception as e:
       pass
 
   def formatFilename(self, s):
@@ -117,7 +117,7 @@ class File_manager:
 
     def process_image(filename):
       # resize
-      self.resizeImage(filename, 1000, filename)
+      self.resizeImage(os.path.join(root, filename), 1000, os.path.join(root, filename))
 
       # rename
       if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg") or filename.endswith('Cover.jpg'):
