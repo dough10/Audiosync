@@ -586,7 +586,7 @@ function appendElements(parent, elements) {
 }
 
 /**
- * 
+ * sets an attribute true
  * Called by {audiosync-podcast}
  * @function
  * 

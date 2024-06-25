@@ -82,7 +82,8 @@ Called by {audiosync-podcast}</p>
 Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]</p>
 </dd>
 <dt><a href="#toggleAttribute">toggleAttribute(element, attribute)</a></dt>
-<dd><p>Called by {audiosync-podcast}</p>
+<dd><p>sets an attribute true
+Called by {audiosync-podcast}</p>
 </dd>
 <dt><a href="#createButtonWithIcon">createButtonWithIcon(buttonType, iconType, classes)</a> ⇒ <code>HTMLElement</code></dt>
 <dd><p>creates a button element with an svg icon</p>
@@ -426,6 +427,7 @@ Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpis
 <a name="toggleAttribute"></a>
 
 ## toggleAttribute(element, attribute)
+sets an attribute true
 Called by {audiosync-podcast}
 
 **Kind**: global function  
