@@ -2,7 +2,7 @@ import {expect} from '@open-wc/testing';
 import {isValidURL} from '../../js/helpers.js';
 
 
-it('regEx URL', () => {
+it('validates URL format', () => {
   expect(isValidURL('https://google.com')).to.equal(true);
   expect(isValidURL('http://google.com')).to.equal(true);
   expect(isValidURL('htps://google.com')).to.equal(false);
