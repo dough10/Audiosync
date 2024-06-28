@@ -152,6 +152,9 @@ svg > * {
     font-size: 22px;
   }
 }
+.wrapper[downloading] .podcast-title {
+  max-width: 300px;
+}
 .wrapper[expanded][updating] > .podcast-title {
   max-width: 420px;
 }
