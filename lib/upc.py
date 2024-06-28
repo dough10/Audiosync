@@ -19,10 +19,6 @@ def get_upc(artist, album, tracklist):
   data = response.json()
   if 'results' in data and data['results']:
     try:
-      # with open('upcdata.csv', 'w', encoding='utf-8') as file:
-      #   wr = csv.writer(file, quoting=csv.QUOTE_ALL)
-      #   wr.writerow(data['results'])
-
       for release in data['results']:
         try:
           if release['formats'][0]['name'] == 'CD' and release['country'] == 'US':
