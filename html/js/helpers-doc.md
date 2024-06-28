@@ -4,6 +4,9 @@
 <dt><a href="#sleep">sleep(milliseconds)</a> ⇒ <code>Promise.&lt;Void&gt;</code></dt>
 <dd><p>wait an ammout of time</p>
 </dd>
+<dt><a href="#debounce">debounce(fn, [time])</a> ⇒ <code>void</code></dt>
+<dd><p>debounce a function preventing it from executing to many times</p>
+</dd>
 <dt><a href="#getCSSVariableValue">getCSSVariableValue(variableName)</a> ⇒ <code>String</code></dt>
 <dd><p>returns value of a css variable</p>
 </dd>
@@ -30,6 +33,15 @@
 </dd>
 <dt><a href="#getColorAtPoint">getColorAtPoint(canvas, x, y, radius)</a> ⇒ <code>String</code></dt>
 <dd><p>returs average color around a point of a canvas element</p>
+</dd>
+<dt><a href="#isGrey">isGrey(r, g, b)</a> ⇒ <code>Boolean</code></dt>
+<dd><p>detect if color is grey</p>
+</dd>
+<dt><a href="#getLuminance">getLuminance(r, g, b)</a> ⇒ <code>Number</code></dt>
+<dd><p>brightness value 1 white 0 black</p>
+</dd>
+<dt><a href="#findGoldieLocksColor">findGoldieLocksColor(palette, [skipIndex], [bLimit], [dLimit])</a> ⇒ <code>Number</code></dt>
+<dd><p>loop through palette of colors to find a color in range</p>
 </dd>
 <dt><a href="#generateRandomString">generateRandomString(length)</a> ⇒ <code>String</code></dt>
 <dd><p>random string generator</p>
@@ -125,6 +137,18 @@ wait an ammout of time
 | Param | Type |
 | --- | --- |
 | milliseconds | <code>ms</code> | 
+
+<a name="debounce"></a>
+
+## debounce(fn, [time]) ⇒ <code>void</code>
+debounce a function preventing it from executing to many times
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| fn | <code>function</code> | 
+| [time] | <code>Number</code> | 
 
 <a name="getCSSVariableValue"></a>
 
@@ -230,6 +254,47 @@ returs average color around a point of a canvas element
 | x | <code>Number</code> | 
 | y | <code>Number</code> | 
 | radius | <code>Number</code> | 
+
+<a name="isGrey"></a>
+
+## isGrey(r, g, b) ⇒ <code>Boolean</code>
+detect if color is grey
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| r | <code>Number</code> | 
+| g | <code>Number</code> | 
+| b | <code>Number</code> | 
+
+<a name="getLuminance"></a>
+
+## getLuminance(r, g, b) ⇒ <code>Number</code>
+brightness value 1 white 0 black
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| r | <code>Number</code> | 
+| g | <code>Number</code> | 
+| b | <code>Number</code> | 
+
+<a name="findGoldieLocksColor"></a>
+
+## findGoldieLocksColor(palette, [skipIndex], [bLimit], [dLimit]) ⇒ <code>Number</code>
+loop through palette of colors to find a color in range
+
+**Kind**: global function  
+**Returns**: <code>Number</code> - color index  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| palette | <code>Object</code> | color palette from ColorThief |
+| [skipIndex] | <code>Number</code> | an index to overlook |
+| [bLimit] | <code>Number</code> | brightness limit threshold 1 |
+| [dLimit] | <code>Number</code> | darkness limit threshold 0 |
 
 <a name="generateRandomString"></a>
 

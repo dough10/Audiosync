@@ -12,6 +12,7 @@ A python application with HTML GUI for writing a SD Card for use in a Digital Au
 ## JSDocs Documentation
 
 - [make-docs-doc.md](make-docs-doc.md)
+  - [html/js/audiosync-player/audiosync-player-doc.md](html/js/audiosync-player/audiosync-player-doc.md)
   - [html/js/audiosync-podcasts/audiosync-podcasts-doc.md](html/js/audiosync-podcasts/audiosync-podcasts-doc.md)
   - [html/js/audiosync-dialog/audiosync-dialog-doc.md](html/js/audiosync-dialog/audiosync-dialog-doc.md)
   - [html/js/helpers-doc.md](html/js/helpers-doc.md)
