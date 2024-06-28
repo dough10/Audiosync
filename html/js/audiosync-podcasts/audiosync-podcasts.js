@@ -244,7 +244,7 @@ class AudioSyncPodcasts extends HTMLElement {
         wrapper.style.setProperty('--progress', `-100%`);
         new Toast(`${fileName} downloaded`);
         dlStats.textContent = '';
-        wrapper.removeAttribute('updating');
+        wrapper.removeAttribute('downloading');
         if (download_ep) download_ep.removeAttribute('downloading');
         qsa('.dl', wrapper).forEach(el => el.removeAttribute('disabled'));
         this._updateEpisodeList(name, qs('.podcast-episodes', wrapper));
