@@ -35,18 +35,9 @@ function themenameToIndex(themename) {
  * @param {Object} theme 
  */
 function loadTheme(theme) {
-  const STYLES = parseCSS(qs('style').textContent);
   for (const key in theme) {
-    STYLES[':root'][key] = theme[key];
+    document.documentElement.style.setProperty(key, theme[key]);
   }
-  qs('style').textContent = objectToCSS(STYLES);
-  // refresh button color
-  qs('audiosync-button', qs('sync-ui').shadowRoot).setAttribute('color', 'var(--pop-color)');
-  qsa('audiosync-small-button').forEach(el => el.setAttribute('color', 'var(--text-color)'));
-  qsa('audiosync-small-button', qs('audiosync-podcasts').shadowRoot).forEach(el => el.setAttribute('color', 'var(--text-color)'));
-  qsa('audiosync-small-button', qs('audiosync-player').shadowRoot).forEach(el => {
-    if (el.id !== 'favorite') el.setAttribute('color', 'var(--text-color)');
-  });
 }
 
 /**
@@ -182,12 +173,18 @@ async function load_app() {
   PLAYER.addEventListener('image-loaded', e => {
     const palette = e.detail.palette;
     document.documentElement.style.setProperty('--pop-rgb', palette.variable);
-    [
-      qs('audiosync-button', SYNC_UI_ELEMENT.shadowRoot),
-      qs('audiosync-fab', SCROLL_ELEMENT.shadowRoot)
-    ].forEach(el => {
-      if (el) el.setAttribute('color', palette.fab);
-    });
+    document.documentElement.style.setProperty('--contrast-color', palette.fabContrast);
+  });
+
+  PLAYER.addEventListener('now-playing', e => {
+    const playing = e.detail.playing;
+    PODCAST_LIBRARY.nowPlaying(playing);
+    MUSIC_LIBRARY.nowPlaying(playing);
+  });
+
+  PLAYER.addEventListener('playlist-reset', _ => {
+    PODCAST_LIBRARY.resetPlaylist();
+    MUSIC_LIBRARY.resetPlaylist();
   });
   
   MUSIC_LIBRARY.addEventListener('library-scan', async e => {
@@ -210,8 +207,8 @@ async function load_app() {
   MUSIC_LIBRARY_MENU_BUTTON.onClick(async _ => {
     await sleep(20);
     await MENU_DRAWER.close();
-    if (PLAYER.hasAttribute('fullscreen')) {
-      await PLAYER.minimize();
+    if (PLAYER.hasAttribute('full-screen')) {
+      PLAYER.minimize();
     }
     if (PAGES.getAttribute('selected') === '0') return;
     PAGES.setAttribute('selected', 0);
@@ -223,8 +220,8 @@ async function load_app() {
   PODCAST_LIBRARY_MENU_BUTTON.onClick(async _ => {
     await sleep(20);
     await MENU_DRAWER.close();
-    if (PLAYER.hasAttribute('fullscreen')) {
-      await PLAYER.minimize();
+    if (PLAYER.hasAttribute('full-screen')) {
+      PLAYER.minimize();
     }
     if (PAGES.getAttribute('selected') === '1') return;
     PODCAST_LIBRARY.style.setProperty('--animation-time', '0ms');
