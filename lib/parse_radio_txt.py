@@ -1,11 +1,16 @@
 import requests
 from tqdm import tqdm
 
+import os
+
+file_path = os.path.abspath(__file__)
+script_folder = os.path.dirname(file_path)
+
 txt_src = 'https://masturbatorium.com/hibyradio.txt'
 
 def fetch_text_file(url, encoding='utf-8'):
   try:
-    response = requests.get(url, timeout=10)
+    response = requests.get(url, timeout=3)
     response.raise_for_status()
     response.encoding = encoding
     text_content = response.text
@@ -21,8 +26,8 @@ def is_live_stream(url):
   except requests.exceptions.RequestException:
     return False
 
-def save_txt(data):
-  with open('radio.txt', 'w') as txt:
+def save_txt(location, data):
+  with open(os.path.join(location, 'radio.txt'), 'w') as txt:
     for station in data:
       try:
         txt.write(f'{station['title']}, {station['url']}\n')
@@ -30,7 +35,7 @@ def save_txt(data):
         txt.write(f'{station['comment']}\n')
 
 
-def main(window):
+def main(location:str, window:dict):
   data = []
   lines = fetch_text_file(txt_src).split('\n')
 
@@ -54,7 +59,7 @@ def main(window):
     if window:
       window.evaluate_js(f'document.querySelector("sync-ui").updateBar("#radio-bar", {ndx}, {length});')
 
-  save_txt(data)
+  save_txt(location, data)
   
 if __name__ == "__main__":
-  main(False)
+  main(script_folder, False)
