@@ -14,6 +14,7 @@ from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, print_change_log, files_with_issues, need_attention, reset_log
 from lib.parse_radio_txt import main as create_radio_txt
+from lib.resize_image import resize_image
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
@@ -208,10 +209,8 @@ def move_file(root:str, file:str, ext:str):
     file_manager.copy_file(lrc, dest, os.path.join(dest, lrc_filename))
 
   if import_cues:
-    if ext == '.flac':
-      pl_manager.import_m3u_files(root, dest)
-    else:
-      pl_manager.import_cue_files(root, dest)
+    pl_manager.import_m3u_files(root, dest)
+    pl_manager.import_cue_files(root, dest)
 
   try:
     file_manager.copy_file(source_file, dest, os.path.join(dest, file))
@@ -432,12 +431,7 @@ def run_sync(window:dict):
 
   if import_custom_radio:
     # parse online radio.txt file and reject offline streams
-    create_radio_txt(window)
-
-    radio_file = os.path.join(script_folder, 'radio.txt')
-
-    # copy radio.txt to sd card root directory
-    file_manager.copy_file(radio_file, sorted_dir, os.path.join(sorted_dir, 'radio.txt'))
+    create_radio_txt(sorted_dir, window)
 
   # output file containing trouble files
   notify({
@@ -492,7 +486,7 @@ def build_lib(root:str, file:str, ext:str):
   # create 150px thumb.webp
   thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
   if not os.path.exists(thumbnail_name):
-    file_manager.resizeImage(jpg, 150, thumbnail_name, ext='WEBP')
+    resize_image(jpg, 150, thumbnail_name, ext='WEBP')
   # add to lib_data
   add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
 
