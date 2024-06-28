@@ -148,8 +148,8 @@ class MusicLibrary extends HTMLElement {
       '.album-grid[selected] > .selected': {
         left:'50%',
         top:'37%',
-        height:'100px',
-        width:'100px',
+        height:'150px',
+        width:'150px',
         color: 'green',
         transform: 'translate(-50%, -50%)',
         opacity: 1
