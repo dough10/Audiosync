@@ -1,34 +1,19 @@
-import os
-import glob
 from PIL import Image
 from tqdm import tqdm
 from io import BytesIO
 import music_tag as MP3
-from lib.upc import get_upc
 from mutagen.flac import FLAC
+
+import os
+import glob
+
+from lib.upc import get_upc
 from lib.log import need_attention, log
 from lib.file_manager import File_manager
 from lib.new_files import list_of_new_files
-
-def scale_image(img, file):
-  """
-  Scale the provided image and save it to the specified file.
-
-  Parameters:
-  - img (PIL.Image.Image): The PIL Image object to be scaled.
-  - file (str): The file path where the scaled image will be saved.
-
-  Returns:
-  None
-  """
-  width, height = img.size 
-  if width > 1000 or height > 1000:
-    img.thumbnail((1000, 1000), Image.LANCZOS)
-  img.convert('RGB')
-  try:
-    img.save(file, 'JPEG')
-  except OSError:
-    img.save(file, 'PNG')
+from lib.resize_image import resize_image
+from lib.generate_m3u import generate_m3u
+from lib.generate_cue import generate_cue
 
 class Playlist_manager:
   def __init__(self, changes):
@@ -48,72 +33,7 @@ class Playlist_manager:
     None
     """
     # cue file path
-    cue_file_path = os.path.join(directory, f'{album}.cue')
-
-    # early return if cue file path already exists 
-    if os.path.exists(cue_file_path) or len(glob.glob(os.path.join(directory, '*.cue'))) != 0:
-      return
-    
-    # list usable audio files
-    audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.mp3') or file.endswith('.m4a')]
-    
-    # early return if no files
-    if len(audio_files) == 0:
-      return
-    
-    # list to sort for play order
-    info = []
-
-    # list to submit for UPC info from discogs
-    track_list = []
-    for audio_file in audio_files:
-
-      # path and filetype
-      audio_path = os.path.join(directory, audio_file)
-      file_extension = os.path.splitext(audio_path)[1].replace('.', '')
-
-      # get ID3 info
-      try:
-        track = MP3.load_file(audio_path)
-      except Exception as E:
-        need_attention.append(f'file: {audio_path}\nissue: {E}\n')
-        return
-      
-      # add to list for getting UPC from discogs
-      if 'title' in track:
-        track_list.append(str(track['title']))
-
-      # ID3 track number  
-      try:
-        track_number = int(track['tracknumber'])
-      except ValueError:
-        track_number = len(audio_files) - audio_files.index(audio_file)
-
-      #ID3 disc number
-      disc_number = int(track['discnumber']) or 1
-
-      # add to track order list for sorting
-      info.append((audio_file, disc_number, track_number))
-
-    # sort by disc then track number
-    info.sort(key=lambda x: (x[1], x[2]))
-    
-    # write the cue file
-    with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
-      upc = get_upc(artist, album, track_list)
-      if upc:
-        cue_file.write(f'CATALOG "{upc}"\n')
-      cue_file.write(f'PERFORMER "{artist}"\n')
-      cue_file.write(f'TITLE "{album}"\n')
-      for file in info:
-        track = MP3.load_file(os.path.join(directory, file[0]))
-        try:
-          cue_file.write(f'FILE "{file[0]}" {file_extension.upper()}\n')
-          cue_file.write(f'  TRACK {str(track['tracknumber']).zfill(2)} AUDIO\n')
-          cue_file.write('    INDEX 01 00:00:00\n')
-        except:
-          pass
-    log(f"CUE file generated at {cue_file_path}")
+    generate_cue(directory, artist, album)
     self.changes['playlist_created'] += 1
 
   def generate_m3u_file(self, directory, album):
@@ -127,55 +47,9 @@ class Playlist_manager:
     Returns:
     None
     """
-    # m3u8 file path
-    m3u_file_path = os.path.join(directory, f'{album}.m3u8')
+    generate_m3u(directory, album)
+    self.changes['playlist_created'] += 1
 
-    # early retun if m3u8 file exists
-    if os.path.exists(m3u_file_path) or len(glob.glob(os.path.join(directory, '*.m3u*'))) > 0:
-      return
-    
-    # list flac files
-    audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.flac')]
-    
-    # early return if no files in list
-    if len(audio_files) == 0:
-      return
-    
-    try:
-      # list for sorting tracks
-      info = []
-      for file in audio_files:
-        # get FLAC file info
-        audio = FLAC(os.path.join(directory, file))
-        track = audio['tracknumber'][0]
-        if 'discnumber' in audio:
-          disc = audio['discnumber'][0]
-        else:
-          disc = 1
-        if 'artist' in audio:
-          artist = audio['artist'][0]
-        else:
-          artist = audio['albumartist'][0]
-        info.append((file, int(disc), int(track), [audio.info.length, artist, audio['title'][0]]))
-      
-      # sort tracks by disc then track number
-      info.sort(key=lambda x: (x[1], x[2]))
-
-      # save m3u8 file to m3u_file_path
-      with open(m3u_file_path, 'w', encoding='utf-8') as m3u:
-        m3u.write('#EXTM3U\n')
-        m3u.write(f'#EXTART: {audio['albumartist'][0]}\n')
-        m3u.write(f'#EXTALB: {album}\n')
-        m3u.write('#EXTIMG: cover.jpg\n')
-        m3u.write(f'#PLAYLIST: {audio['albumartist'][0]} - {album}\n')
-        for file_info in info:
-          m3u.write(f'#EXTINF: {int(file_info[3][0])}, {file_info[3][1]} - {file_info[3][2]}\n{file_info[0]}\n')
-      
-      # log change
-      log(f"M3U file generated at {m3u_file_path}")
-      self.changes['playlist_created'] += 1
-    except Exception as e:
-      need_attention.append(f'error creating {m3u_file_path}\n{e}\n\n')
 
   def import_cue_files(self, root, dest):
     """
@@ -329,7 +203,7 @@ class Playlist_manager:
     if not os.path.exists(jpg):
       try:
         img = Image.open(BytesIO(id3['APIC:'].data))
-        scale_image(img, jpg)
+        resize_image(img, 1000, jpg)
         log(f'{jpg} extracted from {source_file}')
       except Exception as e:
         pass
