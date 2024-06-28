@@ -2,7 +2,7 @@ import {ce, qs, createRipple, hexToRgba, convertToHex, parseCSS, objectToCSS} fr
 
 class SmallButton extends HTMLElement {
   static get observedAttributes() {
-    return ['disabled','color'];
+    return ['disabled', 'color'];
   }
   constructor() {
     super();
@@ -58,31 +58,7 @@ class SmallButton extends HTMLElement {
       if (this.hasAttribute('disabled')) return;
       createRipple(e);
     };
-    const TEXT_COLOR = convertToHex(window.getComputedStyle(this.button).color); 
-    this._color(TEXT_COLOR);
     this.button.addEventListener('click', ELEMENT_CLICKED);
-  }
-
-  /**
-   * set the color of the icon and ripple animation
-   * 
-   * @param {String} color 
-   */
-  async _color(color) {
-    //  capture styles
-    const ELEMENT_STYLES = parseCSS(qs('style', this.shadowRoot).textContent);
-
-    const HEX_COLOR = convertToHex(color);
-
-    // create / update css styles
-    ELEMENT_STYLES['.new-color'] = {
-      'color': HEX_COLOR
-    };
-    // ELEMENT_STYLES['.ripple-effect'].background = hexToRgba(HEX_COLOR);
-
-    // apply styles
-    qs('style', this.shadowRoot).textContent = objectToCSS(ELEMENT_STYLES);
-    this.button.classList.add('new-color');
   }
 
   /**
@@ -102,19 +78,15 @@ class SmallButton extends HTMLElement {
    * attribute has changed 
    * 
    * @param {String} name
-   * @param {Number} oldVal
-   * @param {Number} newVal
+   * @param {String} oldVal
+   * @param {String} newVal  
    */
   attributeChangedCallback(name, oldVal, newVal) {
-    if (name === 'disabled') {
-      if (this.hasAttribute(name)) {
-        this.button.setAttribute(name, '');
-      } else {
-        this.button.removeAttribute(name);
-      }
-    } else if (name === 'color') {
-      this._color(newVal);
+    if (name === 'color') {
+      this.button.style.setProperty(name, newVal)
+      return;
     }
+    this.button.toggleAttribute(name);
   }
 }
 customElements.define('audiosync-small-button', SmallButton);

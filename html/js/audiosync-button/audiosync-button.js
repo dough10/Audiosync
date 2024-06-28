@@ -1,4 +1,4 @@
-import {ce} from '../helpers.js';
+import {ce, getContrastColor, convertToHex} from '../helpers.js';
 
 class AudioSyncButton extends HTMLElement {
   static get observedAttributes() {
@@ -49,8 +49,10 @@ class AudioSyncButton extends HTMLElement {
    * attribute has changed 
    * 
    * @param {String} name
+   * @param {Number} oldVal
+   * @param {Number} newVal
    */
-  attributeChangedCallback(name) {
+  attributeChangedCallback(name, oldVal, newVal) {
     if (['disabled','noshadow'].includes(name)) {
       // reflect attribute changes to the button element
       if (this.hasAttribute(name)) {
@@ -58,6 +60,11 @@ class AudioSyncButton extends HTMLElement {
       } else {
         this.button.removeAttribute(name);
       }
+    } else if (name === 'color') {
+      const color = convertToHex(newVal);
+      const contrast = getContrastColor(color);
+      this.style.setProperty('--pop-color', color);
+      this.style.setProperty('--contrast-color', contrast);
     }
   }
 }
