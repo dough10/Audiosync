@@ -2,10 +2,12 @@ import os
 import time
 import shutil
 import string
-from PIL import Image
+from itertools import repeat
 from lib.lyrics import get_lyrics
 from lib.log import log
 from concurrent.futures import ThreadPoolExecutor
+
+from lib.resize_image import resize_image
 
 def estimate_file_size(text):
   return len(text.encode('utf-8')) / 1024
@@ -19,34 +21,6 @@ def delete_thumbnails(path):
 class File_manager:
   def __init__(self, changes):
     self.changes = changes
-
-  def resizeImage(self, image_path:str, size:int, destination:str, ext='JPEG'):
-    options = {
-      "quality": 100 if ext == 'JPEG' else 60,
-      "method": 0 if ext == 'JPEG' else 6,
-      "lossless": True if ext == 'JPEG' else False 
-    }
-    try:
-      img = Image.open(image_path)
-      width, height = img.size 
-      if width > size or height > size:
-        img.thumbnail((size, size), Image.LANCZOS)
-      img.convert('RGB')
-      try:
-        if ext == 'WEBP':
-          img.save(destination, ext, **options)
-        else :
-          img.save(destination, ext)
-      except FileExistsError:
-        os.remove(destination)
-        if ext == 'WEBP':
-          img.save(destination, ext, **options)
-        else :
-          img.save(destination, ext)
-      except OSError:
-        img.save(destination, 'PNG')
-    except Exception as e:
-      pass
 
   def formatFilename(self, s):
     """
@@ -117,7 +91,7 @@ class File_manager:
 
     def process_image(filename):
       # resize
-      self.resizeImage(os.path.join(root, filename), 1000, os.path.join(root, filename))
+      resize_image(os.path.join(root, filename), 1000, os.path.join(root, filename))
 
       # rename
       if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg") or filename.endswith('Cover.jpg'):
