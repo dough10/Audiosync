@@ -14,6 +14,23 @@ function sleep(ms) {
 }
 
 
+let lastRun = 0;
+/**
+ * debounce a function preventing it from executing to many times
+ * 
+ * @param {Function} fn 
+ * @param {Number} [time] 
+ * 
+ * @returns {void}
+ */
+function debounce(fn, time) {
+  const t = time || 1000;
+  const now = new Date().getTime();
+  if (now - lastRun < t) return;
+  fn();
+  lastRun = now;
+}
+
 
 
 /**
@@ -304,6 +321,60 @@ function getColorAtPoint(canvas, x, y, radius) {
   return rgbToHex(averageRed, averageGreen, averageBlue);
 }
 
+/**
+ * detect if color is grey 
+ * 
+ * @param {Number} r 
+ * @param {Number} g 
+ * @param {Number} b 
+ * 
+ * @returns {Boolean}
+ */
+function isGrey(r, g, b) {
+  const THRESHOLD = 10;
+  return Math.abs(r - g) < THRESHOLD && Math.abs(r - b) < THRESHOLD && Math.abs(g - b) < THRESHOLD;
+}
+
+/**
+ * brightness value 1 white 0 black
+ * 
+ * @param {Number} r 
+ * @param {Number} g 
+ * @param {Number} b
+ *  
+ * @returns {Number}
+ */
+function getLuminance(r,g,b) {
+  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+}
+
+/**
+ * loop through palette of colors to find a color in range 
+ * 
+ * @param {Object} palette color palette from ColorThief
+ * @param {Number} [skipIndex] an index to overlook
+ * @param {Number} [bLimit] brightness limit threshold 1
+ * @param {Number} [dLimit] darkness limit threshold 0
+ * 
+ * @returns {Number} color index
+ */
+function findGoldieLocksColor(palette, skipIndex, bLimit, dLimit) {
+  const brightnessLimit = bLimit || 0.7; 
+  const darknessLimit = dLimit || 0.3;
+  const skip = (skipIndex !== undefined && skipIndex !== null) ? skipIndex : palette.length;
+  for (let i = 0; i < palette.length; i++) {
+    const r = palette[i][0];
+    const g = palette[i][1];
+    const b = palette[i][2];
+    const luminance = getLuminance(r,g,b);
+    const colorIsGrey = isGrey(r,g,b);
+    if (!colorIsGrey && luminance < brightnessLimit && luminance > darknessLimit && i != skip) {
+      return i;
+    }
+  }
+}
+
+
 
 
 
@@ -336,6 +407,13 @@ function generateRandomString(length = 8) {
   _generatedStrings.add(result);
   return result;
 }
+
+function mmss(time) {
+  const m = Math.floor(time / 60);
+  const s = Math.floor(time % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
 
 
 
@@ -936,8 +1014,11 @@ export {
   createRipple,
   convertToHex,
   hexToRgba,
+  findGoldieLocksColor,
+  isGrey,
   fillButton,
   getCSSVariableValue,
+  getLuminance,
   getContrastColor,
   generateRandomString,
   parseCSS,
@@ -953,5 +1034,7 @@ export {
   appendElements,
   toggleAttribute,
   createButtonWithIcon,
+  debounce,
+  mmss,
   transitionEvent
 }
