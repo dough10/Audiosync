@@ -1,6 +1,10 @@
-import {qs, svgIcon, ce, elementWidth, elementHeight, animateElement, getContrastColor, objectToCSS, sleep, qsa, createRipple, convertToHex, parseCSS, fadeOut, fadeIn, calcPercentage} from './helpers.js';
+import {qs, svgIcon, ce, elementWidth, elementHeight, findGoldieLocksColor, animateElement, getContrastColor, objectToCSS, sleep, qsa, createRipple, convertToHex, parseCSS, fadeOut, fadeIn, calcPercentage, rgbToHex} from './helpers.js';
 import {getIcon} from './getIcon/getIcon.js';
 
+/**
+ * @class
+ * @this AudioPlayer
+ */
 class AudioPlayer extends HTMLElement {
   constructor() {
     super();
@@ -42,7 +46,7 @@ class AudioPlayer extends HTMLElement {
         right: 0,
         top: 'var(--header-height)',
         transform: 'translateY(100%)',
-        'background-color': 'rgba(var(--main-rgb),0.9)',
+        'background': `linear-gradient(to bottom, var(--gradient-top), var(--background-color, #ffffff))`,
         color: 'var(--text-color)'
       },
       '#fbg > .img-wrapper': {
@@ -189,6 +193,7 @@ class AudioPlayer extends HTMLElement {
         position:'fixed',
         top: '20px',
         right: '20px',
+        color: 'var(--gradient-contrast, #333333)',
         transition: 'color 500ms ease'
       },
       '#playlist': {
@@ -303,22 +308,22 @@ class AudioPlayer extends HTMLElement {
    */
   _fullScreenFavoriteDisplay(favEl) {
     
-    let FULLSCREEN_FAVORITE_TOGGLE_BUTTON = qs('#favorite', this.shadowRoot);
-    if (!FULLSCREEN_FAVORITE_TOGGLE_BUTTON && !favEl) return;
+    let fullscreenFavoriteToggleButton = qs('#favorite', this.shadowRoot);
+    if (!fullscreenFavoriteToggleButton && !favEl) return;
     
-    if (favEl) FULLSCREEN_FAVORITE_TOGGLE_BUTTON = favEl;
+    if (favEl) fullscreenFavoriteToggleButton = favEl;
 
     if (this.isFavorite === null || this.isFavorite === undefined) {
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0;
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'none';
+      fullscreenFavoriteToggleButton.style.opacity = 0;
+      fullscreenFavoriteToggleButton.style.display = 'none';
     } else if (this.isFavorite) {
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Unfavorite';
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 1;
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'block';
+      fullscreenFavoriteToggleButton.title = 'Unfavorite';
+      fullscreenFavoriteToggleButton.style.opacity = 1;
+      fullscreenFavoriteToggleButton.style.display = 'block';
     } else {  
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.title = 'Favorite';
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.opacity = 0.2;
-      FULLSCREEN_FAVORITE_TOGGLE_BUTTON.style.display = 'block';
+      fullscreenFavoriteToggleButton.title = 'Favorite';
+      fullscreenFavoriteToggleButton.style.opacity = 0.2;
+      fullscreenFavoriteToggleButton.style.display = 'block';
     }
   }
 
@@ -434,7 +439,6 @@ class AudioPlayer extends HTMLElement {
     FAVORITE_TOGGLE_BUTTON.id = 'favorite';
     this._fullScreenFavoriteDisplay(FAVORITE_TOGGLE_BUTTON);
     FAVORITE_TOGGLE_BUTTON.appendChild(svgIcon('favorite'));
-    FAVORITE_TOGGLE_BUTTON.setAttribute('color', this.palette.contrast);
     FAVORITE_TOGGLE_BUTTON.onClick(_ => {
       this.isFavorite = !this.isFavorite;
       this._fullScreenFavoriteDisplay();
@@ -796,33 +800,6 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
-   * detect if color is grey 
-   * 
-   * @param {Number} r 
-   * @param {Number} g 
-   * @param {Number} b 
-   * 
-   * @returns {Boolean}
-   */
-  _isGrey(r, g, b) {
-    const THRESHOLD = 15;
-    return Math.abs(r - g) < THRESHOLD && Math.abs(r - b) < THRESHOLD && Math.abs(g - b) < THRESHOLD;
-  }
-
-  /**
-   * brightness value 1 white 0 black
-   * 
-   * @param {Number} r 
-   * @param {Number} g 
-   * @param {Number} b
-   *  
-   * @returns {Number}
-   */
-  _getLuminence(r,g,b) {
-    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  }
-
-  /**
    * loads an image and gets a palette from the image
    * 
    * @param {String} url 
@@ -834,73 +811,46 @@ class AudioPlayer extends HTMLElement {
     IMG.onload = _ => {
       const THIEF = new ColorThief();
       const STOLEN_PALETTE = THIEF.getPalette(IMG, 15);
-
-      // safe range where should look decent in either dark or light mode
-      let brightnessLimit = 0.7; 
-      let darknessLimit = 0.3;
       
-      // default color index values
-      let popNdx = 0;
-      let topNdx = 1;
+      let popNdx = findGoldieLocksColor(STOLEN_PALETTE) || 0;
+      let topNdx = findGoldieLocksColor(STOLEN_PALETTE) || 1;
 
-      // find a color for top of gradient
-      for (let i = 1; i < STOLEN_PALETTE.length; i++) {
-        let r = STOLEN_PALETTE[i][0];
-        let g = STOLEN_PALETTE[i][1];
-        let b = STOLEN_PALETTE[i][2];
-        const LUMINENCE = this._getLuminence(r,g,b);
-        const IS_GREY = this._isGrey(r,g,b);
-        if (!IS_GREY && LUMINENCE < brightnessLimit && LUMINENCE > darknessLimit) {
-          topNdx = i;
-          break;
-        }
-      }
-      
-      // loop through colors for goldie locks color to use for --pop-color
-      for (let i = 0; i < STOLEN_PALETTE.length; i++) {
-        let r = STOLEN_PALETTE[i][0];
-        let g = STOLEN_PALETTE[i][1];
-        let b = STOLEN_PALETTE[i][2];
-        if (i !== topNdx) {
-          const LUMINENCE = this._getLuminence(r,g,b);
-          const IS_GREY = this._isGrey(r,g,b);
-          if (!IS_GREY && LUMINENCE < brightnessLimit && LUMINENCE > darknessLimit) {
-            popNdx = i;
-            break;
-          }
-        }
-      }
+      const popRgb = [
+        STOLEN_PALETTE[popNdx][0],
+        STOLEN_PALETTE[popNdx][1],
+        STOLEN_PALETTE[popNdx][2]
+      ];
 
-      // console.log(popNdx, topNdx);
+      const topRgb = [
+        STOLEN_PALETTE[topNdx][0],
+        STOLEN_PALETTE[topNdx][1],
+        STOLEN_PALETTE[topNdx][2]
+      ];
 
       // --pop-color rgb string
-      const POP_RGB_STRING = `${STOLEN_PALETTE[popNdx][0]},${STOLEN_PALETTE[popNdx][1]},${STOLEN_PALETTE[popNdx][2]}`;
-      const TOP_RGB_STRING = `${STOLEN_PALETTE[topNdx][0]},${STOLEN_PALETTE[topNdx][1]},${STOLEN_PALETTE[topNdx][2]}`;
+      const POP_RGB_STRING = `${popRgb[0]},${popRgb[1]},${popRgb[2]}`;
+      const TOP_RGB_STRING = `${topRgb[0]},${topRgb[1]},${topRgb[2]}`;
       
-      // gradient top color in hex value 
-      const HEX = convertToHex(`rgb(${TOP_RGB_STRING})`);
+      const popHex = rgbToHex(popRgb[0],popRgb[1],popRgb[2]);
+
+      const gradientHex = convertToHex(`rgb(${TOP_RGB_STRING})`);
 
       // color palette
       this.palette = {
         fab: `rgb(${POP_RGB_STRING})`, // fab / accent color
-        variable: `${POP_RGB_STRING}`, // for css variable avaliable @ --pop-color
+        fabContrast: getContrastColor(popHex),
+        variable: POP_RGB_STRING, // for css variable avaliable @ --pop-color
         top: `rgb(${TOP_RGB_STRING})`, // player art gradient top color
-        bottom: `var(--background-color)`, // player bg gradient bottom color
-        contrast: getContrastColor(HEX) // contrasting color to color used on buttons at top of gradient
+        gradientContrast: getContrastColor(gradientHex) // contrasting color to color used on buttons at top of gradient
       };
+
+      this.style.setProperty('--gradient-top', this.palette.top);
+      this.style.setProperty('--gradient-contrast', this.palette.gradientContrast);
 
       // fullscreen player element
       const FULLSCREEN = qs('#fbg', this.shadowRoot);
 
-      // update colors if fullscreen
-      if (FULLSCREEN) {
-
-        // set colors for gradient
-        FULLSCREEN.style.background = `linear-gradient(to bottom, ${this.palette.top}, ${this.palette.bottom})`;
-        
-        // set action button color
-        qs('audiosync-fab', FULLSCREEN).setAttribute('color', this.palette.fab);
-        
+      if (FULLSCREEN) { 
         this._fullScreenFavoriteDisplay();
       }
 
