@@ -580,7 +580,7 @@ class Podcast:
     return len(self.__list)
 
   def subscribe(self, window):
-    if self.__xmlURL in listCronjobs() or self.__xmlURL in config['subscriptions']:
+    if self.__xmlURL in config['subscriptions']:
       print(f'Already Subscribed to {self.__title}')
       if window:
         window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Already Subscribed to {self.__title}");')
@@ -592,18 +592,10 @@ class Podcast:
       file.write(json.dumps(config, indent=2))
 
     if window:
-      window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Creating CRONJOB");')
-    
-    # logLocation = os.path.join(script_folder, 'output')
-    # print('Creating cronjob')
-    # os.system(f"(crontab -l 2>/dev/null; echo \"0 0 * * * /usr/local/bin/python3 {file_path} {self.__xmlURL} > {os.path.join(logLocation, fm.formatFilename(self.__title)).replace(' ', '.')}.log 2>&1\") | crontab -")
-    
-    if window:
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Subscribed!");')
-      return
     
     print('Starting download. This may take a minuite.')
-    self.downloadNewest(False)
+    self.downloadNewest(window)
 
   def unsubscribe(self, window):
     def go():
@@ -617,10 +609,7 @@ class Podcast:
             print(f'Deleteing directory {self.__location}')
           except:
             pass
-
-      # os.system(f'crontab -l | grep -v "{self.__xmlURL}" | crontab -')
-      # print('Cronjob removed')
-
+          
     if window:
       go()
       return
