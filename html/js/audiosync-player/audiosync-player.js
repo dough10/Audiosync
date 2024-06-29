@@ -51,6 +51,8 @@ class AudioPlayer extends HTMLElement {
 
     this.player = new Audio();
 
+    this.favorite = this.favorite.bind(this);
+
     this.player.onloadedmetadata = this._onMetaData.bind(this);
     this.player.onplay = this._onPlay.bind(this);
     this.player.onplaying = this._onPlaying.bind(this);
@@ -138,6 +140,23 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
+   * callback for <music-library> favorite added event
+   * 
+   * @param {Object} data 
+   * @returns {void}
+   */
+  favorite(data) {
+    // if favorited album is the currently playing ablum
+    if (this.artist === data.artist && this.album === data.title) {
+      // toggle state
+      this.isFavorite = data.favorite;
+
+      // update UI
+      this._fullScreenFavoriteDisplay();
+    }
+  }
+
+  /**
    * sets src attribute, 
    * @private
    * 
@@ -154,6 +173,7 @@ class AudioPlayer extends HTMLElement {
     this.artist = nowPlaying.artist;
     this.album = nowPlaying.album;
     this.art = nowPlaying.art;
+    this.isFavorite = this.musicLibrary.albumIsFavorite(this.artist, this.album);
 
     this._cacheImage(this.art);
 
@@ -259,7 +279,7 @@ class AudioPlayer extends HTMLElement {
       this.isFavorite = !this.isFavorite;
       this._fullScreenFavoriteDisplay();
       // pass favorite to library
-      this.library.favoriteAlbum(this.artist, this.albumTitle);
+      this.musicLibrary.favoriteAlbum(this.artist, this.album);
     });
 
     appendElements(fullScreenBackground, [
@@ -558,7 +578,7 @@ class AudioPlayer extends HTMLElement {
       const topRgb = palette[topNdx];
       const popRgbString = `${popRgb[0]},${popRgb[1]},${popRgb[2]}`;
       const topRgbString = `${topRgb[0]},${topRgb[1]},${topRgb[2]}`;
-      const popHex = rgbToHex(popRgb[0], popRgb[1], popRgb[2]);
+      const popHex = rgbToHex(...popRgb);
       const gradientHex = convertToHex(`rgb(${topRgbString})`);
 
       // color palette
@@ -569,6 +589,8 @@ class AudioPlayer extends HTMLElement {
         top: `rgb(${topRgbString})`, // player art gradient top color
         gradientContrast: getContrastColor(gradientHex) // contrasting color to color used on buttons at top of gradient
       };
+
+      console.log(this.palette)
 
       this.dispatchEvent(new CustomEvent('image-loaded', {
         detail: { palette: this.palette }

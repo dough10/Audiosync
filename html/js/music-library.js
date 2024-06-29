@@ -379,6 +379,23 @@ class MusicLibrary extends HTMLElement {
   }
 
   /**
+   * is this album a favorite
+   * 
+   * @param {String} artist 
+   * @param {String} album 
+   * 
+   * @returns {Boolean}
+   */
+  albumIsFavorite(artist, album) {
+    const el = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+    if (el) {
+      return el.hasAttribute('favorite');
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * audioplayer has reset playlist
    */
   resetPlaylist() {
@@ -488,10 +505,10 @@ class MusicLibrary extends HTMLElement {
   favoriteAlbum(artist, album) {
     
     // the album to be favorited
-    const ALBUM_ELEMENTS = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
-    
+    const ALBUM_ELEMENT = qs(`[data-artist="${artist}"][data-album="${album}"]`, this.shadowRoot);
+
     // toggle the favorite attribute
-    ALBUM_ELEMENTS.toggleAttribute('favorite');
+    ALBUM_ELEMENT.toggleAttribute('favorite');
     
     // get all album elements with the favirote attribute
     const FAVORITES = this._getFavorites();
@@ -501,9 +518,9 @@ class MusicLibrary extends HTMLElement {
     
     // favorited artist element
     const ARTIST_ELEMENT = qs(`.artist[data-artist="${artist}"]`, this.shadowRoot);
-    if (ALBUM_ELEMENTS.hasAttribute('favorite') && !ARTIST_ELEMENT.hasAttribute('favorite')) {
+    if (ALBUM_ELEMENT.hasAttribute('favorite') && !ARTIST_ELEMENT.hasAttribute('favorite')) {
       ARTIST_ELEMENT.toggleAttribute('favorite');
-    } else if (!ALBUM_ELEMENTS.hasAttribute('favorite')) {
+    } else if (!ALBUM_ELEMENT.hasAttribute('favorite')) {
       ARTIST_ELEMENT.removeAttribute('favorite');
     }
 
