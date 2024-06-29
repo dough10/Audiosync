@@ -1,5 +1,6 @@
 import { ce, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js'
 
+// fix favorite button
 
 /**
  * UI for managing playback of audio files
@@ -123,7 +124,7 @@ class AudioPlayer extends HTMLElement {
    */
   playNdx(ndx) {
     this.playing = ndx;
-    this._changeSrc();
+    this._setSrc();
   }
 
   /**
