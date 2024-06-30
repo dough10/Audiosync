@@ -18,8 +18,8 @@ from lib.old_date import old_date
 from lib.is_audio import supported_formats
 from lib.file_manager import File_manager
 
-if sys.platform == "darwin":
-  from pync import Notifier
+# if sys.platform == "darwin":
+  # from pync import Notifier
 
 changes = { # log of file changes 
   "new_folders": 0,
@@ -340,17 +340,18 @@ def time_stamp():
   return datetime.datetime.now().strftime('%a, %d %b %Y %H:%M:%S %z')
 
 def notification(podcast_title, episode_title, image):
-  if sys.platform == "darwin":    
-    try:
-      Notifier.notify(
-        episode_title, 
-        title=podcast_title, 
-        subtitle=time_stamp(), 
-        contentImage=image,
-        sound='default'
-      )
-    except Exception as e:
-      print(f"Error sending osx notification: {str(e)}")
+  pass
+  # if sys.platform == "darwin":    
+  #   try:
+  #     Notifier.notify(
+  #       episode_title, 
+  #       title=podcast_title, 
+  #       subtitle=time_stamp(), 
+  #       contentImage=image,
+  #       sound='default'
+  #     )
+  #   except Exception as e:
+  #     print(f"Error sending osx notification: {str(e)}")
 
 def remove_string_from_list(input_list, string_to_remove):
   return [x for x in input_list if x != string_to_remove]
