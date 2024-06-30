@@ -1,0 +1,1 @@
+pyinstaller --add-data 'config.json;.' --add-data 'html/;.' --hidden-import=clr --clean index.pyw
