@@ -7,9 +7,10 @@ python-dateutil
 pync
 mutagen
 tqdm
-BytesIO
 matplotlib
 librosa
 pywebview
-shutil
-clipbaord
+clipboard
+lyricsgenius
+discogs_client
+pyinstaller
