@@ -11,7 +11,7 @@ UI for managing playback of audio files
 * [AudioPlayer](#AudioPlayer) ⇐ <code>HTMLElement</code>
     * [.playAlbum(playObj, [ndx])](#AudioPlayer+playAlbum) ⇒ <code>void</code>
     * [.playNdx(ndx)](#AudioPlayer+playNdx) ⇒ <code>void</code>
-    * [.addToPlaylist(albumInfo)](#AudioPlayer+addToPlaylist)
+    * [.addToPlaylist(albumInfo)](#AudioPlayer+addToPlaylist) ⇒ <code>void</code>
     * [.favorite(data)](#AudioPlayer+favorite) ⇒ <code>void</code>
     * [.minimize()](#AudioPlayer+minimize) ⇒ <code>void</code>
     * [.fullScreen()](#AudioPlayer+fullScreen) ⇒ <code>void</code>
@@ -47,14 +47,17 @@ play a specific playlist index number
 
 <a name="AudioPlayer+addToPlaylist"></a>
 
-### audioPlayer.addToPlaylist(albumInfo)
+### audioPlayer.addToPlaylist(albumInfo) ⇒ <code>void</code>
 add an albums tracks to the playlist
 
 **Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
 
-| Param | Type |
-| --- | --- |
-| albumInfo | <code>Object</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| albumInfo | <code>Object</code> |  |
+| albumInfo.artist | <code>String</code> | artist name |
+| albumInfo.title | <code>String</code> | album / podcast title |
+| albumInfo.tracks | <code>Array</code> | list of tracks / podcast episodes |
 
 <a name="AudioPlayer+favorite"></a>
 

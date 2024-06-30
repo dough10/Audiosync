@@ -198,7 +198,7 @@ class AudioPlayer extends HTMLElement {
     this.player.src = nowPlaying.path;
     this.player.load();
     this.player.play();
-    await pywebview.api.scrobble_start(nowPlaying);
+    // await pywebview.api.scrobble_start(nowPlaying);
   }
 
   /**
@@ -734,7 +734,7 @@ class AudioPlayer extends HTMLElement {
     }
     this.playing++;
     this._setSrc();
-    pywebview.api.scrobble_end(this.playlist[this.playing - 1]);
+    // pywebview.api.scrobble_end(this.playlist[this.playing - 1]);
   }
 
   /**
