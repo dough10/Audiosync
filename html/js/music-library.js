@@ -288,6 +288,18 @@ class MusicLibrary extends HTMLElement {
         'border-radius': '50%',
         background: 'rgba(var(--pop-rgb),0.4)',
         animation: 'ripple-animation 0.7s linear'
+      },
+      'audiosync-button > div': {
+        'display': 'flex',
+        'flex-direction': 'row',
+      },
+      'audiosync-button > div > :first-child': {
+        'margin-right': '16px'
+      },
+      'audiosync-button > div > :nth-child(2)': {
+        'display': 'flex',
+        'align-items': 'center',
+        'margin-right': '16px'
       }
     };
 
