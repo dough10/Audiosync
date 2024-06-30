@@ -1,4 +1,4 @@
-import { ce, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js'
+import { ce, dropFirstFolder, getFileExtension, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js'
 
 // fix favorite button
 
@@ -133,6 +133,11 @@ class AudioPlayer extends HTMLElement {
    * add an albums tracks to the playlist
    * 
    * @param {Object} albumInfo 
+   * @param {String} albumInfo.artist artist name
+   * @param {String} albumInfo.title album / podcast title
+   * @param {Array} albumInfo.tracks list of tracks / podcast episodes
+   * 
+   * @returns {void}
    */
   addToPlaylist(albumInfo) {
     const tracksToAdd = albumInfo.tracks.slice();
@@ -162,7 +167,7 @@ class AudioPlayer extends HTMLElement {
    * 
    * @returns {Void}
    */
-  _setSrc() {
+  async _setSrc() {
     this._updatePlaylistUI();
     const nowPlaying = this.playlist[this.playing];
 
@@ -175,6 +180,13 @@ class AudioPlayer extends HTMLElement {
     this.art = nowPlaying.art;
     this.isFavorite = this.musicLibrary.albumIsFavorite(this.artist, this.album);
 
+    const ext = getFileExtension(nowPlaying.path);
+    const path = dropFirstFolder(nowPlaying.path.replace(ext, 'lrc-raw'));
+
+    if (await pywebview.api.lrcraw_exists(path)) {
+      // maybe a feature to time stamp lrc files
+    }
+
     this._cacheImage(this.art);
 
     const fullScreenArt = qs('#fsart', qs('#fbg > .img-wrapper', this.shadowRoot));
@@ -186,7 +198,7 @@ class AudioPlayer extends HTMLElement {
     this.player.src = nowPlaying.path;
     this.player.load();
     this.player.play();
-
+    await pywebview.api.scrobble_start(nowPlaying);
   }
 
   /**
@@ -590,8 +602,6 @@ class AudioPlayer extends HTMLElement {
         gradientContrast: getContrastColor(gradientHex) // contrasting color to color used on buttons at top of gradient
       };
 
-      console.log(this.palette)
-
       this.dispatchEvent(new CustomEvent('image-loaded', {
         detail: { palette: this.palette }
       }));
@@ -719,11 +729,12 @@ class AudioPlayer extends HTMLElement {
    */
   _onEnd() {
     if (!this.playlist[this.playing + 1]) {
-      this._pauseTimer();
+      this._pauseTimeout();
       return;
     }
     this.playing++;
     this._setSrc();
+    pywebview.api.scrobble_end(this.playlist[this.playing - 1]);
   }
 
   /**

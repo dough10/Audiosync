@@ -11,6 +11,8 @@ UI for managing playback of audio files
 * [AudioPlayer](#AudioPlayer) ⇐ <code>HTMLElement</code>
     * [.playAlbum(playObj, [ndx])](#AudioPlayer+playAlbum) ⇒ <code>void</code>
     * [.playNdx(ndx)](#AudioPlayer+playNdx) ⇒ <code>void</code>
+    * [.addToPlaylist(albumInfo)](#AudioPlayer+addToPlaylist)
+    * [.favorite(data)](#AudioPlayer+favorite) ⇒ <code>void</code>
     * [.minimize()](#AudioPlayer+minimize) ⇒ <code>void</code>
     * [.fullScreen()](#AudioPlayer+fullScreen) ⇒ <code>void</code>
 
@@ -20,6 +22,7 @@ UI for managing playback of audio files
 play the given album with option to pass an index of desired starting point
 
 **Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
+**Emits**: <code>event:playlist-reset</code>  
 **Access**: public  
 
 | Param | Type | Description |
@@ -41,6 +44,28 @@ play a specific playlist index number
 | Param | Type |
 | --- | --- |
 | ndx | <code>Number</code> | 
+
+<a name="AudioPlayer+addToPlaylist"></a>
+
+### audioPlayer.addToPlaylist(albumInfo)
+add an albums tracks to the playlist
+
+**Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
+
+| Param | Type |
+| --- | --- |
+| albumInfo | <code>Object</code> | 
+
+<a name="AudioPlayer+favorite"></a>
+
+### audioPlayer.favorite(data) ⇒ <code>void</code>
+callback for <music-library> favorite added event
+
+**Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
+
+| Param | Type |
+| --- | --- |
+| data | <code>Object</code> | 
 
 <a name="AudioPlayer+minimize"></a>
 
