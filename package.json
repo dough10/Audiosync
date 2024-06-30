@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "install-requirments": "npm install && pip install -r requirments.txt",
+    "build-app": "pyinstaller --add-data \"config.json;.\" --add-data \"html/;./html\" --add-data \"themes/;./themes\" --icon=icon/icon_128.ico --hidden-import=clr --onedir --clean index.pyw",
     "test-JS": "web-test-runner \"html/tests/**/*.test.js\" --node-resolve",
     "make-docs": "node make-docs"
   },
@@ -18,7 +20,7 @@
   },
   "name": "audiosync",
   "version": "1.0.0",
-  "description": "A python application with HTML GUI for downloading podcast audio files and audio file transfer to a SD Card for use in a Digital Audio Player.",
+  "description": "download podcast audio files and transfer audio files to an SD Card for use in a Digital Audio Player.",
   "directories": {
     "lib": "lib"
   },
