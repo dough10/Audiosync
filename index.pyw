@@ -121,11 +121,6 @@ class Api:
     save_config()
     return config
 
-  # exit application
-  def close(self):
-    window.destroy()
-
-
   def get_themes(self):
     themes = []
     for theme_location in glob.glob(os.path.join(script_folder, 'themes', '*.json')):
@@ -158,6 +153,13 @@ class Api:
   def get_clipboard(self):
     return clipboard.paste()
 
+  # creates lib_data.json by scanning file library
+  def create_json(self):
+    create_lib_json(window)
+
+  def lrcraw_exists(self, path):
+    return os.path.exists(os.path.join(*[config['source'], *path]))
+
   # subscribe to URL
   def subscribe(self, url):
     Podcast(url).subscribe(window)
@@ -170,7 +172,7 @@ class Api:
   def list_subscriptions(self):
     reload_config()
     return config['subscriptions']
-
+  
   # runs podcast update and sends update info to UI
   def get_podcasts(self):
     window.evaluate_js(f'document.querySelector("audiosync-podcasts").update();')
@@ -178,10 +180,6 @@ class Api:
     for ndx, url in enumerate(config['subscriptions']):
       Podcast(url).downloadNewest(window)
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{url}", {ndx + 1}, {length});')
-
-  # creates lib_data.json by scanning file library
-  def create_json(self):
-    create_lib_json(window)
 
   # frontend xml proxy
   def xmlProxy(self, url):
@@ -216,6 +214,12 @@ class Api:
       os.remove(os.path.join(config['podcast_folder'], file_object['path']))
     except Exception as e:
       print(e)
+
+  def scrobble_start(self, played_obj):
+    print(played_obj)
+
+  def scrobble_end(self, played_obj):
+    print(played_obj)
 
 
 def main():
