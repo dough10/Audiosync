@@ -358,21 +358,22 @@ function getLuminance(r,g,b) {
  * 
  * @returns {Number} color index
  */
-function findGoldieLocksColor(palette, skipIndex, bLimit, dLimit) {
-  const brightnessLimit = bLimit || 0.7; 
-  const darknessLimit = dLimit || 0.3;
+function findGoldieLocksColor(palette, skipIndex, bLimit = 0.7, dLimit = 0.3) {
   const skip = (skipIndex !== undefined && skipIndex !== null) ? skipIndex : palette.length;
+
   for (let i = 0; i < palette.length; i++) {
-    const r = palette[i][0];
-    const g = palette[i][1];
-    const b = palette[i][2];
-    const luminance = getLuminance(r,g,b);
-    const colorIsGrey = isGrey(r,g,b);
-    if (!colorIsGrey && luminance < brightnessLimit && luminance > darknessLimit && i != skip) {
+    if (i === skip) continue;
+
+    const [r, g, b] = palette[i];
+    const luminance = getLuminance(r, g, b);
+
+    if (luminance < bLimit && luminance > dLimit && !isGrey(r, g, b)) {
       return i;
     }
   }
+  return undefined;
 }
+
 
 
 
