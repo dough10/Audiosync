@@ -46,6 +46,9 @@
 <dt><a href="#generateRandomString">generateRandomString(length)</a> ⇒ <code>String</code></dt>
 <dd><p>random string generator</p>
 </dd>
+<dt><a href="#mmss">mmss(time)</a> ⇒ <code>String</code></dt>
+<dd><p>convert seconds to mm:ss format</p>
+</dd>
 <dt><a href="#isValidURL">isValidURL(url)</a> ⇒ <code>Boolean</code></dt>
 <dd><p>validate Podcast rss URL 
 Called by {audiosync-podcast}</p>
@@ -67,6 +70,12 @@ Called by {audiosync-podcast}</p>
 </dd>
 <dt><a href="#getFilenameWithoutExtension">getFilenameWithoutExtension(filePath)</a> ⇒ <code>Number</code></dt>
 <dd><p>return the filename without path and extension</p>
+</dd>
+<dt><a href="#getFileExtension">getFileExtension(url)</a> ⇒ <code>String</code></dt>
+<dd><p>get a paths file extention</p>
+</dd>
+<dt><a href="#dropFirstFolder">dropFirstFolder(filePath)</a> ⇒ <code>Array.&lt;String&gt;</code></dt>
+<dd><p>converts a string to an array and drops first folder then returns the array</p>
 </dd>
 <dt><a href="#calcPercentage">calcPercentage(small, big)</a> ⇒ <code>Number</code></dt>
 <dd><p>calculates percentage value</p>
@@ -307,6 +316,17 @@ random string generator
 | --- | --- | --- | --- |
 | length | <code>Number</code> | <code>8</code> | length of the returned string |
 
+<a name="mmss"></a>
+
+## mmss(time) ⇒ <code>String</code>
+convert seconds to mm:ss format
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| time | <code>Number</code> | 
+
 <a name="isValidURL"></a>
 
 ## isValidURL(url) ⇒ <code>Boolean</code>
@@ -381,6 +401,28 @@ check if any number is in a given array
 
 ## getFilenameWithoutExtension(filePath) ⇒ <code>Number</code>
 return the filename without path and extension
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| filePath | <code>String</code> | 
+
+<a name="getFileExtension"></a>
+
+## getFileExtension(url) ⇒ <code>String</code>
+get a paths file extention
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| url | <code>String</code> | 
+
+<a name="dropFirstFolder"></a>
+
+## dropFirstFolder(filePath) ⇒ <code>Array.&lt;String&gt;</code>
+converts a string to an array and drops first folder then returns the array
 
 **Kind**: global function  
 
