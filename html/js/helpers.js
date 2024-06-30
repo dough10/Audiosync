@@ -408,6 +408,13 @@ function generateRandomString(length = 8) {
   return result;
 }
 
+/**
+ * convert seconds to mm:ss format
+ * 
+ * @param {Number} time 
+ * 
+ * @returns {String}
+ */
 function mmss(time) {
   const m = Math.floor(time / 60);
   const s = Math.floor(time % 60).toString().padStart(2, '0');
@@ -532,6 +539,41 @@ function getFilenameWithoutExtension(filePath) {
 }
 
 /**
+ * get a paths file extention
+ * 
+ * @param {String} url 
+ * 
+ * @returns {String}
+ */
+function getFileExtension(url) {
+  // Get the last part of the URL after the last '/'
+  const path = url.split('/').pop();
+  
+  // Find the last '.' in the filename
+  const lastDotIndex = path.lastIndexOf('.');
+  
+  // Check if there is a '.' in the filename and return the extension
+  if (lastDotIndex !== -1) {
+    return path.slice(lastDotIndex + 1).toLowerCase();
+  } else {
+    return ''; // No extension found
+  }
+}
+
+/**
+ * converts a string to an array and drops first folder then returns the array
+ * 
+ * @param {String} filePath 
+ * 
+ * @returns {String[]}
+ */
+function dropFirstFolder(filePath) {
+  const parts = filePath.split('/');
+  parts.shift();
+  return parts;
+}
+
+/**
  * calculates percentage value
  * @function
  * 
@@ -571,6 +613,9 @@ function formatDownloadSpeed(bps) {
     return (bps / 1000000).toFixed(2) + ' Mbps';
   }
 }
+
+
+
 
 
 
@@ -996,7 +1041,6 @@ async function createRipple(event) {
 }
 
 
-
 export {
   formatDownloadSpeed,
   elementHeight,
@@ -1036,5 +1080,7 @@ export {
   createButtonWithIcon,
   debounce,
   mmss,
+  getFileExtension,
+  dropFirstFolder,
   transitionEvent
 }
