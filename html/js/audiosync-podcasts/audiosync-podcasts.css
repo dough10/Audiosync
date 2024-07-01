@@ -321,6 +321,7 @@ svg > * {
   background: rgba(var(--pop-rgb), 0.4);
 }
 .episode[playing] {
+  color: var(--contrast-color);
   background: var(--pop-color);
 }
 .episode[downloading] {
