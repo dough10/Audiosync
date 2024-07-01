@@ -294,15 +294,15 @@ option {
 
 .select {
   position: relative;
-  width: 350px;
-  margin: 50px auto 16px;
+  width: 450px;
+  margin: 35px auto 16px;
 }
 
 .select-text {
   position: relative;
   font-family: inherit;
   background-color: transparent;
-  width: 350px;
+  width: 450px;
   padding: 10px 10px 10px 0;
   font-size: 18px;
   border-radius: 0;
@@ -334,6 +334,7 @@ option {
   pointer-events: none;
 }
 .select-label {
+  text-transform: uppercase;
   color: var(--text-color);
   font-size: 18px;
   font-weight: normal;
