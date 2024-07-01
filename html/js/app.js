@@ -138,7 +138,8 @@ async function load_app() {
   const HEADER_SETTING_BUTTON = qs('#settings');
   const SETTINGS_DRAWER = qs('audiosync-settings');
   const PODCAST_LIBRARY = qs('audiosync-podcasts');
-  const THEME_DROPDOWN = qs('.select-text');
+  const THEME_DROPDOWN = qs('#theme');
+  const VIEW_DROPDOWN = qs('#lib-view');
   const IMPORT_PLAYLISTS_SWITCH = qs('#cues');
   const IMPORT_LYRICS_SWITCH = qs('#lyrics');
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
@@ -149,7 +150,6 @@ async function load_app() {
   const GRID_ICON = "M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z";
   const LIST_ICON = "M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z";
 
-
   if (_loadTimer) {
     clearTimeout(_loadTimer);
     _loadTimer = 0;
@@ -159,6 +159,17 @@ async function load_app() {
     const theme = await pywebview.api.load_theme(THEME_DROPDOWN.value);
     loadTheme(theme);
     pywebview.api.update_config({"theme": THEME_DROPDOWN.selectedIndex});
+  });
+
+  VIEW_DROPDOWN.addEventListener('change', _ => {
+    pywebview.api.update_config({"view": VIEW_DROPDOWN.selectedIndex});
+    const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
+    if (VIEW_DROPDOWN.value === 'list') {
+      ICON.setAttribute('d', LIST_ICON);
+    } else {
+      ICON.setAttribute('d', GRID_ICON);
+    }
+    MUSIC_LIBRARY.setAttribute('view', VIEW_DROPDOWN.value);
   });
   
   const THEMES_LIST = await pywebview.api.get_themes();
@@ -319,6 +330,8 @@ async function load_app() {
   }
 
   THEME_DROPDOWN.selectedIndex = theme;
+
+  VIEW_DROPDOWN.selectedIndex = CONFIG_OBJECT.view;
   
   const THEME_OBJECT = await pywebview.api.load_theme(THEME_DROPDOWN.value);
   loadTheme(THEME_OBJECT);
@@ -356,7 +369,7 @@ async function load_app() {
   // load media library
   MUSIC_LIBRARY.addEventListener('lib_size_updated', e => MENU_DRAWER.footElement(e.detail.lib_size));
 
-  MUSIC_LIBRARY.setAttribute('view', CONFIG_OBJECT.view || 'list');
+  MUSIC_LIBRARY.setAttribute('view', VIEW_DROPDOWN.value || 'list');
 
   const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
   if (MUSIC_LIBRARY.getAttribute('view') === 'list') {
