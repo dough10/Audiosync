@@ -584,30 +584,33 @@ class AudioPlayer extends HTMLElement {
     img.src = url;
     img.onload = _ => {
       const palette = new ColorThief().getPalette(img, 20);
+
+      // pop color 
       const popNdx = findGoldieLocksColor(palette) || 0;
-      const topNdx = findGoldieLocksColor(palette, popNdx) || 1;
       const popRgb = palette[popNdx];
-      const topRgb = palette[topNdx];
-      const popRgbString = `${popRgb[0]},${popRgb[1]},${popRgb[2]}`;
-      const topRgbString = `${topRgb[0]},${topRgb[1]},${topRgb[2]}`;
+      const popRgbString = popRgb.toString();
       const popHex = rgbToHex(...popRgb);
-      const gradientHex = convertToHex(`rgb(${topRgbString})`);
+      
+      // gradient top color
+      const topNdx = findGoldieLocksColor(palette, popNdx) || 1;
+      const topRgb = palette[topNdx];
+      const gradientHex = rgbToHex(...topRgb);
 
       // color palette
       this.palette = {
         fab: `rgb(${popRgbString})`, // fab / accent color
         fabContrast: getContrastColor(popHex),
         variable: popRgbString, // for css variable avaliable @ --pop-color
-        top: `rgb(${topRgbString})`, // player art gradient top color
+        top: `rgb(${topRgb.toString()})`, // player art gradient top color
         gradientContrast: getContrastColor(gradientHex) // contrasting color to color used on buttons at top of gradient
       };
+
+      this.style.setProperty('--gradient-top', this.palette.top);
+      this.style.setProperty('--gradient-contrast', this.palette.gradientContrast);
 
       this.dispatchEvent(new CustomEvent('image-loaded', {
         detail: { palette: this.palette }
       }));
-
-      this.style.setProperty('--gradient-top', this.palette.top);
-      this.style.setProperty('--gradient-contrast', this.palette.gradientContrast);
 
       img.remove();
     };
@@ -643,11 +646,10 @@ class AudioPlayer extends HTMLElement {
    */
   _pauseTimeout() {
     this.minimize();
-    const miniPlayer = qs('.background', this.shadowRoot);
-    miniPlayer.addEventListener('transitionend', _ => miniPlayer.remove());
     this.removeAttribute('playing');
     this.playlist = [];
     this.playing = 0;
+    this.player.src = '';
     this._setSrc();
   }
 
