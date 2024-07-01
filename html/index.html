@@ -158,10 +158,19 @@
       <!-- settings drawer -->
       <audiosync-settings>
         <div class="select">
-					<select class="select-text" required></select>
+					<select class="select-text" id="theme" required></select>
 					<span class="select-highlight"></span>
 					<span class="select-bar"></span>
 					<label class="select-label">Theme</label>
+				</div>
+        <div class="select">
+					<select class="select-text" id="lib-view" required>
+            <option value="list">list</option>
+            <option value="grid">grid</option>
+          </select>
+					<span class="select-highlight"></span>
+					<span class="select-bar"></span>
+					<label class="select-label">default library view</label>
 				</div>
         <audiosync-switch id="cues">
           Import playlists
