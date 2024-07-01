@@ -88,4 +88,4 @@ def generate_cue(directory:str, artist:str, album:str):
   log(f"CUE file generated at {cue_file_path}")
 
 if __name__ == "__main__":
-  generate_cue(sys.argv[1], sys.argv[2])
+  generate_cue(sys.argv[1], sys.argv[2], sys.argv[3])
