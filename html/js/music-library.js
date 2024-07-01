@@ -83,6 +83,7 @@ class MusicLibrary extends HTMLElement {
         "background-color": "var(--hover-color)"
       },
       '.album-grid': {
+        cursor: 'pointer',
         height: '200px',
         'max-width': '150px',
         'max-height': '200px',
@@ -208,7 +209,7 @@ class MusicLibrary extends HTMLElement {
       },
       ".album-list[selected]:hover": {
         color: 'var(--contrast-color)',
-        "background-color": "var(--selected-hover-color)"
+        "background-color": "var(--pop-color)"
       },
       ".blank": {
         height: "550px",
