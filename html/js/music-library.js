@@ -207,6 +207,7 @@ class MusicLibrary extends HTMLElement {
         "background-color": "var(--selected-color)"
       },
       ".album-list[selected]:hover": {
+        color: 'var(--contrast-color)',
         "background-color": "var(--selected-hover-color)"
       },
       ".blank": {
