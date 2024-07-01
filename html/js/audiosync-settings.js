@@ -69,7 +69,7 @@ class AudioSyncSettings extends HTMLElement {
         color: "var(--text-color)",
         "max-width": "675px",
         "min-width": "280px",
-        padding: "8px",
+        padding: "8px 8px 60px 8px",
         background: "var(--main-color)",
         position: "relative",
         margin: "auto",
