@@ -9,11 +9,12 @@ config_path = os.path.join(script_folder, '..', 'config.json')
 with open(config_path, 'r') as j:
   config = json.load(j)
 
-genius = lyricsgenius.Genius(config['genius'])
-genius.verbose = False
-genius.skip_non_songs = True
-genius.remove_section_headers = True
-genius.excluded_terms = ["(Remix)", "(Live)"]
+if config['genius']:
+  genius = lyricsgenius.Genius(config['genius'])
+  genius.verbose = False
+  genius.skip_non_songs = True
+  genius.remove_section_headers = True
+  genius.excluded_terms = ["(Remix)", "(Live)"]
 
 def remove_lines(text):
   text = re.sub(r'(\d+ (?:Contributors?|Embed)|Get tickets as low as \$\d+)', '', text)
