@@ -1,0 +1,64 @@
+.container[view=grid] {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: var(--grid-col, repeat(3, 1fr));
+}
+
+.album > * {
+  pointer-events: none;
+}
+
+.album[expanded] > * {
+  pointer-events: all;
+}
+
+.container[view=list] > .album {
+  position: relative;
+  border-top: var(--seperator-line);
+  cursor: pointer;
+  padding: 8px;
+  font-size: 13px;
+  transition: var(--button-bg-animation);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  min-height: 20px;
+  transition-property: min-height;
+  transition-duration: 300ms;
+  transition-timing-function: linear;
+}
+
+.container[view=list] > .album[expanded] {
+  min-height: 250px;
+}
+
+
+
+
+
+.container[view=grid] > .album {
+  position: relative;
+
+  cursor: pointer;
+  min-width: 150px;
+  min-height: 200px;
+  max-width: 150px;
+  max-height: 200px;
+  text-align: justify;
+  position: relative;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 5px;
+  background: var(--main-color);
+  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+}
+
+.container[view=grid] > .album[expanded] {
+  cursor: initial;
+  min-width:322px;
+  min-height: 632px;
+  grid-column: span 2;
+  grid-row: span 3;
+}
+

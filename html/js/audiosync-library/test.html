@@ -1,0 +1,77 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-control" content="public">
+  <title>Audiosync library test</title>
+  <style>
+    :root {
+    --font-family: 'Roboto', 'Noto', sans-serif;
+
+    --header-height: 65px;
+    
+    --main-rgb: 255,255,255;
+
+    --main-color: rgb(var(--main-rgb));
+    
+    --disabled-color: #c1bebe; 
+    
+    --background-color: rgb(229, 229, 229);
+    
+    --hover-color: rgba(var(--pop-rgb),0.4);
+    
+    --text-color: #333333;
+    
+    --pop-rgb: 51, 51, 51;
+    
+    --pop-color: rgb(var(--pop-rgb));
+
+    --selected-color: rgba(100, 100, 100, 0.582);
+
+    --selected-hover-color:#00000044;
+
+    --button-bg-animation: 'background 500ms ease';
+
+    --seperator-line: 1px solid rgba(51,51,51,0.2);
+
+    --close-red: red;
+    }
+    body {
+      font-family: 'Roboto', 'Noto', sans-serif;
+      background-color:rgb(191, 191, 191);
+
+      position: absolute;
+      top: 0;
+      bottom:0;
+      left:0;
+      right:0;
+      font-size: 13px;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      user-select: none;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding:0;
+      margin:0;
+      color:#ffffff;
+    }
+  </style>
+
+  <!-- custom element -->
+  <script type="module" src="./audiosync-library.js"></script>
+  
+  <script>
+    window.onload = async _ => {
+      const data = await fetch('../../../lib_data.json');
+      document.querySelector('audiosync-library').loadData(await data.json())
+    };
+  </script>
+
+  <!-- fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <audiosync-library alt-css="./audiosync-library.css" view="list"></audiosync-library>
+</body>
+</html>
