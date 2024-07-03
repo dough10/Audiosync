@@ -39,7 +39,6 @@
 
 .container[view=grid] > .album {
   position: relative;
-
   cursor: pointer;
   min-width: 150px;
   min-height: 200px;
@@ -47,7 +46,6 @@
   max-height: 200px;
   text-align: justify;
   position: relative;
-  flex-direction: column;
   overflow: hidden;
   border-radius: 5px;
   background: var(--main-color);
