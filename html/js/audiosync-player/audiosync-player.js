@@ -52,6 +52,7 @@ class AudioPlayer extends HTMLElement {
     this.player = new Audio();
 
     this.favorite = this.favorite.bind(this);
+    this.minimize = this.minimize.bind(this);
 
     this.player.onloadedmetadata = this._onMetaData.bind(this);
     this.player.onplay = this._onPlay.bind(this);
@@ -222,34 +223,32 @@ class AudioPlayer extends HTMLElement {
    * minimize fullscreen Ui and display header buttons
    * @public
    * 
-   * @returns {void}
+   * @returns {Promise<void>}
    */
   minimize() {
-    const fullScreenBackground = qs('#fbg', this.shadowRoot);
-    if (!fullScreenBackground) return;
-
-    const popUp = qs('.popup', this.shadowRoot);
-    if (popUp) {
-      qs('img', this.shadowRoot).style.removeProperty('filter');
-      popUp.addEventListener('transitionend', _ => popUp.remove());
-      popUp.removeAttribute('open');
-    }
-
-
-    qs('#fbg', this.shadowRoot).addEventListener('transitionend', _ => {
-      let headerButtons;
-      if (qs('audiosync-pages').getAttribute('selected') === '0') {
-        headerButtons = qsa('.music');
-      } else {
-        headerButtons = qsa('.podcast');
+    return new Promise(resolve => {
+      const fullScreenBackground = qs('#fbg', this.shadowRoot);
+      if (!fullScreenBackground) {
+        resolve();
+        return;
       }
-      headerButtons.forEach(el => {
-        el.style.removeProperty('display');
-        fadeIn(el);
+      fullScreenBackground.addEventListener('transitionend', e => {
+        if (e.target.id === 'fbg' && !this.hasAttribute('full-screen')) {
+          resolve()
+        }
       });
+      const popUp = qs('.popup', this.shadowRoot);
+      if (popUp) {
+        qs('img', this.shadowRoot).style.removeProperty('filter');
+        popUp.addEventListener('transitionend', _ => {
+          popUp.remove();
+          this.removeAttribute('full-screen');
+        });
+        popUp.removeAttribute('open');
+        return;
+      } 
+      this.removeAttribute('full-screen');
     });
-
-    this.removeAttribute('full-screen');
   }
 
   /**
@@ -305,6 +304,16 @@ class AudioPlayer extends HTMLElement {
     fullScreenBackground.addEventListener('transitionend', e => {
       if (e.target.id === 'fbg' && !this.hasAttribute('full-screen')) {
         e.target.remove();
+        let headerButtons;
+        if (qs('audiosync-pages').getAttribute('selected') === '0') {
+          headerButtons = qsa('.music');
+        } else {
+          headerButtons = qsa('.podcast');
+        }
+        headerButtons.forEach(el => {
+          el.style.removeProperty('display');
+          fadeIn(el);
+        });
       }
     });
 
@@ -357,7 +366,7 @@ class AudioPlayer extends HTMLElement {
     const bufferBar = ce('div');
     bufferBar.classList.add('buffered');
 
-    // click location for scrobbeling through a track **broken on windows**
+    // click location for scrobbeling through a track
     const clickStrip = ce('div');
     clickStrip.classList.add('click-strip');
     clickStrip.addEventListener('click', e => {
@@ -605,8 +614,10 @@ class AudioPlayer extends HTMLElement {
         gradientContrast: getContrastColor(gradientHex) // contrasting color to color used on buttons at top of gradient
       };
 
-      this.style.setProperty('--gradient-top', this.palette.top);
-      this.style.setProperty('--gradient-contrast', this.palette.gradientContrast);
+      [
+        ['--gradient-top', this.palette.top],
+        ['--gradient-contrast', this.palette.gradientContrast]
+      ].forEach(prop => this.style.setProperty(...prop));
 
       this.dispatchEvent(new CustomEvent('image-loaded', {
         detail: { palette: this.palette }
@@ -644,12 +655,14 @@ class AudioPlayer extends HTMLElement {
    * 
    * @returns {void}
    */
-  _pauseTimeout() {
-    this.minimize();
-    this.removeAttribute('playing');
+  async _pauseTimeout() {
+    await this.minimize();
+    const miniPlayerUi = qs('.background', this.shadowRoot);
+    miniPlayerUi.addEventListener('transitionend', _ => miniPlayerUi.remove());
     this.playlist = [];
     this.playing = 0;
     this.player.src = '';
+    this.removeAttribute('playing');
     this._setSrc();
   }
 
