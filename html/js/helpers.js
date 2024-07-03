@@ -23,10 +23,9 @@ let lastRun = 0;
  * 
  * @returns {void}
  */
-function debounce(fn, time) {
-  const t = time || 1000;
+function debounce(fn, time=1000) {
   const now = new Date().getTime();
-  if (now - lastRun < t) return;
+  if (now - lastRun < time) return;
   fn();
   lastRun = now;
 }
@@ -387,7 +386,7 @@ function getLuminance(r, g, b, precision = 8) {
  * @returns {Number} color index
  */
 function findGoldieLocksColor(palette, skipIndex, bLimit = 0.7, dLimit = 0.3) {
-  const skip = (skipIndex !== undefined && skipIndex !== null) ? skipIndex : palette.length;
+  const skip = skipIndex ?? palette.length;
 
   for (let i = 0; i < palette.length; i++) {
     if (i === skip) continue;
