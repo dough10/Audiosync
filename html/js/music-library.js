@@ -45,6 +45,10 @@ class MusicLibrary extends HTMLElement {
           opacity: 0
         }
       },
+      'img': {
+        height: '100%',
+        width: '150px'
+      },
       '.head': {
         display:'flex',
         'flex-direction': 'row',
@@ -84,7 +88,6 @@ class MusicLibrary extends HTMLElement {
       },
       '.album-grid': {
         cursor: 'pointer',
-        height: '200px',
         'max-width': '150px',
         'max-height': '200px',
         'text-align': 'justify',
@@ -1138,8 +1141,6 @@ class MusicLibrary extends HTMLElement {
   async _displayAlbumGrid(artist, album) {
     this._fixPaths(album.tracks);
     const IMG = new Image();
-    IMG.height = 150;
-    IMG.width = 150;
     IMG.setAttribute('loading', 'lazy');
     IMG.setAttribute('decoding', 'async');
     IMG.setAttribute('fetchpriority', 'low');
