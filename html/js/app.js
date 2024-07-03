@@ -5,8 +5,7 @@ import {
   sleep,
   fadeIn,
   fadeOut,
-  parseCSS,
-  objectToCSS,
+  toggleAttribute,
   getFilenameWithoutExtension
 } from './helpers.js';
 import { Toast } from './Toast/Toast.js';
@@ -165,11 +164,12 @@ async function load_app() {
     pywebview.api.update_config({"view": VIEW_DROPDOWN.selectedIndex});
     const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
     if (VIEW_DROPDOWN.value === 'list') {
-      ICON.setAttribute('d', LIST_ICON);
-    } else {
       ICON.setAttribute('d', GRID_ICON);
+    } else {
+      ICON.setAttribute('d', LIST_ICON);
     }
     MUSIC_LIBRARY.setAttribute('view', VIEW_DROPDOWN.value);
+    MUSIC_LIBRARY.go();
   });
   
   const THEMES_LIST = await pywebview.api.get_themes();
@@ -183,23 +183,29 @@ async function load_app() {
   // set --pop-color elements the new accent color
   PLAYER.addEventListener('image-loaded', e => {
     const palette = e.detail.palette;
-    document.documentElement.style.setProperty('--pop-rgb', palette.variable);
-    document.documentElement.style.setProperty('--contrast-color', palette.fabContrast);
+    [
+      ['--pop-rgb', palette.variable],
+      ['--contrast-color', palette.fabContrast]
+    ].forEach(prop => document.documentElement.style.setProperty(...prop));
   });
 
   PLAYER.addEventListener('now-playing', e => {
     const playing = e.detail.playing;
-    PODCAST_LIBRARY.nowPlaying(playing);
-    MUSIC_LIBRARY.nowPlaying(playing);
+    [
+      PODCAST_LIBRARY,
+      MUSIC_LIBRARY
+    ].forEach(el =>  el.nowPlaying(playing));
   });
 
   PLAYER.addEventListener('playlist-reset', _ => {
-    PODCAST_LIBRARY.resetPlaylist();
-    MUSIC_LIBRARY.resetPlaylist();
+    [
+      PODCAST_LIBRARY,
+      MUSIC_LIBRARY
+    ].forEach(el => el.resetPlaylist());
   });
   
   MUSIC_LIBRARY.addEventListener('library-scan', async e => {
-    if (!SYNC_BUTTON.hasAttribute('disabled')) SYNC_BUTTON.toggleAttribute('disabled');
+    toggleAttribute(SYNC_BUTTON, 'disabled');
     SYNC_BUTTON.setAttribute('percent', e.detail.percent);
     if (e.detail.percent === 100) {
       await sleep(500);
@@ -256,14 +262,16 @@ async function load_app() {
   
   MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON.onClick(_ => {
     const ICON = qs('path', MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON);
-
     if (MUSIC_LIBRARY.getAttribute('view') === 'list') {
       ICON.setAttribute('d', LIST_ICON);
       MUSIC_LIBRARY.setAttribute('view', 'grid');
+      VIEW_DROPDOWN.selectedIndex = 1;
     } else {
       ICON.setAttribute('d', GRID_ICON);
       MUSIC_LIBRARY.setAttribute('view', 'list');
+      VIEW_DROPDOWN.selectedIndex = 0;
     }
+    pywebview.api.update_config({"view": VIEW_DROPDOWN.selectedIndex});
     MUSIC_LIBRARY.go();
   });
 
@@ -303,9 +311,7 @@ async function load_app() {
     [
       MUSIC_LIBRARY_SCAN_BUTTON, 
       PODCAST_LIBRARY_ADD_BUTTON
-    ].forEach(el => {
-      if (!el.hasAttribute('disabled')) el.toggleAttribute('disabled');
-    });
+    ].forEach(el => toggleAttribute(el, 'disabled'));
     SYNC_UI_ELEMENT.startSync();
     await pywebview.api.run_sync();
     PODCAST_LIBRARY_ADD_BUTTON.removeAttribute('disabled');
