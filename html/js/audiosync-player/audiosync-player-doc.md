@@ -13,7 +13,7 @@ UI for managing playback of audio files
     * [.playNdx(ndx)](#AudioPlayer+playNdx) ⇒ <code>void</code>
     * [.addToPlaylist(albumInfo)](#AudioPlayer+addToPlaylist) ⇒ <code>void</code>
     * [.favorite(data)](#AudioPlayer+favorite) ⇒ <code>void</code>
-    * [.minimize()](#AudioPlayer+minimize) ⇒ <code>void</code>
+    * [.minimize()](#AudioPlayer+minimize) ⇒ <code>Promise.&lt;void&gt;</code>
     * [.fullScreen()](#AudioPlayer+fullScreen) ⇒ <code>void</code>
 
 <a name="AudioPlayer+playAlbum"></a>
@@ -72,7 +72,7 @@ callback for <music-library> favorite added event
 
 <a name="AudioPlayer+minimize"></a>
 
-### audioPlayer.minimize() ⇒ <code>void</code>
+### audioPlayer.minimize() ⇒ <code>Promise.&lt;void&gt;</code>
 minimize fullscreen Ui and display header buttons
 
 **Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  

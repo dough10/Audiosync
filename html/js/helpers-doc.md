@@ -8,19 +8,30 @@
 <dd><p>debounce a function preventing it from executing to many times</p>
 </dd>
 <dt><a href="#getCSSVariableValue">getCSSVariableValue(variableName)</a> ⇒ <code>String</code></dt>
-<dd><p>returns value of a css variable</p>
+<dd><p>returns value of a css variable
+** depreciating **</p>
 </dd>
 <dt><a href="#parseKeyframes">parseKeyframes(keyframesString)</a> ⇒ <code>Object</code></dt>
-<dd><p>parse keyframe string into an object</p>
+<dd><p>parse keyframe string into an object
+ ** depreciating **</p>
 </dd>
 <dt><a href="#parseCSS">parseCSS(cssString)</a> ⇒ <code>Object</code></dt>
-<dd><p>parse css into an object</p>
+<dd><p>parse css into an object
+ ** depreciating **</p>
 </dd>
 <dt><a href="#parseProperties">parseProperties(propertiesString)</a> ⇒ <code>Object</code></dt>
-<dd><p>parse string of css properties into an Object</p>
+<dd><p>parse string of css properties into an Object
+ ** depreciating **</p>
 </dd>
 <dt><a href="#objectToCSS">objectToCSS(cssObject)</a> ⇒ <code>String</code></dt>
-<dd><p>smash an object into a string of css</p>
+<dd><p>smash an object into a string of css
+ ** depreciating **</p>
+</dd>
+<dt><a href="#rgbToHex">rgbToHex(r, g, b)</a> ⇒ <code>String</code></dt>
+<dd><p>retrns a hx value from r,g,b value given</p>
+</dd>
+<dt><a href="#componentToHex">componentToHex(c)</a> ⇒ <code>String</code></dt>
+<dd><p>convers number to hex value</p>
 </dd>
 <dt><a href="#convertToHex">convertToHex(color)</a> ⇒ <code>String</code></dt>
 <dd><p>convers text color ot RGB color to hex</p>
@@ -43,21 +54,12 @@
 <dt><a href="#findGoldieLocksColor">findGoldieLocksColor(palette, [skipIndex], [bLimit], [dLimit])</a> ⇒ <code>Number</code></dt>
 <dd><p>loop through palette of colors to find a color in range</p>
 </dd>
-<dt><a href="#generateRandomString">generateRandomString(length)</a> ⇒ <code>String</code></dt>
-<dd><p>random string generator</p>
-</dd>
 <dt><a href="#mmss">mmss(time)</a> ⇒ <code>String</code></dt>
 <dd><p>convert seconds to mm:ss format</p>
 </dd>
 <dt><a href="#isValidURL">isValidURL(url)</a> ⇒ <code>Boolean</code></dt>
 <dd><p>validate Podcast rss URL 
 Called by {audiosync-podcast}</p>
-</dd>
-<dt><a href="#rgbToHex">rgbToHex(r, g, b)</a> ⇒ <code>String</code></dt>
-<dd><p>retrns a hx value from r,g,b value given</p>
-</dd>
-<dt><a href="#componentToHex">componentToHex(c)</a> ⇒ <code>String</code></dt>
-<dd><p>convers number to hex value</p>
 </dd>
 <dt><a href="#areElementsPresent">areElementsPresent(arr1, arr2)</a> ⇒ <code>Boolean</code></dt>
 <dd><p>is array1 present in array2?</p>
@@ -154,15 +156,15 @@ debounce a function preventing it from executing to many times
 
 **Kind**: global function  
 
-| Param | Type |
-| --- | --- |
-| fn | <code>function</code> | 
-| [time] | <code>Number</code> | 
+| Param | Type | Default |
+| --- | --- | --- |
+| fn | <code>function</code> |  | 
+| [time] | <code>Number</code> | <code>1000</code> | 
 
 <a name="getCSSVariableValue"></a>
 
 ## getCSSVariableValue(variableName) ⇒ <code>String</code>
-returns value of a css variable
+returns value of a css variable** depreciating **
 
 **Kind**: global function  
 
@@ -173,7 +175,7 @@ returns value of a css variable
 <a name="parseKeyframes"></a>
 
 ## parseKeyframes(keyframesString) ⇒ <code>Object</code>
-parse keyframe string into an object
+parse keyframe string into an object ** depreciating **
 
 **Kind**: global function  
 
@@ -184,7 +186,7 @@ parse keyframe string into an object
 <a name="parseCSS"></a>
 
 ## parseCSS(cssString) ⇒ <code>Object</code>
-parse css into an object
+parse css into an object ** depreciating **
 
 **Kind**: global function  
 
@@ -195,7 +197,7 @@ parse css into an object
 <a name="parseProperties"></a>
 
 ## parseProperties(propertiesString) ⇒ <code>Object</code>
-parse string of css properties into an Object
+parse string of css properties into an Object ** depreciating **
 
 **Kind**: global function  
 
@@ -206,13 +208,37 @@ parse string of css properties into an Object
 <a name="objectToCSS"></a>
 
 ## objectToCSS(cssObject) ⇒ <code>String</code>
-smash an object into a string of css
+smash an object into a string of css ** depreciating **
 
 **Kind**: global function  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | cssObject | <code>Object</code> | object to be stringified |
+
+<a name="rgbToHex"></a>
+
+## rgbToHex(r, g, b) ⇒ <code>String</code>
+retrns a hx value from r,g,b value given
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| r | <code>Number</code> | 
+| g | <code>Number</code> | 
+| b | <code>Number</code> | 
+
+<a name="componentToHex"></a>
+
+## componentToHex(c) ⇒ <code>String</code>
+convers number to hex value
+
+**Kind**: global function  
+
+| Param | Type |
+| --- | --- |
+| c | <code>Number</code> | 
 
 <a name="convertToHex"></a>
 
@@ -298,23 +324,12 @@ loop through palette of colors to find a color in range
 **Kind**: global function  
 **Returns**: <code>Number</code> - color index  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| palette | <code>Object</code> | color palette from ColorThief |
-| [skipIndex] | <code>Number</code> | an index to overlook |
-| [bLimit] | <code>Number</code> | brightness limit threshold 1 |
-| [dLimit] | <code>Number</code> | darkness limit threshold 0 |
-
-<a name="generateRandomString"></a>
-
-## generateRandomString(length) ⇒ <code>String</code>
-random string generator
-
-**Kind**: global function  
-
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| length | <code>Number</code> | <code>8</code> | length of the returned string |
+| palette | <code>Object</code> |  | color palette from ColorThief |
+| [skipIndex] | <code>Number</code> |  | an index to overlook |
+| [bLimit] | <code>Number</code> | <code>0.7</code> | brightness limit threshold 1 |
+| [dLimit] | <code>Number</code> | <code>0.3</code> | darkness limit threshold 0 |
 
 <a name="mmss"></a>
 
@@ -337,30 +352,6 @@ validate Podcast rss URL Called by {audiosync-podcast}
 | Param | Type |
 | --- | --- |
 | url | <code>String</code> | 
-
-<a name="rgbToHex"></a>
-
-## rgbToHex(r, g, b) ⇒ <code>String</code>
-retrns a hx value from r,g,b value given
-
-**Kind**: global function  
-
-| Param | Type |
-| --- | --- |
-| r | <code>Number</code> | 
-| g | <code>Number</code> | 
-| b | <code>Number</code> | 
-
-<a name="componentToHex"></a>
-
-## componentToHex(c) ⇒ <code>String</code>
-convers number to hex value
-
-**Kind**: global function  
-
-| Param | Type |
-| --- | --- |
-| c | <code>Number</code> | 
 
 <a name="areElementsPresent"></a>
 
