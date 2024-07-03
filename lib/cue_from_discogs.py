@@ -87,7 +87,7 @@ def add_durations(durations):
   return total_time
 
 def get_discogs_data(release_id, mp3_path, gapless):
-  d = discogs_client.Client('ExampleApplication/0.1', user_token=config['discogs_token'])
+  d = discogs_client.Client('Audiosync/0.1', user_token=config['discogs_token'])
   release = d.release(release_id)
   save_cue(release, mp3_path, gapless)
 
