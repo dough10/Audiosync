@@ -46,8 +46,9 @@ class MusicLibrary extends HTMLElement {
         }
       },
       'img': {
-        height: '100%',
-        width: '150px'
+        height: '150px',
+        width: '150px',
+        'object-fit': 'contain'
       },
       '.head': {
         display:'flex',
