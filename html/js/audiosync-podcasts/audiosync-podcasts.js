@@ -1,5 +1,5 @@
 import {qs, qsa, ce, svgIcon, sleep, formatDownloadSpeed, calcPercentage, isValidURL, fillButton, appendElements, toggleAttribute, createButtonWithIcon} from '../helpers.js';
-import {Toast} from '../Toast/Toast.js'
+import {Toast} from '../Toast/Toast.js';
 
 /**
  * Ui for managing podcast shows and episodes
@@ -161,6 +161,13 @@ class AudioSyncPodcasts extends HTMLElement {
    * @public
    * 
    * @param {Object} details 
+   * @param {String} details.art
+   * @param {String} details.path
+   * @param {String} details.album
+   * @param {String} details.artist
+   * @param {String} details.title
+   * @param {Number} details.track
+   * @param {Number} details.disc
    * 
    * @returns {void}
    * 
@@ -232,7 +239,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
       // dowload stats element in podcast wrapper
       const dlStats = qs('.dl-stats', wrapper);
-      dlStats.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`
+      dlStats.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`;
       
       // enables display of ui elements showing progress of update
       wrapper.removeAttribute('updating');
@@ -826,7 +833,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
     const podcastTitleElement = ce('span');
     podcastTitleElement.classList.add('podcast-title');
-    podcastTitleElement.textContent = 'Loading'
+    podcastTitleElement.textContent = 'Loading';
 
     const unsubPodcastButton = createButtonWithIcon('audiosync-small-button', 'delete', ['unsub']);
     unsubPodcastButton.onClick(_ => this._createUnsubDialog(podcastTitleElement, url));
