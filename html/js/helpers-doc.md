@@ -164,7 +164,8 @@ debounce a function preventing it from executing to many times
 <a name="getCSSVariableValue"></a>
 
 ## getCSSVariableValue(variableName) ⇒ <code>String</code>
-returns value of a css variable** depreciating **
+returns value of a css variable
+** depreciating **
 
 **Kind**: global function  
 
@@ -175,7 +176,8 @@ returns value of a css variable** depreciating **
 <a name="parseKeyframes"></a>
 
 ## parseKeyframes(keyframesString) ⇒ <code>Object</code>
-parse keyframe string into an object ** depreciating **
+parse keyframe string into an object
+ ** depreciating **
 
 **Kind**: global function  
 
@@ -186,7 +188,8 @@ parse keyframe string into an object ** depreciating **
 <a name="parseCSS"></a>
 
 ## parseCSS(cssString) ⇒ <code>Object</code>
-parse css into an object ** depreciating **
+parse css into an object
+ ** depreciating **
 
 **Kind**: global function  
 
@@ -197,7 +200,8 @@ parse css into an object ** depreciating **
 <a name="parseProperties"></a>
 
 ## parseProperties(propertiesString) ⇒ <code>Object</code>
-parse string of css properties into an Object ** depreciating **
+parse string of css properties into an Object
+ ** depreciating **
 
 **Kind**: global function  
 
@@ -208,7 +212,8 @@ parse string of css properties into an Object ** depreciating **
 <a name="objectToCSS"></a>
 
 ## objectToCSS(cssObject) ⇒ <code>String</code>
-smash an object into a string of css ** depreciating **
+smash an object into a string of css
+ ** depreciating **
 
 **Kind**: global function  
 
@@ -345,7 +350,8 @@ convert seconds to mm:ss format
 <a name="isValidURL"></a>
 
 ## isValidURL(url) ⇒ <code>Boolean</code>
-validate Podcast rss URL Called by {audiosync-podcast}
+validate Podcast rss URL 
+Called by {audiosync-podcast}
 
 **Kind**: global function  
 
@@ -435,7 +441,12 @@ calculates percentage value
 
 **Example**  
 ```js
-const bytes = 100;const totalBytes = 1000;const percent = calcPercentage(bytes, totalBytes);console.log(percent);//logs: 10
+const bytes = 100;
+const totalBytes = 1000;
+
+const percent = calcPercentage(bytes, totalBytes);
+console.log(percent);
+//logs: 10
 ```
 <a name="formatDownloadSpeed"></a>
 
@@ -506,7 +517,8 @@ returns the width of the html element
 <a name="appendElements"></a>
 
 ## appendElements(parent, elements) ⇒ <code>void</code>
-append elements to a parent elementCalled by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]
+append elements to a parent element
+Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpisodeElement, _createUnsubDialog, _addPodcastUI]
 
 **Kind**: global function  
 
@@ -518,7 +530,8 @@ append elements to a parent elementCalled by audiosync-podcasts [connectedCallb
 <a name="toggleAttribute"></a>
 
 ## toggleAttribute(element, attribute)
-sets an attribute trueCalled by {audiosync-podcast}
+sets an attribute true
+Called by {audiosync-podcast}
 
 **Kind**: global function  
 
