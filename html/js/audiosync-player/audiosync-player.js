@@ -1,4 +1,4 @@
-import { ce, dropFirstFolder, getFileExtension, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js'
+import { ce, dropFirstFolder, getFileExtension, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js';
 
 // fix favorite button
 
@@ -234,7 +234,7 @@ class AudioPlayer extends HTMLElement {
       }
       fullScreenBackground.addEventListener('transitionend', e => {
         if (e.target.id === 'fbg' && !this.hasAttribute('full-screen')) {
-          resolve()
+          resolve();
         }
       });
       const popUp = qs('.popup', this.shadowRoot);
@@ -259,7 +259,7 @@ class AudioPlayer extends HTMLElement {
    * @returns {void}
    */
   async fullScreen() {
-    if (qs('#fbg', this.shadowRoot)) return
+    if (qs('#fbg', this.shadowRoot)) return;
 
     // art
     const img = ce('img');
@@ -373,7 +373,7 @@ class AudioPlayer extends HTMLElement {
       // time left
       const duration = this.player.duration;
       // window data
-      const rect = clickStrip.getBoundingClientRect();;
+      const rect = clickStrip.getBoundingClientRect();
       // click x
       const relativeX = e.clientX - rect.left;
       // time in seconds to set player.currentTime
@@ -465,6 +465,7 @@ class AudioPlayer extends HTMLElement {
     return miniPlayerBackground;
   }
 
+
   /**
    * creates a popup option dialog with track information
    * @function
@@ -495,9 +496,10 @@ class AudioPlayer extends HTMLElement {
         trackTitle
       ]);
 
+      const ndx = i;
       trackWrapper.addEventListener('click', () => {
-        if (i === this.playing) return;
-        this.playing = i;
+        if (ndx === this.playing) return;
+        this.playing = ndx;
         this._setSrc();
       });
 
