@@ -1,4 +1,4 @@
-import {getIcon} from '../js/getIcon/getIcon.js'
+import {getIcon} from '../js/getIcon/getIcon.js';
 
 
 /**
@@ -1057,4 +1057,4 @@ export {
   getFileExtension,
   dropFirstFolder,
   transitionEvent
-}
+};
