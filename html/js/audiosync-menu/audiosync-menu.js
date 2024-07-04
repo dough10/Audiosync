@@ -1,4 +1,4 @@
-import {sleep, svgIcon, ce} from '../helpers.js';
+import {sleep, svgIcon, ce, toggleAttribute} from '../helpers.js';
 
 /**
  * menu drawer element
@@ -60,9 +60,7 @@ class AudioSyncMenu extends HTMLElement {
    */
   async open() {
     await sleep(100);
-    requestAnimationFrame(_ => {
-      if (!this.menu.hasAttribute('open')) this.menu.toggleAttribute('open');
-    });
+    requestAnimationFrame(_ => toggleAttribute(this.menu, 'open'));
   }
 
   /**
