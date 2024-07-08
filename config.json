@@ -1,7 +1,9 @@
 {
   "source": "",
   "podcast_folder": "",
-  "art_size": 500,
+  "view": 0,
+  "theme": 0,
+  "import_custom_radio": 1,
   "import_cues": 1,
   "import_lyrics": 0,
   "remove_lrc_wd": 0,
