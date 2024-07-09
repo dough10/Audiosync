@@ -383,3 +383,10 @@ audiosync-small-button {
   display: none;
   animation: hide-buttons var(--animation-time, 200ms) linear;
 }
+.no-episodes {
+  height:300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+}

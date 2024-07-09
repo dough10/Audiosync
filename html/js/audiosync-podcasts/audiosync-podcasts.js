@@ -139,6 +139,20 @@ class AudioSyncPodcasts extends HTMLElement {
   }
 
   /**
+   * there are no podcast sudscriptions
+   * @private
+   * @function
+   * 
+   * @returns {void}
+   */
+  _noShows() {
+    const noEpisodes = ce('div');
+    noEpisodes.classList.add('no-episodes');
+    noEpisodes.textContent = 'No Subscriptions..';
+    appendElements(this._container, [noEpisodes])
+  }
+
+  /**
    * get list of podcasts and fills UI with data
    * @async
    * @function
@@ -152,6 +166,10 @@ class AudioSyncPodcasts extends HTMLElement {
   async listPodcasts() {
     const podcastURLs = await pywebview.api.list_subscriptions();
     this._container.innerHTML = '';
+    if (!podcastURLs.length > 0) {
+      this._noShows();
+      return
+    }
     podcastURLs.forEach(url => this._fetchAndParseXML(url));
   }
 
