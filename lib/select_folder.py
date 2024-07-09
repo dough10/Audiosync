@@ -12,6 +12,7 @@ def select_folder():
 
   folder_path = filedialog.askdirectory()
 
+  root.destroy()
   if folder_path:
     if is_windows():
       if not folder_path.endswith("\\"):
