@@ -316,8 +316,8 @@ option {
 }
 
 .select .select-text {
-  appearance: none;
-  -webkit-appearance:none
+  -webkit-appearance:none;
+  appearance: nonee
 }
 
 .select:after {
@@ -335,7 +335,7 @@ option {
 }
 .select-label {
   text-transform: uppercase;
-  color: var(--text-color);
+  color: var(--pop-color);
   font-size: 18px;
   font-weight: normal;
   position: absolute;
@@ -345,7 +345,7 @@ option {
   transition: 0.2s ease all;
 }
 .select-text:focus ~ .select-label, .select-text:valid ~ .select-label {
-  color: var(--text-color);
+  color: var(--pop-color);
   top: -20px;
   transition: 0.2s ease all;
   font-size: 14px;
@@ -424,4 +424,23 @@ option {
   audiosync-dialog > .tracklist > .track {
     max-width: 600px;
   }
+}
+.selector_text {
+  width: 450px;
+  margin: auto;
+  height: 42px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: var(--seperator-line);
+  padding-left: 12px;
+  margin: 0.29em auto;
+  background: var(--background-color);
+}
+.selector_text > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  margin-right: 8px;
 }

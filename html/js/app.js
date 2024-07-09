@@ -145,6 +145,8 @@ async function load_app() {
   const IMPORT_PODCASTS_SWITCH = qs('#podcast');
   const TOGGLE_SWITCHES = qsa('audiosync-switch');
   const MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON = qs('#view');
+  const SOURCE_SELECT = qs('#sourceSelect');
+  const PODCAST_FOLDER = qs('#podcastSelect');
 
   const GRID_ICON = "M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z";
   const LIST_ICON = "M360-240h440v-107H360v107ZM160-613h120v-107H160v107Zm0 187h120v-107H160v107Zm0 186h120v-107H160v107Zm200-186h440v-107H360v107Zm0-187h440v-107H360v107ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Z";
@@ -320,12 +322,49 @@ async function load_app() {
   // when a switch is changed update config & UI
   TOGGLE_SWITCHES.forEach(toggleSwitch => toggleSwitch.addEventListener('statechange', toggleSwitchCallback));
 
+  async function allowClose() {
+    const CONFIG_OBJECT = await pywebview.api.get_config();
+    if (await pywebview.api.path_exists(CONFIG_OBJECT.source) && await pywebview.api.path_exists(CONFIG_OBJECT.podcast_folder)) {
+      qs('audiosync-small-button', SETTINGS_DRAWER.shadowRoot).removeAttribute('disabled');
+    }
+  }
+
+  SOURCE_SELECT.addEventListener('click', async _ => {
+    const source = await pywebview.api.folder_select(qs('#source_text').textContent);
+    pywebview.api.update_config({source});
+    qs('#source_text').textContent = source;
+    new Toast(`Source folder: ${source}`);
+    allowClose()
+  });
+
+  PODCAST_FOLDER.addEventListener('click', async  _ => {
+    const podcast_folder = await pywebview.api.folder_select(qs('#podcast_text').textContent);
+    pywebview.api.update_config({podcast_folder});
+    qs('#podcast_text').textContent = podcast_folder;
+    new Toast(`Podcast folder: ${podcast_folder}`);
+    allowClose();
+  });
+
   /**
    * load data
    */
 
   // get settings from config.json
   const CONFIG_OBJECT = await pywebview.api.get_config();
+
+  if (!await pywebview.api.path_exists(CONFIG_OBJECT.source)) {
+    toggleAttribute(qs('audiosync-small-button', SETTINGS_DRAWER.shadowRoot), 'disabled');
+    SETTINGS_DRAWER.open();
+  } else {
+    qs('#source_text').textContent = CONFIG_OBJECT.source;
+  }
+
+  if (!await pywebview.api.path_exists(CONFIG_OBJECT.podcast_folder)) {
+    toggleAttribute(qs('audiosync-small-button', SETTINGS_DRAWER.shadowRoot), 'disabled');
+    SETTINGS_DRAWER.open();
+  } else {
+    qs('#podcast_text').textContent = CONFIG_OBJECT.podcast_folder;
+  }
 
   let theme = themenameToIndex('light');
 
@@ -338,7 +377,7 @@ async function load_app() {
   THEME_DROPDOWN.selectedIndex = theme;
 
   VIEW_DROPDOWN.selectedIndex = CONFIG_OBJECT.view;
-  
+
   const THEME_OBJECT = await pywebview.api.load_theme(THEME_DROPDOWN.value);
   loadTheme(THEME_OBJECT);
 
