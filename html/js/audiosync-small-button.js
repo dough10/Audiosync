@@ -15,7 +15,8 @@ class SmallButton extends HTMLElement {
         overflow: "hidden",
         position: "relative",
         "border-radius": "50%",
-        transform: "translate3d(0, 0, 0)"
+        transform: "translate3d(0, 0, 0)",
+        color:'var(--icon-color, var(--text-color))'
       },
       ".small-button[disabled]": {
         color: "var(--disabled-color)",
@@ -77,15 +78,9 @@ class SmallButton extends HTMLElement {
   /**
    * attribute has changed 
    * 
-   * @param {String} name
-   * @param {String} oldVal
-   * @param {String} newVal  
+   * @param {String} name  
    */
-  attributeChangedCallback(name, oldVal, newVal) {
-    if (name === 'color') {
-      this.button.style.setProperty(name, newVal)
-      return;
-    }
+  attributeChangedCallback(name) {
     this.button.toggleAttribute(name);
   }
 }
