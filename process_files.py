@@ -502,6 +502,15 @@ def create_lib_json(window:dict):
   None
   """
   global lib_data
+  global config
+  global working_dir
+  
+  with open(config_path, 'r') as j:
+    config = json.load(j)
+
+  working_dir = config['source']
+  
+  
   # clear data object
   lib_data = {}
   # get library size
