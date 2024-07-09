@@ -15,3 +15,5 @@
 /node_modules
 /t
 /.venv
+/old_config.json
+/old_favorites.json
