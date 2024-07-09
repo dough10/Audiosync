@@ -18,13 +18,14 @@ def get_folder_size(folder):
   Get the size of the given folder in bytes.
   """
   total_size = 0
-  for dirpath, dirnames, filenames in os.walk(folder):
+  for dirpath, _, filenames in os.walk(folder):
     for filename in filenames:
       file_path = os.path.join(dirpath, filename)
       try:
-        total_size += os.path.getsize(file_path)
-      except:
-        pass
+        total_size += int(os.path.getsize(file_path))
+      except OSError as e:
+        print(f"Error accessing file {file_path}: {e}")
+        
   return readable_size(total_size)
 
 if __name__ == '__main__':
