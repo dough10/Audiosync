@@ -1,7 +1,7 @@
 .button {
   display: inline-flex;
   min-width: 5.14em;
-  margin: 0.29em 0.29em;
+  /* margin: 0.29em 0.29em; */
   color: var(--contrast-color, #ffffff);
   background-color: var(--pop-color, #333333);
   text-align: center;
