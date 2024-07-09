@@ -8,6 +8,7 @@ import socketserver
 import requests
 import xmltodict
 import clipboard
+from lib.select_folder import select_folder
 from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast, episodeExists, dlWithProgressBar, update_ID3, load_saved_image, id3Image, folder as podcast_dir
 import urllib.parse
@@ -221,6 +222,11 @@ class Api:
   def scrobble_end(self, played_obj):
     print(played_obj)
 
+  def path_exists(self, path):
+    return os.path.exists(path)
+
+  def folder_select(self):
+    return select_folder()
 
 def main():
   global window
