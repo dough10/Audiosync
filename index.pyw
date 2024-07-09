@@ -225,8 +225,8 @@ class Api:
   def path_exists(self, path):
     return os.path.exists(path)
 
-  def folder_select(self):
-    return select_folder()
+  def folder_select(self, path):
+    return select_folder(initial_dir=path)
 
 def main():
   global window
