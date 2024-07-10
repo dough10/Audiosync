@@ -435,7 +435,7 @@ option {
   border: var(--seperator-line);
   padding-left: 12px;
   margin: 0.29em auto;
-  background: var(--background-color);
+  background: rgba(0,0,0,0.1);
 }
 .selector_text > span {
   overflow: hidden;
