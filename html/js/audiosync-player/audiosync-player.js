@@ -1,4 +1,4 @@
-import { ce, dropFirstFolder, getFileExtension, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js';
+import { ce, cloneObject, dropFirstFolder, getFileExtension, appendElements, qs, qsa, fadeOut, fadeIn, elementWidth, elementHeight, svgIcon, convertToHex, getIcon, findGoldieLocksColor, rgbToHex, getContrastColor, sleep, debounce, mmss, calcPercentage, toggleAttribute } from '../helpers.js';
 
 // fix favorite button
 
@@ -25,8 +25,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * element connect
-   * @function
    * @private
+   * @function
    *
    * @returns {Void}
    * 
@@ -78,6 +78,7 @@ class AudioPlayer extends HTMLElement {
   /**
    * attribute has changed 
    * @private
+   * @function
    * 
    * @param {String} name
    * @param {*} _
@@ -95,8 +96,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * play the given album with option to pass an index of desired starting point
-   * @function
    * @public
+   * @function
    * 
    * @fires playlist-reset
    * 
@@ -111,15 +112,15 @@ class AudioPlayer extends HTMLElement {
   playAlbum(playObj, ndx) {
     this.dispatchEvent(new CustomEvent('playlist-reset', undefined));
     this.playing = ndx || 0;
-    this.playlist = playObj.tracks.slice();
+    this.playlist = cloneObject(playObj.tracks);
     if (!this.playlist.length) return;
     this._setSrc();
   }
 
   /**
    * play a specific playlist index number
-   * @function
    * @public
+   * @function
    * 
    * @param {Number} ndx 
    * 
@@ -132,6 +133,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * add an albums tracks to the playlist
+   * @public
+   * @function
    * 
    * @param {Object} albumInfo 
    * @param {String} albumInfo.artist artist name
@@ -141,12 +144,14 @@ class AudioPlayer extends HTMLElement {
    * @returns {void}
    */
   addToPlaylist(albumInfo) {
-    const tracksToAdd = albumInfo.tracks.slice();
+    const tracksToAdd = cloneObject(albumInfo.tracks);
     tracksToAdd.forEach(track => this.playlist.push(track));
   }
 
   /**
    * callback for <music-library> favorite added event
+   * @public
+   * @function
    * 
    * @param {Object} data 
    * @returns {void}
@@ -165,6 +170,7 @@ class AudioPlayer extends HTMLElement {
   /**
    * sets src attribute, 
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -204,8 +210,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * updates the playlist ui with now playing indicator
-   * @function
    * @private
+   * @function
    * 
    * @returns {void}
    */
@@ -222,6 +228,7 @@ class AudioPlayer extends HTMLElement {
   /**
    * minimize fullscreen Ui and display header buttons
    * @public
+   * @function
    * 
    * @returns {Promise<void>}
    */
@@ -253,8 +260,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * creates & opens fullscreen ui with album art and gradient background
-   * @function
    * @public
+   * @function
    * 
    * @returns {void}
    */
@@ -352,8 +359,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * creates the UI mini player
-   * @function
    * @private
+   * @function
    * 
    * @returns {HTMLElement}
    */
@@ -468,8 +475,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * creates a popup option dialog with track information
-   * @function
    * @private
+   * @function
    * 
    * @returns {void}
    */
@@ -532,8 +539,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * toggles display of favorite button in fullscreen
-   * @function
    * @private
+   * @function
    * 
    * @returns {void}
    */
@@ -559,8 +566,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * emits an event updating ui with currently playing information
-   * @function
    * @private
+   * @function
    * 
    * @fires now-playing
    * 
@@ -580,8 +587,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * loads an image and gets a palette from the image
-   * @function
    * @private
+   * @function
    * 
    * @fires image-loaded
    * 
@@ -631,8 +638,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * move buffered progress bar
-   * @function
    * @private
+   * @function
    * 
    * @returns {void}
    */
@@ -652,8 +659,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * pause timeout callback
-   * @function
    * @private
+   * @function
    * 
    * @returns {void}
    */
@@ -670,8 +677,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * audio metadata loaded
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -683,16 +690,16 @@ class AudioPlayer extends HTMLElement {
   }
 
   /**
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
   _onLoadedData() { }
 
   /**
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -700,8 +707,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * playback has began
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -714,8 +721,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * audio is playing
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -726,8 +733,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * audio is paused
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -739,8 +746,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * playback has ended
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -756,6 +763,7 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -763,6 +771,7 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -770,6 +779,7 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * @private
+   * @function
    * 
    * @returns {Void}
    */
@@ -777,8 +787,8 @@ class AudioPlayer extends HTMLElement {
 
   /**
    * audio.currentTime has changed
-   * @function
    * @private
+   * @function
    * 
    * @returns {Void}
    */

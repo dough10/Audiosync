@@ -27,8 +27,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * element connect
-   * @function
    * @private
+   * @function
    *
    * @returns {Void}
    * 
@@ -59,8 +59,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * attribute has changed
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {String} name
    * @param {Number} oldVal
@@ -79,8 +79,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * audioplayer has reset playlist. (unmarks elements marked with 'inlist') 
    * Used in audiosync-player.playAlbum()
-   * @function
    * @public
+   * @function
    * 
    * @returns {Void}
    * 
@@ -95,8 +95,8 @@ class AudioSyncPodcasts extends HTMLElement {
    * creates and opens a dislog with options to add a url
    * Used in <audiosync-podcasts>
    * @async
-   * @function
    * @public
+   * @function
    * 
    * @returns {Promise<Void>}
    * 
@@ -114,8 +114,8 @@ class AudioSyncPodcasts extends HTMLElement {
    * responds to subscription input. 
    * refreshes podcast ui data and closes add url dialog
    * @async
-   * @function
    * @public
+   * @function
    * 
    * @param {String} message
    * 
@@ -155,8 +155,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * get list of podcasts and fills UI with data
    * @async
-   * @function
    * @public
+   * @function
    * 
    * @returns {Promise<Array | Objects>}
    * 
@@ -175,8 +175,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * syncs ui with currently playing audio
-   * @function
    * @public
+   * @function
    * 
    * @param {Object} details 
    * @param {String} details.art
@@ -220,8 +220,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * update UI with podcast download and update progress
    * @async
-   * @function
    * @public
+   * @function
    * 
    * @param {String} name
    * @param {Number} bytes
@@ -289,8 +289,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /** 
    * creates the UI for adding podcasts to subscriptions
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @returns {Promise<Void>}
    * 
@@ -376,8 +376,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * closes podcast wrapper hiding it's content
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {Event} e 
    * 
@@ -398,8 +398,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * Expands podcast wrapper revealing additional elements
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {Event} e 
    * 
@@ -444,6 +444,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * opens a dialog with option to unsub from podcast
    * @function
    * @private
+   * @function
    * 
    * @param {HTMLElement} PODCAST_TITLE_ELEMENT 
    * @param {String} url
@@ -508,8 +509,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * clears and repopulates episode list
-   * @function
    * @private
+   * @function
    * 
    * @param {String} xmlURL 
    * @param {HTMLElement} scrollEl 
@@ -548,8 +549,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * Adds an eipsode to current playlist
-   * @function
    * @private
+   * @function
    * 
    * @param {HTMLElement} wrapper
    * @param {Object|String} play_object 
@@ -567,8 +568,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * starts download of a podcast episode
    * @async
-   * @function
    * @private
+   * @function
    *  
    * @param {String} title 
    * @param {Object} episode 
@@ -629,8 +630,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * ask backend to delete a podcast episode
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {HTMLElement} ep_wrapper 
    * @param {Object} FILE_STATS
@@ -652,8 +653,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * trigger episode playback
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {HTMLElement} ep_wrapper
    * @param {Object} FILE_STATS 
@@ -682,8 +683,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * appends a li element with podcast episode details to podcast-episodes 
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {Object} episode 
    * @param {HTMLElement} EPISODE_LIST 
@@ -786,8 +787,8 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * progressavly loads episodes on scroll
-   * @function
    * @private
+   * @function
    * 
    * @param {String} title
    * @param {Array} episodes 
@@ -823,8 +824,8 @@ class AudioSyncPodcasts extends HTMLElement {
   /**
    * get the name of a podcast and put it in a html element
    * @async
-   * @function
    * @private
+   * @function
    * 
    * @param {String} url podcast url
    * 
