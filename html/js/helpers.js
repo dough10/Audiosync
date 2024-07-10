@@ -30,6 +30,18 @@ function debounce(fn, time=1000) {
   lastRun = now;
 }
 
+/**
+ * clone an object leaving the original unaffected by changes
+ * 
+ * @param {Object} object 
+ * 
+ * @returns {Object} cloned object
+ */
+function cloneObject(object) {
+  const str = JSON.stringify(object);
+  return JSON.parse(str);
+}
+
 
 
 /**
@@ -1056,5 +1068,6 @@ export {
   mmss,
   getFileExtension,
   dropFirstFolder,
+  cloneObject,
   transitionEvent
 };
