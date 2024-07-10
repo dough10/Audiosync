@@ -1,4 +1,4 @@
-import {qs, qsa, ce, sleep, fadeIn, fillButton, objectToCSS, calcPercentage} from './helpers.js'
+import {qs, qsa, ce, sleep, fadeIn, fillButton, objectToCSS, calcPercentage} from './helpers.js';
 import { Toast } from './Toast/Toast.js';
 
 /**
@@ -59,7 +59,7 @@ class SyncUI extends HTMLElement {
       {id:"podcasts", text: "Copying Podcasts"},
       {id:"playlists", text: "Creating Playlists"},
       {id:"radio", text: "Creating radio.txt"}
-    ]
+    ];
 
     this.output = ce('div');
     this.output.classList.add('console-output');

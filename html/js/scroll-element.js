@@ -120,7 +120,7 @@ class ScrollElement extends HTMLElement {
       const tend = _ => {
         this.fab.removeEventListener('transitionend', tend);
         resolve();
-      }
+      };
       this.fab.addEventListener('transitionend', tend);
       requestAnimationFrame(_ => this.fab.classList.add('onscreen'));
     });
@@ -134,7 +134,7 @@ class ScrollElement extends HTMLElement {
       const tend = _ => {
         this.fab.removeEventListener('transitionend', tend);
         resolve();
-      }
+      };
       this.fab.addEventListener('transitionend', tend);
       requestAnimationFrame(_ => this.fab.classList.remove('onscreen'));
     });

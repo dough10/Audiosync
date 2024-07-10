@@ -71,7 +71,7 @@ class SmallButton extends HTMLElement {
     const CALLBACK = e => {
       if (this.hasAttribute('disabled')) return;
       cb(e);
-    }
+    };
     this.button.addEventListener('click', CALLBACK);
   }
 

@@ -31,12 +31,12 @@ class AudioSyncLoader extends HTMLElement {
       '.offscreen': {
         transform: 'translateY(-100%)'
       }
-    }
+    };
     const ELEMENT_STYLES = ce('style');
     ELEMENT_STYLES.textContent = objectToCSS(CSS_OBJECT);
 
     this.loader = ce('div');
-    this.loader.classList.add('load')
+    this.loader.classList.add('load');
     this.loader.appendChild(ce('slot'));
     this.loader.addEventListener('transitionend', _ => this.remove());
 

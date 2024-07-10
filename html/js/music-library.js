@@ -36,7 +36,7 @@ class MusicLibrary extends HTMLElement {
 
     this._makeSelection = this._makeSelection.bind(this);
     this._displayArtistList = this._displayArtistList.bind(this);
-    this._openContexMenu = this._openContexMenu.bind(this)
+    this._openContexMenu = this._openContexMenu.bind(this);
 
     const CSS_OBJECT = {
       "@keyframes ripple-animation": {
@@ -284,18 +284,6 @@ class MusicLibrary extends HTMLElement {
       '.popup > .option:hover': {
         background: 'var(--hover-color)'
       },      
-      '@keyframes ripple-animation': {
-        to: {
-          transform: 'scale(4)',
-          opacity: 0
-        }
-      },
-      '.ripple-effect': {
-        position: 'absolute',
-        'border-radius': '50%',
-        background: 'rgba(var(--pop-rgb),0.4)',
-        animation: 'ripple-animation 0.7s linear'
-      },
       'audiosync-button > div': {
         'display': 'flex',
         'flex-direction': 'row',
@@ -491,7 +479,7 @@ class MusicLibrary extends HTMLElement {
       ARTIST_ELEMENTS.forEach(async el => {
         if (!el.hasAttribute('favorite')) {
           await fadeOut(el);
-          el.style.display = 'none'
+          el.style.display = 'none';
         }
       });
       ALBUM_ELEMENTS.forEach(async el => {
@@ -696,7 +684,7 @@ class MusicLibrary extends HTMLElement {
     const HEADER_BUTTONS = [
       '#menu-button',
       '#settings'
-    ]
+    ];
     HEADER_BUTTONS.forEach(id => {
       if (qs(id) && !qs(id).hasAttribute('disabled')) qs(id).toggleAttribute('disabled');
     });
@@ -764,7 +752,7 @@ class MusicLibrary extends HTMLElement {
    */
   _getFavorites() {
     // container for favorites
-    const FAVORITES_LIST = {}
+    const FAVORITES_LIST = {};
 
     // get elements with favorite attribute
     const FAVORITED_ALBUMS = qsa('.album[favorite]', this.shadowRoot);
@@ -1212,7 +1200,7 @@ class MusicLibrary extends HTMLElement {
     favIcon.title = 'Favorite';
 
     const text = ce('div');
-    text.textContent = album['title'];
+    text.textContent = album.title;
 
     let albumContainer = ce('div');
     albumContainer.dataset.artist = artist;
@@ -1281,7 +1269,7 @@ class MusicLibrary extends HTMLElement {
         artistContainer.id = 'number';
         return;
       } else if (Number(firstChar)) {
-        return
+        return;
       }
       
       // add the char
