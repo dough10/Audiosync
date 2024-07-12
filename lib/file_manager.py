@@ -2,25 +2,61 @@ import os
 import time
 import shutil
 import string
-from itertools import repeat
 from lib.lyrics import get_lyrics
 from lib.log import log
 from concurrent.futures import ThreadPoolExecutor
 
 from lib.resize_image import resize_image
+from lib.rename_file import rename_file
+from lib.change_log import ChangeLog
+
+change_log = ChangeLog()
+
+
 
 def estimate_file_size(text):
   return len(text.encode('utf-8')) / 1024
 
-def delete_thumbnails(path):
-  for root, dirs, files in os.walk(path):
-    thumbs = [os.path.join(root,file) for file in files if file.endswith('thumb.webp')]
-    for file in thumbs:
-      os.remove(file)
+
+
+
+def delete_files(path, filenames):
+  """
+  Delete files in the specified directory and its subdirectories that match any of the given filenames or extensions.
+
+  Parameters:
+  - path (str): The directory path to search for files.
+  - filenames (list): A list of filenames or file extensions to match.
+
+  Returns:
+  None
+  """
+  for root, _, files in os.walk(path):
+    matching_files = [os.path.join(root, file) for file in files if any(file.endswith(filename) for filename in filenames)]
+    for file in matching_files:
+      try:
+        change_log.file_deleted()
+        os.remove(file)
+        # print(f"Deleted file: {file}") 
+      except OSError as e:
+        print(f"Error deleting file {file}: {e}")
+      except Exception as e:
+        print(f"Unexpected error deleting file {file}: {e}")
+
+
+
+
+def process_image(root, filename, changes):
+  # rename image first
+  f = rename_file(root, filename, changes)
+  # resized image filename will match new filename
+  resize_image(os.path.join(root, f), 1000, os.path.join(root, f))
+
+
+
 
 class File_manager:
-  def __init__(self, changes):
-    self.changes = changes
+  
 
   def formatFilename(self, s):
     """
@@ -42,10 +78,13 @@ class File_manager:
       return file
     try:
       os.rename(os.path.join(root, file), os.path.join(root, new_name))
-      self.changes['files_renamed'] += 1
+      change_log.file_renamed()
       return new_name
     except FileExistsError:
       return file
+
+
+
 
   def copy_file(self, source, destination, path, max_retries=5, timeout=10):
     """
@@ -68,7 +107,7 @@ class File_manager:
       try:
         log(f'{source} -> {path}')
         shutil.copy2(source, destination)
-        self.changes['files_writen'] += 1
+        change_log.file_wrote()
         break  # Copy successful, exit the loop
       except PermissionError:
         retries += 1
@@ -87,25 +126,15 @@ class File_manager:
           log(f"{path} Maximum retries reached. Copy failed.")
           raise  # Reraise the exception if maximum retries reached
 
+
+
+
   def rename_images(self, directory_path):
-
-    def process_image(filename):
-      # resize
-      resize_image(os.path.join(root, filename), 1000, os.path.join(root, filename))
-
-      # rename
-      if filename.lower().endswith("folder.jpg") or filename.lower().endswith("front.jpg") or filename.endswith('Cover.jpg'):
-        old_path = os.path.join(root, filename)
-        new_filename = "cover.jpg"
-        new_path = os.path.join(root, new_filename)
-        if not os.path.exists(new_path):
-          os.rename(old_path, new_path)
-          self.changes["images_renamed"] += 1
-
-
     with ThreadPoolExecutor(max_workers=2) as executor:
-      for root, dirs, files in os.walk(directory_path):
-        list(executor.map(process_image, files))
+      for root, _, files in os.walk(directory_path):
+        executor.map(lambda file: process_image(root, file, change_log), files)
+
+
 
   def save_lrc_file(self, lrc, artist, title):
     """
@@ -128,8 +157,11 @@ class File_manager:
           lyrics_file.write('')
         else:
           lyrics_file.write(lyrics)
-      # log(f'Lyrics for {artist} {title} saved to {lrc}')
-      self.changes['lrc_created'] += 1
+      log(f'Lyrics for {artist} {title} saved to {lrc}')
+      change_log.lrc_created()
+
+
+
 
   def remove_cue_files(self, path):
     """
@@ -141,15 +173,10 @@ class File_manager:
     Returns:
     None
     """
-    for root, dirs, files in os.walk(path):
-      for file in files:
-        if file.lower().endswith('.cue') or file.lower().endswith('.m3u') or file.lower().endswith('.m3u8'):
-          file_path = os.path.join(root, file)
-          try:
-            os.remove(file_path)
-            self.changes['files_deleted']+=1
-          except:
-            pass
+    delete_files(path, ['.cue', '.m3u', '.m3u8'])
+
+
+
 
   def remove_lrc(self, path):
     """
@@ -161,19 +188,21 @@ class File_manager:
     Returns:
     None
     """
-    for root, dirs, files in os.walk(path):
-      for file in files:
-        file_path = os.path.join(root, file)
-        if file.lower().endswith('.lrc-raw') or file.lower().endswith('.lrc'):
-          os.remove(file_path)
-          self.changes['files_deleted']+=1
+    delete_files(path, ['.lrc', '.lrc-raw'])
+
+
+
 
   def remove_folder(self, folder):
     shutil.rmtree(folder)
     log(f'{folder} -> Trash')
-    self.changes['folders_deleted'] += 1 
+    change_log.folder_deleted()
+
+
+
 
   def count_folder_content(self, folder):
     for _, dirs, files in os.walk(folder):
-      self.changes['folders_deleted'] += len(dirs)
-      self.changes['folders_contained'] += len(files)
+      change_log.folder_contained(len(files))
+      for _ in len(dirs):
+        change_log.folder_deleted()
