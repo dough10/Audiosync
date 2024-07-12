@@ -7,18 +7,19 @@ from mutagen.flac import FLAC
 import os
 import glob
 
-from lib.upc import get_upc
 from lib.log import need_attention, log
 from lib.file_manager import File_manager
 from lib.new_files import list_of_new_files
 from lib.resize_image import resize_image
 from lib.generate_m3u import generate_m3u
 from lib.generate_cue import generate_cue
+from lib.change_log import ChangeLog
+
+change_log = ChangeLog()
 
 class Playlist_manager:
-  def __init__(self, changes):
-    self.changes = changes
-    self.file_man = File_manager(changes)
+  def __init__(self):
+    self.file_man = File_manager()
 
   def generate_cue_file(self, directory, artist, album):
     """
@@ -34,7 +35,7 @@ class Playlist_manager:
     """
     # cue file path
     generate_cue(directory, artist, album)
-    self.changes['playlist_created'] += 1
+    change_log.playlist_created()
 
   def generate_m3u_file(self, directory, album):
     """
@@ -48,7 +49,7 @@ class Playlist_manager:
     None
     """
     generate_m3u(directory, album)
-    self.changes['playlist_created'] += 1
+    change_log.playlist_created()
 
 
   def import_cue_files(self, root, dest):
@@ -105,7 +106,7 @@ class Playlist_manager:
           print(file)
 
     log(f'M3U file generated at {playlist_path}')
-    self.changes["playlist_created"] += 1
+    change_log.playlist_created()
 
   def get_flac_info(self, source_file, file):
     flac = FLAC(source_file)
