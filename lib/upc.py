@@ -1,19 +1,19 @@
 import requests
-import os
-import json
 
-file_path = os.path.abspath(__file__)
-script_folder = os.path.dirname(file_path)
-config_path = os.path.join(script_folder, '..', 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
+try:
+  from lib.config_controler import Config
+except ModuleNotFoundError:
+  from config_controler import Config
+
+
+config_controler = Config()
 
 
 def get_upc(artist, album, tracklist):
   search_query = f"'{artist}' '{album}' '{' '.join(tracklist)}'"
   headers = {
-    'User-Agent': 'DiscogsAPIExample/0.1',
-    'Authorization': f"Discogs token={config['discogs_token']}"
+    'User-Agent': 'Audiosync/0.1',
+    'Authorization': f"Discogs token={config_controler.get_key('discogs_token')}"
   }
   response = requests.get(f'https://api.discogs.com/database/search?q={search_query}&type=release', headers=headers)
   data = response.json()
