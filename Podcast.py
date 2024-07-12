@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import time
-import json
 import glob
 import shutil
 import requests
@@ -17,32 +16,22 @@ from urllib.parse import urlparse
 from lib.old_date import old_date
 from lib.is_audio import supported_formats
 from lib.file_manager import File_manager
+from lib.config_controler import Config
+from lib.change_log import ChangeLog
 
-# if sys.platform == "darwin":
-  # from pync import Notifier
-
-changes = { # log of file changes 
-  "new_folders": 0,
-  "files_writen": 0,
-  "playlist_created": 0,
-  "files_deleted": 0,
-  "folders_deleted": 0,
-  "folders_contained": 0,
-  "images_renamed": 0,
-  "files_renamed": 0
-}
+change_log = ChangeLog()
 
 
-fm = File_manager(changes)
+fm = File_manager()
 copy_file = fm.copy_file
+
+config_controler = Config()
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-config_path = os.path.join(script_folder, 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
 
-folder = config['podcast_folder']
+
+folder = config_controler.get_key('podcast_folder')
 
 # check internet connections status
 def is_connected():
@@ -91,11 +80,7 @@ def nonhidden_file_count(dest):
 
 # write new podcast episodes to the given directory / player address
 def updatePlayer(player, window, bypass=False, logger=print):
-  newPodcast = 0
-  filesWriten = 0
-  filesDeleted = 0
-  foldersDeleted = 0
-  foldersContained = 0
+  start_time = time.time()
   # check locations exist
   if not os.path.exists(folder):
     print(f'Folder {folder} does not exist. check config.py')
@@ -132,7 +117,7 @@ def updatePlayer(player, window, bypass=False, logger=print):
       try:
         logger(f'Creating folder {dest}')
         os.makedirs(dest)
-        newPodcast += 1
+        change_log.new_folder()
       except OSError as e:
         raise OSError(f"Error creating folder {dest}: {str(e)}")
       
@@ -140,7 +125,7 @@ def updatePlayer(player, window, bypass=False, logger=print):
     if not os.path.exists(dest_art) and os.path.exists(dest):
       try:
         copy_file(src_art, dest, dest_art)
-        filesWriten += 1
+        change_log.file_wrote()
       except Exception as e:
         raise Exception(f"Error copying cover.jpg: {str(e)}")
 
@@ -153,7 +138,7 @@ def updatePlayer(player, window, bypass=False, logger=print):
       if not os.path.exists(path):
         try:
           copy_file(file, dest_dir, path)
-          filesWriten += 1
+          change_log.file_wrote()
         except Exception as e:
           raise Exception(f"Error copying file {file}: {str(e)}")
         if window:
@@ -165,7 +150,7 @@ def updatePlayer(player, window, bypass=False, logger=print):
       try:
         logger(f'{file} -> Trash')
         os.remove(file)
-        filesDeleted += 1
+        change_log.file_deleted()
       except Exception as e:
         raise Exception(f"Error deleting file {file}: {str(e)}")
 
@@ -174,11 +159,12 @@ def updatePlayer(player, window, bypass=False, logger=print):
       try:
         hidden_file = os.path.join(dest, '._cover.jpg')
         if os.path.exists(hidden_file):
-            os.remove(hidden_file)
+          os.remove(hidden_file)
+          change_log.file_deleted()
         logger(f'Removing empty folder {dest}')
         shutil.rmtree(dest)
-        foldersDeleted += 1
-        foldersContained += 1 # cover.jpg
+        change_log.folder_deleted()
+        change_log.folder_contained(1) # cover.jpg
       except Exception as e:
         raise Exception(f"Error deleting directory {dest}: {str(e)}")
     
@@ -189,28 +175,19 @@ def updatePlayer(player, window, bypass=False, logger=print):
   for dir in os.listdir(podcast_folder_on_player):
     dest = os.path.join(podcast_folder_on_player, dir) 
     if not dir.startswith('.') and not dir in os.listdir(folder):
-      foldersContained += nonhidden_file_count(dest)
+      change_log.folder_contained(nonhidden_file_count(dest))
       try:
         logger(f'deleting - {dest}')
         shutil.rmtree(dest)
-        foldersDeleted += 1
+        change_log.folder_deleted()
       except Exception as e:
         raise Exception(f"Error deleting folder {dest}: {str(e)}")
 
   if bypass:
-    return {
-      "new_podcasts": newPodcast,
-      "files_writen": filesWriten,
-      "files_deleted": filesDeleted,
-      "folders_deleted": foldersDeleted,
-      "folders_contained": foldersContained
-    }
-  if foldersDeleted == 0 and newPodcast == 0 and filesWriten == 0 and filesDeleted == 0 and foldersContained == 0:
-    print(f'Sync complete: No changes made to drive')
-  else:
-    filesDeleted += foldersContained
-    extra_text = '' if foldersDeleted == 0 else f' containing {foldersContained} file{"s" if foldersContained != 1 else ""}'
-    print(f'Sync complete: {newPodcast} folder{"s" if newPodcast != 1 else ""} created, {filesWriten} file{"s" if filesWriten != 1 else ""} copied, {filesDeleted} file{"s" if filesDeleted != 1 else ""} removed and {foldersDeleted} folder{"s" if foldersDeleted != 1 else ""} removed{extra_text}')
+    return 
+  
+  print(change_log.print(time.time() - start_time))
+  
   if question(f'Would you like to eject {player} (yes/no) '):
     print('Please wait for prompt before removing the drive')
     os.system(f'diskutil eject {escapeFolder(player)}')
@@ -341,20 +318,6 @@ def time_stamp():
 
 def notification(podcast_title, episode_title, image):
   pass
-  # if sys.platform == "darwin":    
-  #   try:
-  #     Notifier.notify(
-  #       episode_title, 
-  #       title=podcast_title, 
-  #       subtitle=time_stamp(), 
-  #       contentImage=image,
-  #       sound='default'
-  #     )
-  #   except Exception as e:
-  #     print(f"Error sending osx notification: {str(e)}")
-
-def remove_string_from_list(input_list, string_to_remove):
-  return [x for x in input_list if x != string_to_remove]
 
 def episodeExists(podcastTitle, episode):
   # URL!!!
@@ -581,16 +544,14 @@ class Podcast:
     return len(self.__list)
 
   def subscribe(self, window):
-    if self.__xmlURL in config['subscriptions']:
+    if self.__xmlURL in config_controler.get_key('subscriptions'):
       print(f'Already Subscribed to {self.__title}')
       if window:
         window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Already Subscribed to {self.__title}");')
       return
 
     # add url to config file
-    config['subscriptions'].append(self.__xmlURL)
-    with open(config_path, 'w') as file:
-      file.write(json.dumps(config, indent=2))
+    config_controler.subscribe(self.__xmlURL)
 
     if window:
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").subResponse("Subscribed!");')
@@ -598,12 +559,13 @@ class Podcast:
     print('Starting download. This may take a minuite.')
     self.downloadNewest(window)
 
+
+
+
   def unsubscribe(self, window):
     def go():
-      if (self.__xmlURL in config['subscriptions']):
-        config['subscriptions'] = remove_string_from_list(config['subscriptions'], self.__xmlURL)
-        with open(config_path, 'w') as file:
-          file.write(json.dumps(config, indent=2))
+      if (self.__xmlURL in config_controler.get_key('subscriptions')):
+        config_controler.unsubscribe(self.__xmlURL)
         if window:
           try: 
             shutil.rmtree(self.__location)
@@ -623,6 +585,10 @@ class Podcast:
           print(f'Deleteing directory {self.__location}')
         except:
           pass
+
+
+
+
 
   def downloadNewest(self, window):
     self.__mkdir()
@@ -646,7 +612,7 @@ if __name__ == "__main__":
     Podcast(sys.argv[1]).downloadNewest(False)
   except IndexError:
     try:
-      for url in config['subscriptions']:
+      for url in config_controler.get_key('subscriptions'):
         Podcast(url).downloadNewest(False)
     except Exception as e:
       print(e)

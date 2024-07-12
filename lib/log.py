@@ -31,34 +31,6 @@ def plural(num):
   """
   return "" if num == 1 else "s"
 
-def print_change_log(stats, timer):
-  """
-  Print out synchronization statistics.
-
-  Parameters:
-  - stats (dict): A dictionary containing synchronization statistics.
-
-  Returns:
-  None
-  """
-  if all(value == 0 for value in stats.values()):
-    string = f'Sync complete: No changes have been made, completed in {seconds_to_hh_mm_ss(timer)}'
-    return string
-  else:
-    # add number of files deleted from folders to total files deleted
-    stats['files_deleted'] += stats['folders_contained']
-    img_renamed = '' if not stats['images_renamed'] else f'{stats['images_renamed']} image{plural(stats['images_renamed'])} renamed, '
-    renamed = '' if not stats['files_renamed'] else f'{stats['files_renamed']} audio file{plural(stats['files_renamed'])} renamed, '
-    new_folders = '' if not stats['new_folders'] else f'{stats['new_folders']} folder{plural(stats['new_folders'])} created, '
-    copied = '' if not stats['files_writen'] else f'{stats['files_writen']} file{plural(stats['files_writen'])} copied, '
-    playlists = '' if not stats['playlist_created'] else f'{stats['playlist_created']} playlist{plural(stats['playlist_created'])} created, '
-    lrcs = '' if not stats['lrc_created'] else f'{stats['lrc_created']} lyric file{plural(stats['lrc_created'])} created, '
-    files_deleted = '' if not stats['files_deleted'] else f'{stats['files_deleted']} file{plural(stats['files_deleted'])} removed'
-    folders_deleted = '' if not stats['folders_deleted'] else f', and {stats['folders_deleted']} folder{plural(stats['folders_deleted'])} removed'
-    contained = '' if not stats['folders_contained'] else f' containing {stats['folders_contained']} file{plural(stats['folders_contained'])}'
-    string = f'Sync complete: {renamed}{img_renamed}{new_folders}{copied}{playlists}{lrcs}{files_deleted}{folders_deleted}{contained}, completed in {seconds_to_hh_mm_ss(timer)}.'
-    return string
-
 def files_with_issues():
   """
   Write information about files with issues to a text file.

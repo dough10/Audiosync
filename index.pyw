@@ -1,30 +1,36 @@
 import os
 import json
-import webview
-import glob
 import threading
+import glob
 import http.server
 import socketserver
 import requests
+
+import webview
 import xmltodict
 import clipboard
+import urllib.parse
+
+
 from lib.select_folder import select_folder
 from process_files import run_sync, sync_file, create_lib_json
 from Podcast import Podcast, episodeExists, dlWithProgressBar, update_ID3, load_saved_image, id3Image, folder as podcast_dir
-import urllib.parse
+from lib.config_controler import Config
+
+config_controler = Config()
+
+config = config_controler.get()
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-config_path = os.path.join(script_folder, 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
+
+html_path = os.path.join(script_folder, 'html')
+lib_path = os.path.join(script_folder, 'lib_data.json')
+fav_path =os.path.join(script_folder, 'favorites.json')
 
 port = 8080
 
 window = False
-file_path = os.path.abspath(__file__)
-script_folder = os.path.dirname(file_path)
-html_path = os.path.join(script_folder, 'html')
 
 
 class CustomRequestHandler(http.server.SimpleHTTPRequestHandler):
@@ -65,17 +71,6 @@ def run_combined_server():
     httpd.max_threads = 8
     httpd.serve_forever()
   
-# save config file
-def save_config():
-  with open(config_path, 'w') as file:
-    file.write(json.dumps(config, indent=2))
-
-# reload config file
-def reload_config():
-  global config
-  with open(config_path, 'r') as j:
-    config = json.load(j) 
-
 
 
 class Api:
@@ -89,7 +84,7 @@ class Api:
   #  get lib_data.json data
   def lib_data(self):
     try:
-      file = open(os.path.join(script_folder, 'lib_data.json'))
+      file = open(lib_path)
       return json.load(file)
     except FileNotFoundError:
       return {}
@@ -115,12 +110,16 @@ class Api:
 
   # write config.json data to file
   def update_config(self, frontend_config):
-    global config
-    for key, value in frontend_config.items():
-      if key in config:
-        config[key] = value
-    save_config()
-    return config
+    """
+    Updates config with keys from the passed in dict
+    
+    Parameters:
+    frontend_config (dict): change made from HTML
+    
+    Returns: 
+    dict: config data 
+    """
+    return config_controler.update(frontend_config)
 
   def get_themes(self):
     themes = []
@@ -140,15 +139,15 @@ class Api:
 
   def load_favorites(self):
     try:
-      with open(os.path.join(script_folder, 'favorites.json'), 'r') as j:
+      with open(fav_path, 'r') as j:
         return json.load(j)
     except FileNotFoundError:
       return {}
     
   # save favorites to file
   def save_favorites(self, favs):
-    with open(os.path.join(script_folder, 'favorites.json'), 'w') as fav_file:
-      fav_file.write(favs) 
+    with open(fav_path, 'w') as favorites:
+      favorites.write(favs) 
 
   # get data copied to clipboard
   def get_clipboard(self):
@@ -158,8 +157,9 @@ class Api:
   def create_json(self):
     create_lib_json(window)
 
-  def lrcraw_exists(self, path):
-    return os.path.exists(os.path.join(*[config['source'], *path]))
+  def lrcraw_exists(self, path:list):
+    lrc_file_path = os.path.join(*[config['source'], *path])
+    return os.path.exists(lrc_file_path)
 
   # subscribe to URL
   def subscribe(self, url):
@@ -171,8 +171,8 @@ class Api:
 
   # get synscriptions from config.json
   def list_subscriptions(self):
-    reload_config()
-    return config['subscriptions']
+    config_controler.reload()
+    return config_controler.get_key('subscriptions')
   
   # runs podcast update and sends update info to UI
   def get_podcasts(self):
@@ -217,10 +217,10 @@ class Api:
       print(e)
 
   def scrobble_start(self, played_obj):
-    print(played_obj)
+    pass
 
   def scrobble_end(self, played_obj):
-    print(played_obj)
+    pass
 
   def path_exists(self, path):
     return os.path.exists(path)
