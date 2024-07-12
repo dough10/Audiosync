@@ -433,9 +433,11 @@ option {
   justify-content: space-between;
   align-items: center;
   border: var(--seperator-line);
+  border-radius: 5px;
   padding-left: 12px;
-  margin: 0.29em auto;
+  margin: 20px auto;
   background: rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 .selector_text > span {
   overflow: hidden;
