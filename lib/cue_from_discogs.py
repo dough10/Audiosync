@@ -1,15 +1,15 @@
 import os
-import json
-from lib.log import log
+
 import discogs_client
 
-file_path = os.path.abspath(__file__)
-script_folder = os.path.dirname(file_path)
+try:
+  from lib.log import log
+  from lib.config_controler import Config
+except ModuleNotFoundError:
+  from log import log
+  from config_controler import Config
 
-
-config_path = os.path.join(script_folder, '..', 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
+config_controler = Config()
 
 # do not change
 total_time = '00:00'
@@ -87,7 +87,7 @@ def add_durations(durations):
   return total_time
 
 def get_discogs_data(release_id, mp3_path, gapless):
-  d = discogs_client.Client('Audiosync/0.1', user_token=config['discogs_token'])
+  d = discogs_client.Client('Audiosync/0.1', user_token=config_controler.get_key('discogs_token'))
   release = d.release(release_id)
   save_cue(release, mp3_path, gapless)
 
@@ -95,7 +95,7 @@ def cue_from_releaseid(releaseID, file_path, changes):
   try:
     rid = open(releaseID, 'r').read().split('\n')
     get_discogs_data(rid[0], file_path, rid[1])
-    changes['playlist_created'] += 1
+    changes.playlist_created()
   except:
     log(f'Error reading releaseid {releaseID}')
 
