@@ -1,16 +1,16 @@
 import re
-import os
-import json
+
 import lyricsgenius
 
-file_path = os.path.abspath(__file__)
-script_folder = os.path.dirname(file_path)
-config_path = os.path.join(script_folder, '..', 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
+try:
+  from lib.config_controler import Config
+except ModuleNotFoundError:
+  from config_controler import Config
 
-if config['genius']:
-  genius = lyricsgenius.Genius(config['genius'])
+config_controler = Config()
+
+if config_controler.get_key('genius'):
+  genius = lyricsgenius.Genius(config_controler.get_key('genius'))
   genius.verbose = False
   genius.skip_non_songs = True
   genius.remove_section_headers = True
