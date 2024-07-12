@@ -12,19 +12,24 @@ from lib.get_folder_size import get_folder_size
 from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
-from lib.log import log, print_change_log, files_with_issues, need_attention, reset_log
+from lib.log import log, files_with_issues, need_attention, reset_log
 from lib.parse_radio_txt import main as create_radio_txt
 from lib.resize_image import resize_image
+from lib.config_controler import Config
+from lib.change_log import ChangeLog
+
+change_log = ChangeLog()
+file_manager = File_manager()
+pl_manager = Playlist_manager()
+config_controler = Config()
+
 
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
-config_path = os.path.join(script_folder, 'config.json')
-with open(config_path, 'r') as j:
-  config = json.load(j)
 
 sorted_dir = select_folder()
-working_dir = config['source']
-ignore_folders = config['lrc_ignore_folders'] # folders whos files we will be ignored when attempting tog et lyrics
+working_dir = config_controler.get_key('source')
+ignore_folders = config_controler.get_key('lrc_ignore_folders') # folders whos files we will be ignored when attempting tog et lyrics
 remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
@@ -32,21 +37,10 @@ import_lyrics = False
 import_custom_radio = False
 sync_file_data = {}
 lib_data = {}
-changes = { # log of file changes 
-  "lrc_created":0,
-  "new_folders": 0,
-  "files_writen": 0,
-  "playlist_created": 0,
-  "files_deleted": 0,
-  "folders_deleted": 0,
-  "folders_contained": 0,
-  "images_renamed": 0,
-  "files_renamed": 0
-}
+
 
 sync_file = os.path.join(sorted_dir, 'sync.json')
-file_manager = File_manager(changes)
-pl_manager = Playlist_manager(changes)
+
 
 
 
@@ -134,7 +128,7 @@ def move_file(root:str, file:str, ext:str):
   # will be saved to source location and not destination 
   # will copy it to destination later in this function
   if os.path.exists(releaseID) and import_cues:
-    cue_from_releaseid(releaseID, source_file, changes)
+    cue_from_releaseid(releaseID, source_file, change_log)
 
   # get info needed to sort the file
   if ext == '.flac':
@@ -158,7 +152,7 @@ def move_file(root:str, file:str, ext:str):
   song_title = info['title']
 
   # build data dictonary of artists and albums
-  add_to_lib(artist_folder, album_folder, root.replace(config['source'], ''), file, song_title, info['track'], info['disc'])
+  add_to_lib(artist_folder, album_folder, root.replace(config_controler.get_key('source'), ''), file, song_title, info['track'], info['disc'])
 
   # early return if artist or album isn't listed in sync file
   if use_sync_file:
@@ -195,7 +189,7 @@ def move_file(root:str, file:str, ext:str):
   if not os.path.exists(dest):
     try:
       os.makedirs(dest)
-      changes['new_folders'] += 1
+      change_log.new_folder()
     except FileExistsError:
       pass
 
@@ -229,7 +223,7 @@ def get_audio_files():
   list
   """
   audio_files:list = []
-  for root, dirs, files in os.walk(working_dir):
+  for root, _, files in os.walk(working_dir):
     for file in files:
       if is_audio_file(file) and not file.startswith('._'):
         file = file_manager.fix_filename(root, file)
@@ -278,7 +272,7 @@ def get_lib_size(queue):
   Returns:
   None 
   """
-  queue.put(get_folder_size(config['source']))
+  queue.put(get_folder_size(config_controler.get_key('source')))
 
 
 
@@ -300,6 +294,7 @@ def run_sync(window:dict):
   global sync_file_data
   global sync_file
   global lib_data
+  global change_log
 
   lib_data = {}
 
@@ -314,8 +309,7 @@ def run_sync(window:dict):
       print(f'Error importing {sync_file}: {e}')
       sys.exit()
 
-  with open(config_path, 'r') as j:
-    config = json.load(j)
+  config = config_controler.get()
 
   import_cues = config['import_cues']
   import_lyrics = config['import_lyrics']
@@ -346,7 +340,7 @@ def run_sync(window:dict):
   }, window)
   if not os.path.exists(sorted_dir):
     os.makedirs(sorted_dir)
-    changes['new_folders'] += 1
+    change_log.new_folder()
 
   #rename images to cover.jpg
   notify({
@@ -410,12 +404,7 @@ def run_sync(window:dict):
 
   # copy / delete podcasts and add those changes to the total changes
   if podcast:
-    stats = updatePodcast(sorted_dir, window, bypass=True, logger=log)
-    changes['new_folders'] += stats['new_podcasts']
-    changes['files_writen'] += stats['files_writen']
-    changes['files_deleted'] += stats['files_deleted']
-    changes['folders_deleted'] += stats['folders_deleted']
-    changes['folders_contained'] += stats['folders_contained']
+    updatePodcast(sorted_dir, window, bypass=True, logger=log)
   
   # create .cue / .m3u8 file for each album that doesn't already have one
   if import_cues:
@@ -424,7 +413,7 @@ def run_sync(window:dict):
     # create folder for new_files playlist  
     if not os.path.exists(playlist_folder):
       os.makedirs(playlist_folder)
-      changes['new_folders'] += 1
+      change_log.new_folder()
 
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
@@ -442,13 +431,13 @@ def run_sync(window:dict):
   files_with_issues()
 
   # sync summary
-  change_log = print_change_log(changes, time.time() - start_time)
+  changes = change_log.print(time.time() - start_time)
   notify({
-    "text": change_log,
+    "text": changes,
     "summary" : True,
     "toast" : False
   }, window)
-  log(change_log)
+  log(changes)
 
 
 def build_lib(root:str, file:str, ext:str):
@@ -488,7 +477,7 @@ def build_lib(root:str, file:str, ext:str):
   if not os.path.exists(thumbnail_name):
     resize_image(jpg, 150, thumbnail_name, ext='WEBP')
   # add to lib_data
-  add_to_lib(info['artist'], info['album'], root.replace(config['source'], ''), file, info['title'], info['track'], info['disc'])
+  add_to_lib(info['artist'], info['album'], root.replace(config_controler.get_key('source'), ''), file, info['title'], info['track'], info['disc'])
 
 
 def create_lib_json(window:dict):
@@ -502,14 +491,9 @@ def create_lib_json(window:dict):
   None
   """
   global lib_data
-  global config
   global working_dir
-  
-  with open(config_path, 'r') as j:
-    config = json.load(j)
 
-  working_dir = config['source']
-  
+  working_dir = config_controler.get_key('source')
   
   # clear data object
   lib_data = {}
