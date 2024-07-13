@@ -1331,6 +1331,7 @@ class MusicLibrary extends HTMLElement {
    * @param {Event} e
    */
   _makeSelection(e) {
+    if (!qs('sync-ui').source) return;
     const target = e.target;
     if (target.classList.contains('artist') && this.hasAttribute('favorites')) return;
     createRipple(e);

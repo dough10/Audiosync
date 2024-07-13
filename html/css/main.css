@@ -438,6 +438,7 @@ option {
   margin: 20px auto;
   background: rgba(0,0,0,0.1);
   overflow: hidden;
+  box-shadow: inset 0px 5px 6px -3px rgba(0,0,0,0.4);
 }
 .selector_text > span {
   overflow: hidden;

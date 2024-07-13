@@ -305,18 +305,30 @@ async function load_app() {
   SYNC_BUTTON.onClick(async _ => {
     await sleep(20);
     await MENU_DRAWER.close();
+
+    if (!SYNC_UI_ELEMENT.source) {
+      SYNC_UI_ELEMENT.source = await pywebview.api.set_source();
+      qs('#sync-text').textContent = 'sync';
+      await sleep(200);
+      MUSIC_LIBRARY.go();
+      return;
+    }
+    
     if (SYNC_UI_ELEMENT.syncing) {
       await sleep(200);
       SYNC_UI_ELEMENT.open();
       return;
     }
+    
     [
       MUSIC_LIBRARY_SCAN_BUTTON, 
       PODCAST_LIBRARY_ADD_BUTTON
     ].forEach(el => toggleAttribute(el, 'disabled'));
+    qs('#sync-text').textContent = 'syncing';
     SYNC_UI_ELEMENT.startSync();
     await pywebview.api.run_sync();
     PODCAST_LIBRARY_ADD_BUTTON.removeAttribute('disabled');
+    qs('#sync-text').textContent = 'complete';
   });
 
   // when a switch is changed update config & UI

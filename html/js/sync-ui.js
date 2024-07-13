@@ -47,6 +47,7 @@ class SyncUI extends HTMLElement {
       }
     };
 
+    this.source = false;
     this.syncing = false;
 
     const ELEMENT_STYLES = ce('style');
@@ -241,6 +242,7 @@ class SyncUI extends HTMLElement {
       await sleep(200);
       qs(id, this.shadowRoot).setAttribute('percent', 0);
       qs(`${id}-text`, this.shadowRoot).textContent = '0%';
+      qs('#sync-text').textContent = 'sync';
     });
     qs('#scan').removeAttribute('disabled');
   }
