@@ -17,6 +17,9 @@ from lib.parse_radio_txt import main as create_radio_txt
 from lib.resize_image import resize_image
 from lib.config_controler import Config
 from lib.change_log import ChangeLog
+from lib.get_mp3_info import get_mp3_info
+from lib.get_flac_info import get_flac_info
+
 
 change_log = ChangeLog()
 file_manager = File_manager()
@@ -27,7 +30,7 @@ config_controler = Config()
 file_path = os.path.abspath(__file__)
 script_folder = os.path.dirname(file_path)
 
-sorted_dir = select_folder()
+sorted_dir = ''
 working_dir = config_controler.get_key('source')
 ignore_folders = config_controler.get_key('lrc_ignore_folders') # folders whos files we will be ignored when attempting tog et lyrics
 remove_lrc_wd = False # default value.  user will be propted if needed
@@ -104,7 +107,7 @@ def add_to_lib(artist:str, album:str, location:str, file:str, title:str, track:i
 
 
 
-def move_file(root:str, file:str, ext:str):
+def move_file(root:str, file:str, ext:str) -> None:
   """
   Process audio file in the specified root directory.
 
@@ -117,24 +120,24 @@ def move_file(root:str, file:str, ext:str):
   None
   """
   global lib_data
-  source_file = os.path.join(root, file)
-  jpg = os.path.join(root, 'cover.jpg')
-  alt_jpg = os.path.join(root, '..', 'cover.jpg')
-  lrc_filename = f'{os.path.splitext(file)[0]}.lrc'
-  lrc = os.path.join(root, lrc_filename)
-  releaseID = os.path.join(root, 'releaseid.txt')
+  source_file:str = os.path.join(root, file)
+  jpg:str = os.path.join(root, 'cover.jpg')
+  alt_jpg:str = os.path.join(root, '..', 'cover.jpg')
+  lrc_filename:str = f'{os.path.splitext(file)[0]}.lrc'
+  lrc:str = os.path.join(root, lrc_filename)
+  releaseID:str = os.path.join(root, 'releaseid.txt')
 
   # create cue from discogs data 
   # will be saved to source location and not destination 
   # will copy it to destination later in this function
   if os.path.exists(releaseID) and import_cues:
-    cue_from_releaseid(releaseID, source_file, change_log)
+    cue_from_releaseid(releaseID, source_file)
 
   # get info needed to sort the file
   if ext == '.flac':
-    info = pl_manager.get_flac_info(source_file, file)
+    info = get_flac_info(source_file, file)
   else:
-    info = pl_manager.get_mp3_info(source_file, file, jpg)
+    info = get_mp3_info(source_file, file)
 
   # return if no info was found
   if not info:
@@ -215,7 +218,7 @@ def move_file(root:str, file:str, ext:str):
 
 
 
-def get_audio_files():
+def get_audio_files() -> list:
   """
   generate list of audio files in the working_dir
 
@@ -232,7 +235,7 @@ def get_audio_files():
 
 
 
-def process_audio_files(window:dict):
+def process_audio_files(window:dict) -> None:
   """
   Process all audio files in the working directory.
 
@@ -251,7 +254,7 @@ def process_audio_files(window:dict):
 
 
 
-def notify(s:str, window:dict):
+def notify(s:str, window:dict) -> None:
   try:
     if window:
       window.evaluate_js(f'document.querySelector("sync-ui").syncUpdate({json.dumps(s)});')
@@ -262,7 +265,7 @@ def notify(s:str, window:dict):
 
 
 
-def get_lib_size(queue):
+def get_lib_size(queue) -> None:
   """
   Returns library size.
 
@@ -276,7 +279,18 @@ def get_lib_size(queue):
 
 
 
-def run_sync(window:dict):
+
+def set_source() -> str:
+  global sorted_dir
+  global sync_file
+  sorted_dir = select_folder()
+  sync_file = os.path.join(sorted_dir, 'sync.json')
+  return sync_file
+
+
+
+
+def run_sync(window:dict) -> None:
   """
   Main function to organize and process audio files.
 
@@ -296,6 +310,7 @@ def run_sync(window:dict):
   global lib_data
   global change_log
 
+  # sorted_dir = select_folder()
   lib_data = {}
 
   sync_file = os.path.join(sorted_dir, 'sync.json')
@@ -461,9 +476,9 @@ def build_lib(root:str, file:str, ext:str):
   alt_jpg = os.path.join(root, '..', 'cover.jpg')
 
   if ext == '.flac':
-    info = pl_manager.get_flac_info(source_file, file)
+    info = get_flac_info(source_file, file)
   else:
-    info = pl_manager.get_mp3_info(source_file, file, jpg)
+    info = get_mp3_info(source_file, file)
   if not info:
     return
   # copy alt_jpg to normal position

@@ -5,16 +5,19 @@ import discogs_client
 try:
   from lib.log import log
   from lib.config_controler import Config
+  from lib.change_log import ChangeLog
 except ModuleNotFoundError:
   from log import log
   from config_controler import Config
+  from change_log import ChangeLog
 
+change_log = ChangeLog()
 config_controler = Config()
 
 # do not change
 total_time = '00:00'
 
-def string_to_boolean(s):
+def string_to_boolean(s:str) -> bool:
   true_strings = ['true', 'yes', '1']
   false_strings = ['false', 'no', '0']
   
@@ -25,7 +28,7 @@ def string_to_boolean(s):
   else:
     raise ValueError("Invalid boolean string")
 
-def save_cue(release, mp3_path, gapless):
+def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
 
   basename = os.path.basename(mp3_path)
 
@@ -64,7 +67,7 @@ def save_cue(release, mp3_path, gapless):
       if not string_to_boolean(gapless):
         add_durations([total_time, '00:02'])
 
-def add_durations(durations):
+def add_durations(durations:list) -> str:
   global total_time
   if durations[1] == '0':
     return total_time
@@ -86,22 +89,23 @@ def add_durations(durations):
   total_time = f"{total_minutes:02d}:{total_seconds:02d}"
   return total_time
 
-def get_discogs_data(release_id, mp3_path, gapless):
+def get_discogs_data(release_id:str, mp3_path:str, gapless:bool) -> None:
   d = discogs_client.Client('Audiosync/0.1', user_token=config_controler.get_key('discogs_token'))
   release = d.release(release_id)
   save_cue(release, mp3_path, gapless)
 
-def cue_from_releaseid(releaseID, file_path, changes):
+def cue_from_releaseid(releaseID:str, file_path:str) -> None:
+  """
+  """
   try:
     rid = open(releaseID, 'r').read().split('\n')
     get_discogs_data(rid[0], file_path, rid[1])
-    changes.playlist_created()
-  except:
+    change_log.playlist_created()
+  except IndexError:
     log(f'Error reading releaseid {releaseID}')
 
 if __name__ == "__main__":
-  get_discogs_data(
-    '585587',
-    'z:\\Music\\Unsorted\\Other\\Black Uhuru\\Guess who\'s comming for dinner\\Black Uhuru - Guess Whos Coming To.mp3', 
-    'false'
+  cue_from_releaseid(
+    'z:\\Music\\Unsorted\\Other\\Black Uhuru\\Guess who\'s comming for dinner\\releaseid.txt', 
+    'z:\\Music\\Unsorted\\Other\\Black Uhuru\\Guess who\'s comming for dinner\\Black Uhuru - Guess Whos Coming To.mp3'
   )

@@ -5,6 +5,12 @@ import os
 import sys
 
 from lib.log import need_attention, log
+from lib.change_log import ChangeLog
+
+change_log = ChangeLog()
+
+
+
 
 def generate_m3u(directory:str, album:str):
   """
@@ -63,6 +69,7 @@ def generate_m3u(directory:str, album:str):
     
     # log change
     log(f"M3U file generated at {m3u_file_path}")
+    change_log.playlist_created()
     
   except Exception as e:
     need_attention.append(f'error creating {m3u_file_path}\n{e}\n\n')

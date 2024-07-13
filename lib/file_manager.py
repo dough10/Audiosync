@@ -2,25 +2,41 @@ import os
 import time
 import shutil
 import string
-from lib.lyrics import get_lyrics
-from lib.log import log
 from concurrent.futures import ThreadPoolExecutor
 
-from lib.resize_image import resize_image
-from lib.rename_file import rename_file
-from lib.change_log import ChangeLog
-
+try:
+  from lib.lyrics import get_lyrics
+  from lib.log import log
+  from lib.resize_image import resize_image
+  from lib.rename_file import rename_file
+  from lib.change_log import ChangeLog
+except ModuleNotFoundError:
+  from lyrics import get_lyrics
+  from log import log
+  from resize_image import resize_image
+  from rename_file import rename_file
+  from change_log import ChangeLog
+  
 change_log = ChangeLog()
 
 
 
-def estimate_file_size(text):
+def estimate_file_size(text:str) -> int:
+  """
+  estimate size of the text to be writter to a file
+  
+  Parameters:
+  text (str): lyrics text
+  
+  Returns:
+  int: kilabytes of file to be saved
+  """
   return len(text.encode('utf-8')) / 1024
 
 
 
 
-def delete_files(path, filenames):
+def delete_files(path, filenames) -> None:
   """
   Delete files in the specified directory and its subdirectories that match any of the given filenames or extensions.
 
@@ -37,7 +53,6 @@ def delete_files(path, filenames):
       try:
         change_log.file_deleted()
         os.remove(file)
-        # print(f"Deleted file: {file}") 
       except OSError as e:
         print(f"Error deleting file {file}: {e}")
       except Exception as e:
@@ -46,9 +61,17 @@ def delete_files(path, filenames):
 
 
 
-def process_image(root, filename, changes):
+def process_image(root, filename) -> None:
+  """
+  rename and resize an image
+  
+  Parameters:
+  root (str): file root path
+  filename (str): name of the file
+  changes (dict): ChangeLog instance
+  """
   # rename image first
-  f = rename_file(root, filename, changes)
+  f = rename_file(root, filename)
   # resized image filename will match new filename
   resize_image(os.path.join(root, f), 1000, os.path.join(root, f))
 
@@ -72,7 +95,23 @@ class File_manager:
     filename = ''.join(c for c in s.replace('&','and') if c in valid_chars)
     return filename  
 
+
+
+
+
   def fix_filename(self, root, file):
+    """
+    fixes filename removing any unsupported characters
+    
+    Parameters:
+    self (self@FileManager): file manager instance
+    root (str): the root path of the file
+    file (str): the name of the file
+    
+    Returns:
+    str: updated filename 
+    
+    """
     new_name = self.formatFilename(file)
     if new_name == file:
       return file
@@ -86,7 +125,7 @@ class File_manager:
 
 
 
-  def copy_file(self, source, destination, path, max_retries=5, timeout=10):
+  def copy_file(self, source, destination, path, max_retries=5, timeout=10) -> None:
     """
     Copy a file from the source path to the destination path with retries.
 
@@ -129,14 +168,24 @@ class File_manager:
 
 
 
-  def rename_images(self, directory_path):
+  def rename_images(self, directory_path) -> None:
+    """
+    rename & resize album art image
+    
+    Parameters:
+    directory_path (str): path to directory of image
+    
+    Returns:
+    None
+    """
     with ThreadPoolExecutor(max_workers=2) as executor:
       for root, _, files in os.walk(directory_path):
-        executor.map(lambda file: process_image(root, file, change_log), files)
+        executor.map(lambda file: process_image(root, file), files)
 
 
 
-  def save_lrc_file(self, lrc, artist, title):
+
+  def save_lrc_file(self, lrc, artist, title) -> None:
     """
     Save the lyrics content to the specified LRC file.
 
@@ -153,17 +202,15 @@ class File_manager:
     lyrics = get_lyrics(title, artist)
     if lyrics:
       with open(f'{lrc}-raw', 'w', encoding='utf-8') as lyrics_file:
-        if estimate_file_size(lyrics) > 2:
-          lyrics_file.write('')
-        else:
+        if estimate_file_size(lyrics) <= 3:
           lyrics_file.write(lyrics)
-      log(f'Lyrics for {artist} {title} saved to {lrc}')
-      change_log.lrc_created()
+          log(f'Lyrics for {artist} {title} saved to {lrc}')
+          change_log.lrc_created()
 
 
 
 
-  def remove_cue_files(self, path):
+  def remove_cue_files(self, path) -> None:
     """
     Remove CUE, M3U, and M3U8 files from the specified path.
 
@@ -178,7 +225,7 @@ class File_manager:
 
 
 
-  def remove_lrc(self, path):
+  def remove_lrc(self, path) -> None:
     """
     Remove LRC files from the specified path.
 
@@ -193,7 +240,17 @@ class File_manager:
 
 
 
-  def remove_folder(self, folder):
+  def remove_folder(self, folder) -> None:
+    """
+    removes filder and it's contained files
+    
+    Parameters:
+    self (self@FileManager):
+    folder (str): folder path
+    
+    Returns:
+    None
+    """
     shutil.rmtree(folder)
     log(f'{folder} -> Trash')
     change_log.folder_deleted()
@@ -201,8 +258,17 @@ class File_manager:
 
 
 
-  def count_folder_content(self, folder):
+  def count_folder_content(self, folder) -> None:
+    """
+    count the contents of the folder
+    
+    Parameters:
+    self (self@FileManager):
+    folder (str): folder path
+    
+    Returns:
+    None
+    """
     for _, dirs, files in os.walk(folder):
       change_log.folder_contained(len(files))
-      for _ in len(dirs):
-        change_log.folder_deleted()
+      change_log.folder_deleted(len(dirs))

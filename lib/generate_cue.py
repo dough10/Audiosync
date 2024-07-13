@@ -4,34 +4,25 @@ import music_tag as MP3
 import os
 import sys
 
-from lib.log import need_attention, log
-from lib.upc import get_upc
+try:
+  from lib.log import need_attention, log
+  from lib.upc import get_upc
+  from lib.change_log import ChangeLog
+except ModuleNotFoundError:
+  from log import need_attention, log
+  from upc import get_upc
+  from change_log import ChangeLog
 
-def generate_cue(directory:str, artist:str, album:str):
-  """
-  Generate a CUE file for the specified directory, artist, and album.
+change_log = ChangeLog()
 
-  Parameters:
-  - directory (str): The directory path where the CUE file will be generated.
-  - artist (str): The artist name.
-  - album (str): The album name.
 
-  Returns:
-  None
-  """
-  # cue file path
-  cue_file_path = os.path.join(directory, f'{album}.cue')
-
-  # early return if cue file path already exists 
-  if os.path.exists(cue_file_path) or len(glob.glob(os.path.join(directory, '*.cue'))) != 0:
-    return
-  
+def sort_directory(directory:str):
   # list usable audio files
   audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.mp3') or file.endswith('.m4a')]
   
   # early return if no files
   if len(audio_files) == 0:
-    return
+    return None
   
   # list to sort for play order
   info = []
@@ -69,6 +60,33 @@ def generate_cue(directory:str, artist:str, album:str):
 
   # sort by disc then track number
   info.sort(key=lambda x: (x[1], x[2]))
+  return info, track_list, file_extension
+
+
+
+def generate_cue(directory:str, artist:str, album:str):
+  """
+  Generate a CUE file for the specified directory, artist, and album.
+
+  Parameters:
+  - directory (str): The directory path where the CUE file will be generated.
+  - artist (str): The artist name.
+  - album (str): The album name.
+
+  Returns:
+  None
+  """
+  # cue file path
+  cue_file_path = os.path.join(directory, f'{album}.cue')
+
+  # early return if cue file path already exists 
+  if os.path.exists(cue_file_path) or len(glob.glob(os.path.join(directory, '*.cue'))) != 0:
+    return
+  
+  result = sort_directory(directory)
+  if result is None:
+    return
+  info, track_list, file_extension = result
   
   # write the cue file
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
@@ -78,14 +96,14 @@ def generate_cue(directory:str, artist:str, album:str):
     cue_file.write(f'PERFORMER "{artist}"\n')
     cue_file.write(f'TITLE "{album}"\n')
     for file in info:
-      track = MP3.load_file(os.path.join(directory, file[0]))
-      try:
-        cue_file.write(f'FILE "{file[0]}" {file_extension.upper()}\n')
-        cue_file.write(f'  TRACK {str(track['tracknumber']).zfill(2)} AUDIO\n')
-        cue_file.write('    INDEX 01 00:00:00\n')
-      except:
-        pass
+      path = file[0]
+      track_num = info.index(file) + 1
+      cue_file.write(f'FILE "{path}" {file_extension.upper()}\n')
+      cue_file.write(f'  TRACK {str(track_num).zfill(2)} AUDIO\n')
+      cue_file.write('    INDEX 01 00:00:00\n')
+
   log(f"CUE file generated at {cue_file_path}")
+  change_log.playlist_created()
 
 if __name__ == "__main__":
-  generate_cue(sys.argv[1], sys.argv[2], sys.argv[3])
+  generate_cue('Z:\\Music\\Unsorted\\D&B\\Reso\\Ricochet', 'Reso', 'Ricochet')

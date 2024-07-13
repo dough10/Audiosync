@@ -17,8 +17,8 @@ if config_controler.get_key('genius'):
   genius.excluded_terms = ["(Remix)", "(Live)"]
 
 def remove_lines(text):
-  text = re.sub(r'(\d+ (?:Contributors?|Embed)|Get tickets as low as \$\d+)', '', text)
-  text = text.replace('You might also like', '').replace('embed', '')
+  pattern = re.compile(r'(\d+ (?:Contributors?|Embed)|Get tickets as low as \$\d+|embed|You might also like)', re.IGNORECASE)
+  text = re.sub(pattern, '', text)
   return text.lower()
 
 

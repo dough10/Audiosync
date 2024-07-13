@@ -14,23 +14,6 @@ def reset_log():
   if os.path.exists(log_path):
     os.remove(log_path)
 
-def seconds_to_hh_mm_ss(seconds):
-  hours, remainder = divmod(seconds, 3600)
-  minutes, seconds = divmod(remainder, 60)
-  return f"{f'{int(hours)} hours, ' if hours > 0 else ''}{int(minutes)} minutes, and {int(seconds)} seconds"
-
-def plural(num):
-  """
-  Return an empty string or 's' based on whether the input number is 1 or not.
-
-  Parameters:
-  - num (int): The input number.
-
-  Returns:
-  str: An empty string or 's'.
-  """
-  return "" if num == 1 else "s"
-
 def files_with_issues():
   """
   Write information about files with issues to a text file.

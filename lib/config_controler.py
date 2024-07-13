@@ -46,6 +46,7 @@ class Config:
     Returns:
     dict: config.json data
     """
+    self.reload()
     return self.config_
 
 
@@ -61,6 +62,7 @@ class Config:
     Returns:
     Any: value
     """
+    self.reload()
     if key in self.config_:
       return self.config_[key]
     else:
@@ -84,8 +86,7 @@ class Config:
     for key, value in frontend_config.items():
       if key in self.config_:
         self.config_[key] = value
-    self.save_()
-    return self.config_
+    return self.save_()
   
 
 
@@ -103,7 +104,7 @@ class Config:
     """
     try:
       with open(self.config_path_, 'r') as j:
-        self.config_ = json.load(j) 
+        self.config_ = json.load(j)
       return self.config_
     except FileNotFoundError:
       print(f"Error: The file at {self.config_path_} was not found.")
@@ -147,6 +148,7 @@ class Config:
     dict: updated data
     """
     self.config_['subscriptions'].append(url)
+    self.reload()
     return self.save_()
 
 
@@ -164,4 +166,5 @@ class Config:
     """
     if (url in self.config_['subscriptions']):
       self.config_['subscriptions'] = remove_string_from_list(self.config_['subscriptions'], url)
+    self.reload()
     return self.save_()

@@ -3,6 +3,13 @@ from PIL import Image
 import os
 import sys
 
+try:
+  from lib.change_log import ChangeLog
+except ModuleNotFoundError:
+  from change_log import ChangeLog
+  
+change_log = ChangeLog()
+
 def resize_image(image_path:str, size:int, destination:str, ext='JPEG'):
   options = {
     "quality": 100 if ext == 'JPEG' else 60,
@@ -14,6 +21,7 @@ def resize_image(image_path:str, size:int, destination:str, ext='JPEG'):
     width, height = img.size 
     if width > size or height > size:
       img.thumbnail((size, size), Image.LANCZOS)
+      change_log.image_resized()
     img.convert('RGB')
     try:
       if ext == 'WEBP':

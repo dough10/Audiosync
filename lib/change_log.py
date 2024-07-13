@@ -62,21 +62,6 @@ class ChangeLog:
 
 
 
-  @classmethod
-  def image_resized(cls) -> None:
-    """
-    incriment image_resize property by 1
-    
-    Parameters:
-    None
-    
-    Returns:
-    None
-    """
-    cls._changes['images_resized'] += 1
-
-
-
 
   @classmethod
   def lrc_created(cls) -> None:
@@ -175,17 +160,18 @@ class ChangeLog:
 
 
   @classmethod
-  def folder_deleted(cls) -> None:
+  def folder_deleted(cls, count:int = 1) -> None:
     """
     incriment folder_Deleted property by 1
     
     Parameters:
-    None
+    count (int): number of folders deleted
     
     Returns:
     None
     """
-    cls._changes['folders_deleted'] += 1
+    cls._changes['folders_deleted'] += count
+
 
 
 
@@ -202,6 +188,22 @@ class ChangeLog:
     None
     """
     cls._changes['folders_contained'] += count
+
+
+
+
+  @classmethod
+  def image_resized(cls) -> None:
+    """
+    incriment image_resize property by 1
+    
+    Parameters:
+    None
+    
+    Returns:
+    None
+    """
+    cls._changes['images_resized'] += 1
 
 
 
