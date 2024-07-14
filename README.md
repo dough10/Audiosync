@@ -1,5 +1,4 @@
 # audiosync V:1.0.0
-
 A python application with HTML GUI for writing a SD Card for use in a Digital Audio Player.
 
 - writes files to sdcard (audio files, cover images, playlist files)
@@ -8,7 +7,7 @@ A python application with HTML GUI for writing a SD Card for use in a Digital Au
 - generate a playlist for any files with a modified date newer then a month old
 - podcast downloading, deleting, subscribing
 - generates radio.txt for "custom radio" feature on hiby players from MrNaturalAZ's file posted to head-fi forum
-- WIP .lrc file generation for song lyrics
+- WIP .lrc file generation for song lyrics 
 
 ## JSDocs Documentation
 
@@ -17,6 +16,7 @@ A python application with HTML GUI for writing a SD Card for use in a Digital Au
   - [html/js/audiosync-podcasts/audiosync-podcasts-doc.md](html/js/audiosync-podcasts/audiosync-podcasts-doc.md)
   - [html/js/audiosync-dialog/audiosync-dialog-doc.md](html/js/audiosync-dialog/audiosync-dialog-doc.md)
   - [html/js/helpers-doc.md](html/js/helpers-doc.md)
+
 
 ## NPM Dependencies
 

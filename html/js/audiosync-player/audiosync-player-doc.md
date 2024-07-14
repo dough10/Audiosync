@@ -51,6 +51,7 @@ play a specific playlist index number
 add an albums tracks to the playlist
 
 **Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
+**Access**: public  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -65,6 +66,7 @@ add an albums tracks to the playlist
 callback for <music-library> favorite added event
 
 **Kind**: instance method of [<code>AudioPlayer</code>](#AudioPlayer)  
+**Access**: public  
 
 | Param | Type |
 | --- | --- |
