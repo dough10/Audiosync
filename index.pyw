@@ -95,14 +95,64 @@ def main():
 class Api:
 
   # get config.json data
-  def get_config(self):
+  def get_config(self) -> json:
+    """
+    returns the config object
+    
+    Parameters:
+    None
+    
+    Returns: 
+    json: config object
+    """
     return config
 
 
 
 
+  # write config.json data to file
+  def update_config(self, frontend_config:json) -> json:
+    """
+    Updates config with keys from the passed in dict
+    
+    Parameters:
+    - frontend_config (json): change made from HTML
+    
+    Returns: 
+    json: config data 
+    """
+    return config_controler.update(frontend_config)
+
+
+
+
+  # creates lib_data.json by scanning file library
+  def create_json(self) -> None:
+    """
+    scans music library location and creates a json file of music files
+    
+    Parameters:
+    None
+    
+    Returns:
+    None
+    """
+    create_lib_json(window)
+
+
+
+
   #  get lib_data.json data
-  def lib_data(self):
+  def lib_data(self) -> json:
+    """
+    Loads lib_data.json data to UI
+    
+    Parameters: 
+    None
+    
+    Returns: 
+    json: lib_data
+    """
     try:
       file = open(lib_path)
       return json.load(file)
@@ -115,18 +165,37 @@ class Api:
 
 
   #  get sync.json data
-  def sync_file(self):
+  def sync_file(self) -> json:
+    """
+    load sync.json data
+    
+    Parameters:
+    None
+    
+    Returns:
+    json: sync.json
+    """
     try:
       file = open(sync_file)
       return json.load(file)
     except FileNotFoundError:
       return {}  
-
+    except UnicodeDecodeError:
+      return {}
 
 
 
   # save sync.json data to file
-  def save(self, data):
+  def save(self, data:json) -> None:
+    """
+    save data to sync.json
+    
+    Parameter:
+    - data (json): sync.json
+    
+    Return:
+    None
+    """
     with open(sync_file, 'w') as lib:
       lib.write(data)
 
@@ -134,60 +203,92 @@ class Api:
 
 
   # run file sync
-  def run_sync(self):
+  def run_sync(self) -> None:
+    """
+    syncs albums selected in the UI and new podcast the the selected location
+     
+    Parameter:
+    None
+    
+    Return:
+    None
+    """
     run_sync(window)
 
 
 
 
-  # write config.json data to file
-  def update_config(self, frontend_config):
+  def get_themes(self) -> list:
     """
-    Updates config with keys from the passed in dict
+    get theme name and file path to pass to UI
     
-    Parameters:
-    frontend_config (dict): change made from HTML
+    Parameter:
+    None
     
-    Returns: 
-    dict: config data 
+    Return:
+    list: theme list
     """
-    return config_controler.update(frontend_config)
-
-
-
-
-  def get_themes(self):
-    themes = []
-    for theme_location in glob.glob(os.path.join(script_folder, 'themes', '*.json')):
-      name = os.path.splitext(os.path.basename(theme_location))[0]
-      themes.append({'name':name,'path':theme_location})
+    theme_dir = os.path.join(script_folder, 'themes', '*.json')
+    themes = [{'name': os.path.splitext(os.path.basename(theme_location))[0], 'path': theme_location}
+              for theme_location in glob.glob(theme_dir)]
     return themes
 
 
 
 
-  def load_theme(self, path):
+  def load_theme(self, path:str) -> json:
+    """
+    load a themes json data
+    
+    Parameter:
+    - path (str): file path to the desired json file
+    
+    Return:
+    json: theme json data
+    """
     try:
       with open(path, 'r') as j:
         return json.load(j)
-    except:
+    except FileNotFoundError:
+      return {}  
+    except UnicodeDecodeError:
       return {}
 
 
 
 
-  def load_favorites(self):
+  def load_favorites(self) -> json:
+    """
+    load favorites.json data
+    
+    Parameters:
+    None
+    
+    Returns:
+    json: favorites.json
+    """
     try:
       with open(fav_path, 'r') as j:
         return json.load(j)
     except FileNotFoundError:
+      return {}  
+    except UnicodeDecodeError:
       return {}
    
    
    
     
   # save favorites to file
-  def save_favorites(self, favs):
+  def save_favorites(self, favs:json) -> None:
+    """
+    save given json data as favorites.json
+    
+    Parameters:
+    - favs (json): json object from frontend
+    
+    Returns: 
+    None
+    """
     with open(fav_path, 'w') as favorites:
       favorites.write(favs) 
 
@@ -195,20 +296,13 @@ class Api:
 
 
   # get data copied to clipboard
-  def get_clipboard(self):
+  def get_clipboard(self) -> str:
     return clipboard.paste()
 
 
 
 
-  # creates lib_data.json by scanning file library
-  def create_json(self):
-    create_lib_json(window)
-
-
-
-
-  def lrcraw_exists(self, path:list):
+  def lrcraw_exists(self, path:list) -> bool:
     lrc_file_path = os.path.join(*[config['source'], *path])
     return os.path.exists(lrc_file_path)
 
@@ -216,21 +310,21 @@ class Api:
 
 
   # subscribe to URL
-  def subscribe(self, url):
+  def subscribe(self, url:str) -> None:
     Podcast(url).subscribe(window)
 
 
 
 
   #  unsub podcast url
-  def unsubscribe(self, url):
+  def unsubscribe(self, url:str) -> None:
     Podcast(url).unsubscribe(window) 
 
 
 
 
   # get synscriptions from config.json
-  def list_subscriptions(self):
+  def list_subscriptions(self) -> list:
     config_controler.reload()
     return config_controler.get_key('subscriptions')
   
@@ -239,7 +333,7 @@ class Api:
   
   
   # runs podcast update and sends update info to UI
-  def get_podcasts(self):
+  def get_podcasts(self) -> None:
     window.evaluate_js(f'document.querySelector("audiosync-podcasts").update();')
     length = len(config['subscriptions'])
     for ndx, url in enumerate(config['subscriptions']):
@@ -251,7 +345,7 @@ class Api:
 
 
   # frontend xml proxy
-  def xmlProxy(self, url):
+  def xmlProxy(self, url:str) -> dict:
     res = requests.get(url)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
@@ -264,13 +358,13 @@ class Api:
 
 
 
-  def episodeExists(self, title, episode):
+  def episodeExists(self, title:str, episode:dict) -> bool:
     return episodeExists(title, episode)
 
 
 
 
-  def downloadEpisode(self, title, epObj, download_url, path, filename, xmlURL):
+  def downloadEpisode(self, title, epObj, download_url, path, filename, xmlURL) -> None:
 
     def callback(bytes_downloaded, total_bytes, start_time):
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{xmlURL}", {bytes_downloaded}, {total_bytes}, {start_time}, "{filename}");')
@@ -285,7 +379,7 @@ class Api:
 
 
 
-  def deleteEpisode(self, file_object):
+  def deleteEpisode(self, file_object) -> None:
     try:
       os.remove(os.path.join(config['podcast_folder'], file_object['path']))
     except Exception as e:
@@ -294,13 +388,13 @@ class Api:
 
 
 
-  def path_exists(self, path):
+  def path_exists(self, path) -> bool:
     return os.path.exists(path)
 
 
 
 
-  def folder_select(self, path):
+  def folder_select(self, path) -> str:
     return select_folder(initial_dir=path)
   
   
