@@ -52,6 +52,7 @@ def is_ignored(source_file:str):
 
 
 
+
 def add_to_lib(artist:str, album:str, location:str, file:str, title:str, track:int, disc:int):
   """
   add audio file to data dict.
@@ -104,6 +105,7 @@ def add_to_lib(artist:str, album:str, location:str, file:str, title:str, track:i
           }
         ]
       })
+
 
 
 
@@ -218,6 +220,7 @@ def move_file(root:str, file:str, ext:str) -> None:
 
 
 
+
 def get_audio_files() -> list:
   """
   generate list of audio files in the working_dir
@@ -232,6 +235,7 @@ def get_audio_files() -> list:
         file = file_manager.fix_filename(root, file)
         audio_files.append({'root': root, 'file': file, 'ext': os.path.splitext(file)[-1].lower()})
   return audio_files
+
 
 
 
@@ -254,6 +258,7 @@ def process_audio_files(window:dict) -> None:
 
 
 
+
 def notify(s:str, window:dict) -> None:
   try:
     if window:
@@ -262,6 +267,7 @@ def notify(s:str, window:dict) -> None:
     print(s['text'])
   except Exception as e:
     print(e)
+
 
 
 
@@ -284,6 +290,8 @@ def set_source() -> str:
   global sorted_dir
   global sync_file
   sorted_dir = select_folder()
+  if not sorted_dir:
+    return None
   sync_file = os.path.join(sorted_dir, 'sync.json')
   return sync_file
 
@@ -455,6 +463,8 @@ def run_sync(window:dict) -> None:
   log(changes)
 
 
+
+
 def build_lib(root:str, file:str, ext:str):
   """
   create db entry for audio file.
@@ -495,6 +505,8 @@ def build_lib(root:str, file:str, ext:str):
   add_to_lib(info['artist'], info['album'], root.replace(config_controler.get_key('source'), ''), file, info['title'], info['track'], info['disc'])
 
 
+
+
 def create_lib_json(window:dict):
   """
   creates the lib_data.json library file
@@ -510,6 +522,7 @@ def create_lib_json(window:dict):
 
   working_dir = config_controler.get_key('source')
   
+  file_manager.rename_images(working_dir)
   # clear data object
   lib_data = {}
   # get library size
@@ -538,6 +551,9 @@ def create_lib_json(window:dict):
 
   with open(lib_path, 'w') as data_file:
     data_file.write(json.dumps(sorted_data))
+
+
+
 
 if __name__ == "__main__":
   run_sync(False)
