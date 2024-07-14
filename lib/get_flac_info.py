@@ -21,7 +21,7 @@ def get_flac_info(source_file, file):
     album = file_manager.formatFilename(flac["album"][0])
   else:
     need_attention.append(f'file: {source_file}\nissue: album\n')
-    return False
+    return None
   
   # artist name
   if "albumartist" in flac:
@@ -30,7 +30,7 @@ def get_flac_info(source_file, file):
     artist = file_manager.formatFilename(flac["artist"][0])
   else:
     need_attention.append(f'file: {source_file}\nissue: artist\n')
-    return False
+    return None
 
   # artist name for looking up song lyrics
   try:

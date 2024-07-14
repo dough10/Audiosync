@@ -29,14 +29,14 @@ def get_mp3_info(source_file:str, file:str):
     artist = file_manager.formatFilename(str(id3['artist']))
   else:
     need_attention.append(f'file: {source_file}\nissue: artist\n')
-    return False
+    return None
 
   # album name
   if 'album' in id3:
     album = file_manager.formatFilename(str(id3['album']))
   else: 
     need_attention.append(f'file: {source_file}\nissue: album\n')
-    return False
+    return None
 
   # artist name for looking up song lyrics
   try: 
@@ -53,13 +53,13 @@ def get_mp3_info(source_file:str, file:str):
   try:
     track_number = int(id3['tracknumber'])
   except ValueError:
-    return False
+    return None
   
   #ID3 disc number
   try:
     disc_number = int(id3['discnumber'])
   except ValueError:
-    return False
+    return None
 
   # attempt to extract art from mp3 file if it doesn't exist
   if not os.path.exists(jpg):
