@@ -66,7 +66,7 @@ def get_flac_info(source_file, file):
     pass
     # print(f'{source_file}: long file')
 
-  return {'track': track, 'disc': disc, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+  return {'track': track, 'disc': disc, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip(), 'length': flac.info.length}
 
 
 if __name__ == "__main__":
