@@ -104,7 +104,6 @@ class File_manager:
     fixes filename removing any unsupported characters
     
     Parameters:
-    self (self@FileManager): file manager instance
     root (str): the root path of the file
     file (str): the name of the file
     
@@ -245,7 +244,6 @@ class File_manager:
     removes filder and it's contained files
     
     Parameters:
-    self (self@FileManager):
     folder (str): folder path
     
     Returns:
@@ -263,7 +261,6 @@ class File_manager:
     count the contents of the folder
     
     Parameters:
-    self (self@FileManager):
     folder (str): folder path
     
     Returns:
