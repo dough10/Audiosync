@@ -49,11 +49,17 @@ def get_mp3_info(source_file:str, file:str):
   except KeyError:
     title = str(os.path.splitext(file)[0])
 
-  # ID3 track number  
-  track_number = int(id3['tracknumber'])
-
+  # ID3 track number 
+  try:
+    track_number = int(id3['tracknumber'])
+  except ValueError:
+    return False
+  
   #ID3 disc number
-  disc_number = int(id3['discnumber'])
+  try:
+    disc_number = int(id3['discnumber'])
+  except ValueError:
+    return False
 
   # attempt to extract art from mp3 file if it doesn't exist
   if not os.path.exists(jpg):
@@ -71,7 +77,15 @@ def get_mp3_info(source_file:str, file:str):
     pass
     # print(f'{source_file}: long file')
 
-  return {'track': track_number, 'disc': disc_number, 'artist': artist.strip(), 'album': album.strip(), 'title': title.strip(), 'lrc_artist': lrc_artist.strip()}
+  return {
+    'track': track_number, 
+    'disc': disc_number, 
+    'artist': artist.strip(), 
+    'album': album.strip(), 
+    'title': title.strip(), 
+    'lrc_artist': lrc_artist.strip(),
+    'length': id3['#length']
+  }
 
 
 
