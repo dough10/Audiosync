@@ -346,7 +346,7 @@ def update_ID3(podcast_title, episode, path, epNum, use_fallback_image):
   
   try:
     print('Updating ID3 tags & encoding artwork')
-    file['title'] = episode['title']
+    file['title'] = fm.formatFilename(episode['title'])
     file['album'] = podcast_title
     file['artist'] = podcast_title
     file['genre'] = 'Podcast'
