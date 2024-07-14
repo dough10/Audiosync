@@ -28,19 +28,30 @@ async def fetch_discogs_data(artist, album, tracklist):
           data = await response.json()
           return data
         else:
-          print("Rate limit reached. Retrying after 60 seconds.")
+          print("\nRate limit reached. Retrying after 60 seconds.")
           await asyncio.sleep(60)
-
 
 
 def get_upc(artist:str, album:str, tracklist:list):
   
   data = asyncio.run(fetch_discogs_data(artist, album, tracklist))
 
+  formats = [
+    'CD',
+    'MP3',
+    'FLAC'
+  ]
+  
   try:
     seen_codes = set()
-    codes = [code for release in data['results'] if 'CD' in release['format'] for code in release['barcode'] if code is not None and code not in seen_codes and not seen_codes.add(code)]
-    return ', '.join(codes)
+    codes = [
+      code
+      for release in data['results']
+      if any(fmt in release['format'] for fmt in formats)
+      for code in release.get('barcode', [])
+      if code is not None and code not in seen_codes and not seen_codes.add(code)
+    ]
+    return codes[0]
 
   except IndexError:
     return None
