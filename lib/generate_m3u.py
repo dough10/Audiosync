@@ -75,6 +75,7 @@ def generate_m3u(directory:str):
   
   # save m3u8 file to m3u_file_path
   with open(m3u_file_path, 'w', encoding='utf-8') as m3u:
+    m3u.write(f'# {stamp()}')
     m3u.write('#EXTM3U\n')
     m3u.write('#EXTENC: UTF-8\n')
     m3u.write(f'#EXTART: {artist}\n')
@@ -83,10 +84,9 @@ def generate_m3u(directory:str):
     m3u.write(f'#PLAYLIST: {artist} - {album}\n')
     upc = get_upc(artist, album, tracklist)
     if upc:
-      m3u.write(f'# "Barcodes: {upc}"\n')
+      m3u.write(f'# "Barcode: {upc}"\n')
     for file_info in info:
       m3u.write(f'#EXTINF: {int(file_info[3][0])}, {file_info[3][1]} - {file_info[3][2]}\n{file_info[0]}\n')
-    m3u.write(f'\n# {stamp()}')
   
   
   # log change

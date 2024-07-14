@@ -7,10 +7,13 @@ try:
   from lib.log import log
   from lib.config_controler import Config
   from lib.change_log import ChangeLog
+  from lib.stamp_playlist import stamp
 except ModuleNotFoundError:
   from log import log
   from config_controler import Config
   from change_log import ChangeLog
+  from stamp_playlist import stamp
+  
 
 change_log = ChangeLog()
 config_controler = Config()
@@ -22,6 +25,7 @@ def seconds_to_mmss(seconds):
   minutes, seconds = divmod(seconds, 60)
   return f"{int(minutes):02}:{int(seconds):02}"
 
+
 def string_to_boolean(s:str) -> bool:
   true_strings = ['true', 'yes', '1']
   false_strings = ['false', 'no', '0']
@@ -32,6 +36,7 @@ def string_to_boolean(s:str) -> bool:
     return False
   else:
     raise ValueError("Invalid boolean string")
+
 
 def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
 
@@ -48,11 +53,11 @@ def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
   tracklist = [track for track in release.tracklist if track.duration]
   
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
-    cue_file.write(f'REM COMMENT "created by Audiosync [{datetime.now().strftime("%Y%m%d")}]"\n')
-    cue_file.write(f'CATALOG "{release.data.get('barcode') or release.id}"\n')
+    cue_file.write(f'REM COMMENT {stamp()}')
     cue_file.write(f'PERFORMER "{artist_names[0]}"\n')
     cue_file.write(f'TITLE "{release.title}"\n')
-    cue_file.write(f'FILE "{basename}" {file_extension.upper()}\n')
+    cue_file.write(f'CATALOG "{release.data.get('barcode') or release.id}"\n')
+    cue_file.write(f'FILE "{basename}" {file_extension.upper() if file_extension == 'mp3' else 'WAVE'}\n')
     
     if not len(tracklist):
       cue_file.write('  TRACK 01 AUDIO\n')
@@ -70,13 +75,12 @@ def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
       cue_file.write(f'    TITLE "{track.title}"\n')
       cue_file.write(f'    PERFORMER "{performer_names[0]}"\n')
       cue_file.write(f'    INDEX 01 {total_time}:00\n')
-      
-      
+            
       add_durations([total_time, f'0{track.duration}']) 
-
 
       if not string_to_boolean(gapless):
         add_durations([total_time, '00:02'])
+    
 
 def add_durations(durations:list) -> str:
   global total_time
@@ -100,10 +104,12 @@ def add_durations(durations:list) -> str:
   total_time = f"{total_minutes:02d}:{total_seconds:02d}"
   return total_time
 
+
 def get_discogs_data(release_id:str, mp3_path:str, gapless:bool) -> None:
   d = discogs_client.Client('Audiosync/0.1', user_token=config_controler.get_key('discogs_token'))
   release = d.release(release_id)
   save_cue(release, mp3_path, gapless)
+
 
 def cue_from_releaseid(releaseID:str, file_path:str) -> None:
   """
@@ -112,8 +118,8 @@ def cue_from_releaseid(releaseID:str, file_path:str) -> None:
   
   name = os.path.splitext(file_path)[0]
   cue_file_path = os.path.join(os.path.dirname(file_path), f'{name}.cue')
-  if os.path.exists(cue_file_path):
-    return
+  # if os.path.exists(cue_file_path):
+  #   return
 
   try:
     rid = open(releaseID, 'r').read().split('\n')
@@ -122,6 +128,7 @@ def cue_from_releaseid(releaseID:str, file_path:str) -> None:
     change_log.playlist_created()
   except IndexError:
     log(f'Error reading releaseid {releaseID}')
+
 
 if __name__ == "__main__":
   

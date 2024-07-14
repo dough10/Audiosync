@@ -83,6 +83,7 @@ def generate_cue(directory:str):
   
   # write the cue file
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
+    cue_file.write(f'REM COMMENT {stamp()}')
     cue_file.write(f'PERFORMER "{artist}"\n')
     cue_file.write(f'TITLE "{album}"\n')
     upc = get_upc(artist, album, track_list)
@@ -91,13 +92,12 @@ def generate_cue(directory:str):
     for file in info:
       path = file[0]
       track_num = info.index(file) + 1
-      cue_file.write(f'FILE "{path}" {file_extension.upper()}\n')
+      cue_file.write(f'FILE "{path}" {file_extension.upper() if file_extension == 'mp3' else 'WAVE'}\n')
       cue_file.write(f'  TRACK {str(track_num).zfill(2)} AUDIO\n')
       cue_file.write('    INDEX 01 00:00:00\n')
-    cue_file.write(f'\nREM COMMENT {stamp()}')
 
   log(f"CUE file generated at {cue_file_path}")
   change_log.playlist_created()
 
 if __name__ == "__main__":
-  generate_cue('i:\\Reso\\Ricochet')
+  generate_cue('i:\\Basher\\Transmission')

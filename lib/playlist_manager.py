@@ -100,6 +100,7 @@ class Playlist_manager:
 
     # save new files playlist for playlist_path
     with open(playlist_path, 'w', encoding='utf-8') as playlist:
+      playlist.write(f'# {stamp()}')
       playlist.write('#EXTM3U\n')
       playlist.write('#EXTENC: UTF-8\n')
       playlist.write('#EXTART: Various Artists\n')
@@ -107,7 +108,6 @@ class Playlist_manager:
       for file in tqdm(album_list, desc='Creating new files playlist', unit='file'):
         relative_path = os.path.join('..', file['path'].replace(dir, ''))
         playlist.write(f'#EXTINF: {int(file['length'])}, {str(file['artist'])} - {str(file['title'])}\n{relative_path}\n')
-      playlist.write(f'\n# {stamp()}')
 
     log(f'M3U file generated at {playlist_path}')
     change_log.playlist_created()
