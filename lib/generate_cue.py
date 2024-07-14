@@ -1,24 +1,27 @@
 import glob
-import music_tag as MP3
 
 import os
-import sys
 
 try:
-  from lib.log import need_attention, log
+  from lib.log import log
   from lib.upc import get_upc
   from lib.change_log import ChangeLog
+  from lib.get_mp3_info import get_mp3_info
+  from lib.stamp_playlist import stamp
 except ModuleNotFoundError:
-  from log import need_attention, log
+  from log import log
   from upc import get_upc
   from change_log import ChangeLog
+  from get_mp3_info import get_mp3_info
+  from stamp_playlist import stamp
 
 change_log = ChangeLog()
 
+types = ['.mp3','.m4a']
 
 def sort_directory(directory:str):
   # list usable audio files
-  audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.mp3') or file.endswith('.m4a')]
+  audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and any(file.endswith(t) for t in types)]
   
   # early return if no files
   if len(audio_files) == 0:
@@ -36,46 +39,38 @@ def sort_directory(directory:str):
     file_extension = os.path.splitext(audio_path)[1].replace('.', '')
 
     # get ID3 info
-    try:
-      track = MP3.load_file(audio_path)
-    except Exception as E:
-      need_attention.append(f'file: {audio_path}\nissue: {E}\n')
+    id3 = get_mp3_info(audio_path, audio_file)
+    if id3 is None:
       return
-    
-    # add to list for getting UPC from discogs
-    if 'title' in track:
-      track_list.append(str(track['title']))
-
-    # ID3 track number  
-    try:
-      track_number = int(track['tracknumber'])
-    except ValueError:
-      track_number = len(audio_files) - audio_files.index(audio_file)
-
-    #ID3 disc number
-    disc_number = int(track['discnumber']) or 1
-
+    disc = id3.get('disc')
+    track = id3.get('track')
+    if disc is None or track is None:
+      return
     # add to track order list for sorting
-    info.append((audio_file, disc_number, track_number))
+    info.append((audio_file, disc, track))
 
   # sort by disc then track number
   info.sort(key=lambda x: (x[1], x[2]))
-  return info, track_list, file_extension
+  return info, track_list, file_extension, id3['artist'], id3['album']
 
 
 
-def generate_cue(directory:str, artist:str, album:str):
+def generate_cue(directory:str):
   """
   Generate a CUE file for the specified directory, artist, and album.
 
   Parameters:
   - directory (str): The directory path where the CUE file will be generated.
-  - artist (str): The artist name.
   - album (str): The album name.
 
   Returns:
   None
   """
+  result = sort_directory(directory)
+  if result is None:
+    return
+  info, track_list, file_extension, artist, album = result
+  
   # cue file path
   cue_file_path = os.path.join(directory, f'{album}.cue')
 
@@ -83,10 +78,6 @@ def generate_cue(directory:str, artist:str, album:str):
   if os.path.exists(cue_file_path) or len(glob.glob(os.path.join(directory, '*.cue'))) != 0:
     return
   
-  result = sort_directory(directory)
-  if result is None:
-    return
-  info, track_list, file_extension = result
   
   # write the cue file
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
@@ -101,9 +92,10 @@ def generate_cue(directory:str, artist:str, album:str):
       cue_file.write(f'FILE "{path}" {file_extension.upper()}\n')
       cue_file.write(f'  TRACK {str(track_num).zfill(2)} AUDIO\n')
       cue_file.write('    INDEX 01 00:00:00\n')
+    cue_file.write(f'\nREM COMMENT {stamp()}')
 
   log(f"CUE file generated at {cue_file_path}")
   change_log.playlist_created()
 
 if __name__ == "__main__":
-  generate_cue('Z:\\Music\\Unsorted\\D&B\\Reso\\Ricochet', 'Reso', 'Ricochet')
+  generate_cue('i:\\Reso\\Ricochet')

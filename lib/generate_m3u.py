@@ -1,18 +1,50 @@
-from mutagen.flac import FLAC
 import glob
 
+from datetime import datetime
 import os
 import sys
 
-from lib.log import need_attention, log
-from lib.change_log import ChangeLog
-
+try:
+  from lib.log import need_attention, log
+  from lib.change_log import ChangeLog
+  from lib.get_flac_info import get_flac_info
+  from lib.stamp_playlist import stamp
+except ModuleNotFoundError:
+  from log import need_attention, log
+  from change_log import ChangeLog
+  from get_flac_info import get_flac_info
+  from stamp_playlist import stamp
+  
 change_log = ChangeLog()
 
 
 
+def sort_directory(directory:str) -> tuple:
+  # list flac files
+  audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.flac')]
+  
+  # early return if no files in list
+  if len(audio_files) == 0:
+    return None
+  
+  # list for sorting tracks
+  info = []
+  for file in audio_files:
+    
+    audio_path = os.path.join(directory, file)
+    
+    id3 = get_flac_info(audio_path, file)
 
-def generate_m3u(directory:str, album:str):
+    info.append((file, int(id3['disc']), int(id3['track']), [id3['length'], id3['artist'], id3['title']]))
+  
+  # sort tracks by disc then track number
+  info.sort(key=lambda x: (x[1], x[2]))
+  return info, id3['artist'], id3['album']
+
+
+
+
+def generate_m3u(directory:str):
   """
   Generate an M3U file for the specified directory and album.
 
@@ -23,6 +55,12 @@ def generate_m3u(directory:str, album:str):
   Returns:
   None
   """
+  
+  result = sort_directory(directory)
+  if result is None:
+    return
+  info, artist, album = result
+  
   # m3u8 file path
   m3u_file_path = os.path.join(directory, f'{album}.m3u8')
 
@@ -30,49 +68,23 @@ def generate_m3u(directory:str, album:str):
   if os.path.exists(m3u_file_path) or len(glob.glob(os.path.join(directory, '*.m3u*'))) > 0:
     return
   
-  # list flac files
-  audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.flac')]
+  # save m3u8 file to m3u_file_path
+  with open(m3u_file_path, 'w', encoding='utf-8') as m3u:
+    m3u.write('#EXTM3U\n')
+    m3u.write('#EXTENC: UTF-8\n')
+    m3u.write(f'#EXTART: {artist}\n')
+    m3u.write(f'#EXTALB: {album}\n')
+    m3u.write('#EXTIMG: cover.jpg\n')
+    m3u.write(f'#PLAYLIST: {artist} - {album}\n')
+    for file_info in info:
+      m3u.write(f'#EXTINF: {int(file_info[3][0])}, {file_info[3][1]} - {file_info[3][2]}\n{file_info[0]}\n')
+    m3u.write(f'\n# {stamp()}')
   
-  # early return if no files in list
-  if len(audio_files) == 0:
-    return
   
-  try:
-    # list for sorting tracks
-    info = []
-    for file in audio_files:
-      # get FLAC file info
-      audio = FLAC(os.path.join(directory, file))
-      track = audio['tracknumber'][0]
-      if 'discnumber' in audio:
-        disc = audio['discnumber'][0]
-      else:
-        disc = 1
-      if 'artist' in audio:
-        artist = audio['artist'][0]
-      else:
-        artist = audio['albumartist'][0]
-      info.append((file, int(disc), int(track), [audio.info.length, artist, audio['title'][0]]))
+  # log change
+  log(f"M3U file generated at {m3u_file_path}")
+  change_log.playlist_created()
     
-    # sort tracks by disc then track number
-    info.sort(key=lambda x: (x[1], x[2]))
-
-    # save m3u8 file to m3u_file_path
-    with open(m3u_file_path, 'w', encoding='utf-8') as m3u:
-      m3u.write('#EXTM3U\n')
-      m3u.write(f'#EXTART: {audio['albumartist'][0]}\n')
-      m3u.write(f'#EXTALB: {album}\n')
-      m3u.write('#EXTIMG: cover.jpg\n')
-      m3u.write(f'#PLAYLIST: {audio['albumartist'][0]} - {album}\n')
-      for file_info in info:
-        m3u.write(f'#EXTINF: {int(file_info[3][0])}, {file_info[3][1]} - {file_info[3][2]}\n{file_info[0]}\n')
-    
-    # log change
-    log(f"M3U file generated at {m3u_file_path}")
-    change_log.playlist_created()
-    
-  except Exception as e:
-    need_attention.append(f'error creating {m3u_file_path}\n{e}\n\n')
 
 if __name__ == "__main__":
   generate_m3u(sys.argv[1], sys.argv[2])
