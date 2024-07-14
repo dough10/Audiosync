@@ -1,4 +1,7 @@
-import requests
+import aiohttp
+import asyncio
+import json
+import time
 
 try:
   from lib.config_controler import Config
@@ -8,58 +11,44 @@ except ModuleNotFoundError:
 
 config_controler = Config()
 
+rate_limit_remaining = 60
 
-def get_upc(artist, album, tracklist):
-  search_query = f"'{artist}' '{album}' '{' '.join(tracklist)}'"
-  headers = {
-    'User-Agent': 'Audiosync/0.1',
-    'Authorization': f"Discogs token={config_controler.get_key('discogs_token')}"
-  }
-  response = requests.get(f'https://api.discogs.com/database/search?q={search_query}&type=release', headers=headers)
-  data = response.json()
-  if 'results' in data and data['results']:
-    try:
-      for release in data['results']:
-        try:
-          if release['formats'][0]['name'] == 'CD' and release['country'] == 'US':
-            return str(release['barcode'])
-        except: 
-          pass
-        
-      return data['results'][0]['barcode'][0]
-    except IndexError:
-      return False
-  else:
-    return False
+async def fetch_discogs_data(artist, album, tracklist):
+  global rate_limit_remaining
+  
+  async with aiohttp.ClientSession() as session:
+    search_query = f"'{artist}' '{album}' '{' '.join(tracklist)}'"
+    headers = {
+      'User-Agent': 'Audiosync/0.1',
+      'Authorization': f"Discogs token={config_controler.get_key('discogs_token')}"
+    }
+
+    while True:
+      async with session.get(f'https://api.discogs.com/database/search?q={search_query}&type=release', headers=headers) as response:
+        rate_limit_remaining = response.headers.get('X-Discogs-Ratelimit-Remaining')
+        if rate_limit_remaining is None or int(rate_limit_remaining) > 0:
+          data = await response.json()
+          return data
+        else:
+          print("Rate limit reached. Retrying after 60 seconds.")
+          await asyncio.sleep(60)
+
+
+
+def get_upc(artist:str, album:str, tracklist:list):
+  
+  data = asyncio.run(fetch_discogs_data(artist, album, tracklist))
+
+  try:
+    seen_codes = set()
+    codes = [code for release in data['results'] if 'CD' in release['format'] for code in release['barcode'] if code is not None and code not in seen_codes and not seen_codes.add(code)]
+    return ', '.join(codes)
+
+  except IndexError:
+    return None
+
 
 
 if __name__ == "__main__":
-  print(get_upc('Pink Floyd', 'The Wall', [
-    "In The Flesh?",
-    "The Thin Ice",
-    "Another Brick In The Wall Part 1",
-    "The Happiest Days Of Our Lives",
-    "Another Brick In The Wall Part 2",
-    "Mother",
-    "Goodbye Blue Sky",
-    "Empty Spaces",
-    "Young Lust",
-    "One Of My Turns",
-    "Don't Leave Me Now",
-    "Another Brick In The Wall Part 3",
-    "Goodbye Cruel World",
-    "Hey You",
-    "Is There Anybody Out There?",
-    "Nobody Home",
-    "Vera",
-    "Bring The Boys Back Home",
-    "Comfortably Numb",
-    "The Show Must Go On",
-    "In The Flesh",
-    "Run Like Hell",
-    "Waiting For The Worms",
-    "Stop",
-    "The Trial",
-    "Outside The Wall"
-  ]))
+  print(get_upc('Daft Punk', 'Homework', ['Daftendirekt', 'WDPK 83.7 FM', 'Revolution 909', 'Da Funk', 'Phoenix', 'Fresh', 'Around The World', "Rollin' & Scratchin'", 'Teachers', 'High Fidelity', "Rock'n Roll", 'Oh Yeah', "Burnin'", 'Indo Silver Club', 'Alive', 'Funk Ad']))
 
