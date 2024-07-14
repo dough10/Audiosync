@@ -23,7 +23,7 @@ def select_folder(initial_dir=None):
         folder_path += "/"
       return folder_path
   else:
-    return initial_dir
+    return None
 
 if __name__ == "__main__":
   initial_dir = os.path.expanduser("~")
