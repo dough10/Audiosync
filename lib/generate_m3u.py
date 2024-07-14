@@ -9,11 +9,13 @@ try:
   from lib.change_log import ChangeLog
   from lib.get_flac_info import get_flac_info
   from lib.stamp_playlist import stamp
+  from lib.upc import get_upc
 except ModuleNotFoundError:
   from log import need_attention, log
   from change_log import ChangeLog
   from get_flac_info import get_flac_info
   from stamp_playlist import stamp
+  from upc import get_upc
   
 change_log = ChangeLog()
 
@@ -21,6 +23,7 @@ change_log = ChangeLog()
 
 def sort_directory(directory:str) -> tuple:
   # list flac files
+  tracklist = []
   audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and file.endswith('.flac')]
   
   # early return if no files in list
@@ -36,10 +39,12 @@ def sort_directory(directory:str) -> tuple:
     id3 = get_flac_info(audio_path, file)
 
     info.append((file, int(id3['disc']), int(id3['track']), [id3['length'], id3['artist'], id3['title']]))
+    
+    tracklist.append(id3['title'])
   
   # sort tracks by disc then track number
   info.sort(key=lambda x: (x[1], x[2]))
-  return info, id3['artist'], id3['album']
+  return info, id3['artist'], id3['album'], tracklist
 
 
 
@@ -59,7 +64,7 @@ def generate_m3u(directory:str):
   result = sort_directory(directory)
   if result is None:
     return
-  info, artist, album = result
+  info, artist, album, tracklist = result
   
   # m3u8 file path
   m3u_file_path = os.path.join(directory, f'{album}.m3u8')
@@ -76,6 +81,9 @@ def generate_m3u(directory:str):
     m3u.write(f'#EXTALB: {album}\n')
     m3u.write('#EXTIMG: cover.jpg\n')
     m3u.write(f'#PLAYLIST: {artist} - {album}\n')
+    upc = get_upc(artist, album, tracklist)
+    if upc:
+      m3u.write(f'# "Discogs Barcodes: {upc}"\n')
     for file_info in info:
       m3u.write(f'#EXTINF: {int(file_info[3][0])}, {file_info[3][1]} - {file_info[3][2]}\n{file_info[0]}\n')
     m3u.write(f'\n# {stamp()}')
@@ -87,4 +95,4 @@ def generate_m3u(directory:str):
     
 
 if __name__ == "__main__":
-  generate_m3u(sys.argv[1], sys.argv[2])
+  generate_m3u('I:\\Daft Punk\\Homework (25th Anniversary Edition)\\')

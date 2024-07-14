@@ -42,8 +42,10 @@ def sort_directory(directory:str):
     id3 = get_mp3_info(audio_path, audio_file)
     if id3 is None:
       return
+
     disc = id3.get('disc')
     track = id3.get('track')
+    
     if disc is None or track is None:
       return
     # add to track order list for sorting
@@ -81,11 +83,11 @@ def generate_cue(directory:str):
   
   # write the cue file
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
+    cue_file.write(f'PERFORMER "{artist}"\n')
+    cue_file.write(f'TITLE "{album}"\n')
     upc = get_upc(artist, album, track_list)
     if upc:
       cue_file.write(f'CATALOG "{upc}"\n')
-    cue_file.write(f'PERFORMER "{artist}"\n')
-    cue_file.write(f'TITLE "{album}"\n')
     for file in info:
       path = file[0]
       track_num = info.index(file) + 1
