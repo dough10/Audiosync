@@ -400,8 +400,8 @@ async function load_app() {
   }
 
   // lyrics import
-  IMPORT_LYRICS_SWITCH.setState(CONFIG_OBJECT.import_lyrics);
-  RESET_LYRIC_FILES_SWITCH.setState(CONFIG_OBJECT.remove_lrc_wd);
+  // IMPORT_LYRICS_SWITCH.setState(CONFIG_OBJECT.import_lyrics);
+  // RESET_LYRIC_FILES_SWITCH.setState(CONFIG_OBJECT.remove_lrc_wd);
 
   // podcast import ui
   IMPORT_PODCASTS_SWITCH.setState(CONFIG_OBJECT.podcast);
@@ -410,18 +410,13 @@ async function load_app() {
   }
 
   // reset .lrc UI
-  if (!CONFIG_OBJECT.import_lyrics) {
-    RESET_LYRIC_FILES_SWITCH.style.opacity = 0;
-    RESET_LYRIC_FILES_SWITCH.style.display = 'none';
-  } else {
-    RESET_LYRIC_FILES_SWITCH.style.opacity = 1;
-    RESET_LYRIC_FILES_SWITCH.style.removeProperty('display');
-  }
-
-  // radio.txt import enabled?
-  if (!CONFIG_OBJECT.import_custom_radio) {
-    SYNC_UI_ELEMENT.hideBar('#radio-bar');
-  }
+  // if (!CONFIG_OBJECT.import_lyrics) {
+  //   RESET_LYRIC_FILES_SWITCH.style.opacity = 0;
+  //   RESET_LYRIC_FILES_SWITCH.style.display = 'none';
+  // } else {
+  //   RESET_LYRIC_FILES_SWITCH.style.opacity = 1;
+  //   RESET_LYRIC_FILES_SWITCH.style.removeProperty('display');
+  // }
 
   // load media library
   MUSIC_LIBRARY.addEventListener('lib_size_updated', e => MENU_DRAWER.footElement(e.detail.lib_size));
