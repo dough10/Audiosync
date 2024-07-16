@@ -11,14 +11,14 @@ config_controler = Config()
 
 rate_limit_remaining = 60
 
-async def fetch_discogs_data(artist, album, tracklist):
+async def fetch_discogs_data(artist:str, album:str, tracklist:list):
   global rate_limit_remaining
   
   async with aiohttp.ClientSession() as session:
     search_query = f"'{artist}' '{album}' '{' '.join(tracklist)}'"
     headers = {
       'User-Agent': 'Audiosync/0.1',
-      'Authorization': f"Discogs token={config_controler.get_key('discogs_token')}"
+      'Authorization': f'Discogs token={config_controler.get_key('discogs_token')}'
     }
 
     while True:
@@ -28,7 +28,7 @@ async def fetch_discogs_data(artist, album, tracklist):
           data = await response.json()
           return data
         else:
-          print("\nRate limit reached. Retrying after 60 seconds.")
+          print('\nRate limit reached. Retrying after 60 seconds.')
           await asyncio.sleep(60)
 
 
