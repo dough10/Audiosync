@@ -13,7 +13,7 @@ from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, files_with_issues, need_attention, reset_log
-from lib.parse_radio_txt import main as create_radio_txt
+from lib.radio_txt import main as create_radio_txt
 from lib.resize_image import resize_image
 from lib.config_controler import Config
 from lib.change_log import ChangeLog
@@ -443,7 +443,7 @@ def run_sync(window:dict) -> None:
 
   if import_custom_radio:
     # parse online radio.txt file and reject offline streams
-    create_radio_txt(sorted_dir, window)
+    create_radio_txt(sorted_dir, config_controler.get_key('radio_genres'))
 
   # output file containing trouble files
   notify({
