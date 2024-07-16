@@ -1,17 +1,15 @@
 import glob
 
-from datetime import datetime
 import os
-import sys
 
 try:
-  from lib.log import need_attention, log
+  from lib.log import log
   from lib.change_log import ChangeLog
   from lib.get_flac_info import get_flac_info
   from lib.stamp_playlist import stamp
   from lib.upc import get_upc
 except ModuleNotFoundError:
-  from log import need_attention, log
+  from log import log
   from change_log import ChangeLog
   from get_flac_info import get_flac_info
   from stamp_playlist import stamp
@@ -60,7 +58,6 @@ def generate_m3u(directory:str):
   Returns:
   None
   """
-  
   result = sort_directory(directory)
   if result is None:
     return
@@ -82,7 +79,7 @@ def generate_m3u(directory:str):
     m3u.write(f'#EXTALB: {album}\n')
     m3u.write('#EXTIMG: cover.jpg\n')
     m3u.write(f'#PLAYLIST: {artist} - {album}\n')
-    upc = get_upc(artist, album, tracklist)
+    upc = False #get_upc(artist, album, tracklist)
     if upc:
       m3u.write(f'# "Barcode: {upc}"\n')
     for file_info in info:

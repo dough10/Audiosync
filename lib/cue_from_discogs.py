@@ -38,7 +38,7 @@ def string_to_boolean(s:str) -> bool:
     raise ValueError("Invalid boolean string")
 
 
-def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
+def save_cue(release:dict, mp3_path:str, gapless:bool) -> None:
 
   basename = os.path.basename(mp3_path)
 
@@ -56,7 +56,7 @@ def save_cue(release:str, mp3_path:str, gapless:bool) -> None:
     cue_file.write(f'REM COMMENT {stamp()}')
     cue_file.write(f'PERFORMER "{artist_names[0]}"\n')
     cue_file.write(f'TITLE "{release.title}"\n')
-    cue_file.write(f'CATALOG "{release.data.get('barcode') or release.id}"\n')
+    # cue_file.write(f'CATALOG "{release.barcode or release.id}"\n')
     cue_file.write(f'FILE "{basename}" {file_extension.upper() if file_extension == 'mp3' else 'WAVE'}\n')
     
     if not len(tracklist):
@@ -118,8 +118,8 @@ def cue_from_releaseid(releaseID:str, file_path:str) -> None:
   
   name = os.path.splitext(file_path)[0]
   cue_file_path = os.path.join(os.path.dirname(file_path), f'{name}.cue')
-  # if os.path.exists(cue_file_path):
-  #   return
+  if os.path.exists(cue_file_path):
+    return
 
   try:
     rid = open(releaseID, 'r').read().split('\n')
@@ -128,6 +128,8 @@ def cue_from_releaseid(releaseID:str, file_path:str) -> None:
     change_log.playlist_created()
   except IndexError:
     log(f'Error reading releaseid {releaseID}')
+
+
 
 
 if __name__ == "__main__":

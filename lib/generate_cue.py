@@ -19,7 +19,19 @@ change_log = ChangeLog()
 
 types = ['.mp3','.m4a']
 
-def sort_directory(directory:str):
+
+
+
+def sort_directory(directory:str) -> tuple:
+  """
+  Gather audio files and sort by disc and track numbers
+  
+  Parameters:
+  - directory (str): folder containing audio files
+  
+  Returns: 
+  info (str), track_list (list), file_extension (str), artist (str), album (str)
+  """
   # list usable audio files
   audio_files = [file for file in os.listdir(directory) if not file.startswith('._') and any(file.endswith(t) for t in types)]
   
@@ -48,12 +60,16 @@ def sort_directory(directory:str):
     
     if disc is None or track is None:
       return
+    
+    track_list.append(id3.get('title'))
+    
     # add to track order list for sorting
     info.append((audio_file, disc, track))
 
   # sort by disc then track number
   info.sort(key=lambda x: (x[1], x[2]))
   return info, track_list, file_extension, id3['artist'], id3['album']
+
 
 
 
@@ -86,7 +102,7 @@ def generate_cue(directory:str):
     cue_file.write(f'REM COMMENT {stamp()}')
     cue_file.write(f'PERFORMER "{artist}"\n')
     cue_file.write(f'TITLE "{album}"\n')
-    upc = get_upc(artist, album, track_list)
+    upc = False #get_upc(artist, album, track_list)
     if upc:
       cue_file.write(f'CATALOG "{upc}"\n')
     for file in info:
