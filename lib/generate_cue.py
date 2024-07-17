@@ -99,7 +99,7 @@ def generate_cue(directory:str):
   
   # write the cue file
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
-    cue_file.write(f'REM COMMENT {stamp()}')
+    cue_file.write(f'REM COMMENT "{stamp()}"\n')
     cue_file.write(f'PERFORMER "{artist}"\n')
     cue_file.write(f'TITLE "{album}"\n')
     upc = False #get_upc(artist, album, track_list)

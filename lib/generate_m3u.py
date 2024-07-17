@@ -72,7 +72,7 @@ def generate_m3u(directory:str):
   
   # save m3u8 file to m3u_file_path
   with open(m3u_file_path, 'w', encoding='utf-8') as m3u:
-    m3u.write(f'# {stamp()}')
+    m3u.write(f'# "{stamp()}"\n')
     m3u.write('#EXTM3U\n')
     m3u.write('#EXTENC: UTF-8\n')
     m3u.write(f'#EXTART: {artist}\n')

@@ -100,7 +100,7 @@ class Playlist_manager:
 
     # save new files playlist for playlist_path
     with open(playlist_path, 'w', encoding='utf-8') as playlist:
-      playlist.write(f'# {stamp()}')
+      playlist.write(f'# "{stamp()}"\n')
       playlist.write('#EXTM3U\n')
       playlist.write('#EXTENC: UTF-8\n')
       playlist.write('#EXTART: Various Artists\n')

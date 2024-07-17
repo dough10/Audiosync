@@ -53,7 +53,7 @@ def save_cue(release:dict, mp3_path:str, gapless:bool) -> None:
   tracklist = [track for track in release.tracklist if track.duration]
   
   with open(cue_file_path, 'w', encoding='utf-8') as cue_file:
-    cue_file.write(f'REM COMMENT {stamp()}')
+    cue_file.write(f'REM COMMENT "{stamp()}"\n')
     cue_file.write(f'PERFORMER "{artist_names[0]}"\n')
     cue_file.write(f'TITLE "{release.title}"\n')
     # cue_file.write(f'CATALOG "{release.barcode or release.id}"\n')
