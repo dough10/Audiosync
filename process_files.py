@@ -4,6 +4,7 @@ import time
 import json
 import queue
 import threading
+
 from tqdm import tqdm
 from lib.is_audio import is_audio_file
 from lib.file_manager import File_manager
@@ -13,7 +14,7 @@ from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, files_with_issues, need_attention, reset_log
-from lib.radio_txt import main as create_radio_txt
+from lib.create_radio_txt import create_radio_txt
 from lib.resize_image import resize_image
 from lib.config_controler import Config
 from lib.change_log import ChangeLog
@@ -207,16 +208,19 @@ def move_file(root:str, file:str, ext:str) -> None:
   if os.path.exists(lrc) and import_lyrics:
     file_manager.copy_file(lrc, dest, os.path.join(dest, lrc_filename))
 
-  if import_cues:
-    pl_manager.import_m3u_files(root, dest)
-    pl_manager.import_cue_files(root, dest)
 
-  try:
-    file_manager.copy_file(source_file, dest, os.path.join(dest, file))
-  except Exception as e:
-    log('copy failed..')
-    need_attention.append(f"file:{source_file}\ndest:{dest}\nerror:{str(e)}\n\n")
-    return
+  if config_controler.get_key('mp3_only') and ext == '.flac':
+    file_manager.transcode_flac(source_file, dest, file)
+  else:
+    if import_cues:
+      pl_manager.import_m3u_files(root, dest)
+      pl_manager.import_cue_files(root, dest)
+    try:
+      file_manager.copy_file(source_file, dest, os.path.join(dest, file))
+    except Exception as e:
+      log('copy failed..')
+      need_attention.append(f"file:{source_file}\ndest:{dest}\nerror:{str(e)}\n\n")
+      return
 
 
 
@@ -442,8 +446,11 @@ def run_sync(window:dict) -> None:
     pl_manager.new_files_playlist(sorted_dir)
 
   if import_custom_radio:
-    # parse online radio.txt file and reject offline streams
-    create_radio_txt(sorted_dir, config_controler.get_key('radio_genres'))
+    # create radio.txt file
+    try:
+      create_radio_txt(config_controler.get_key('radio_data_url'), sorted_dir, config_controler.get_key('radio_genres'))
+    except:
+      pass
 
   # output file containing trouble files
   notify({
@@ -556,4 +563,5 @@ def create_lib_json(window:dict):
 
 
 if __name__ == "__main__":
+  set_source()
   run_sync(False)
