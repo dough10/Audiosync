@@ -4,18 +4,24 @@ import shutil
 import string
 from concurrent.futures import ThreadPoolExecutor
 
+from pydub import AudioSegment
+import music_tag as MP3
+from mutagen.flac import FLAC
+
 try:
   from lib.lyrics import get_lyrics
   from lib.log import log
   from lib.resize_image import resize_image
   from lib.rename_file import rename_file
   from lib.change_log import ChangeLog
+
 except ModuleNotFoundError:
   from lyrics import get_lyrics
   from log import log
   from resize_image import resize_image
   from rename_file import rename_file
   from change_log import ChangeLog
+
   
 change_log = ChangeLog()
 
@@ -163,6 +169,40 @@ class File_manager:
         else:
           log(f"{path} Maximum retries reached. Copy failed.")
           raise  # Reraise the exception if maximum retries reached
+
+
+
+
+  def transcode_flac(self, src:str, dest:str, file:str) -> None:
+    """
+    transcodes a flac file to mp3 and copys needed ID3 information to the new file
+    
+    Parameters:
+    src (str): path to the source file
+    dest (str): path new file will be saved
+    file (str): original filename with it's extension
+    
+    Returns:
+    None
+    """
+    mp3_path = os.path.join(dest, file.replace('.flac', '.mp3'))
+    if os.path.exists(mp3_path):
+      return
+    flac_audio = AudioSegment.from_file(src, format="flac")
+    flac_audio.export(mp3_path, format="mp3", bitrate="320k")
+    id3 = FLAC(src)
+    new_mp3 = MP3.load_file(mp3_path)
+    new_mp3['albumartist'] = id3['albumartist']
+    new_mp3['album'] = id3['album']
+    try:
+      new_mp3['artist'] = id3['artist']
+    except KeyError:
+      pass
+    new_mp3['title'] = id3['title']
+    new_mp3['tracknumber'] = id3['tracknumber']
+    new_mp3['discnumber'] = id3['discnumber']
+    new_mp3.save()
+    change_log.file_wrote()
 
 
 
