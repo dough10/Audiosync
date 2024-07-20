@@ -528,20 +528,25 @@ class AudioSyncPodcasts extends HTMLElement {
     pywebview.api.xmlProxy(xmlURL).then(async xmlString => {
 
       // update title
-      qs('.podcast-title', scrollEl.parentElement).textContent = xmlString.rss.channel.title;
+      try {
+        qs('.podcast-title', scrollEl.parentElement).textContent = xmlString.rss.channel.title;
+      
+        // clear parent element
+        scrollEl.innerHTML = '';
 
-      // clear parent element
-      scrollEl.innerHTML = '';
+        // push element with callback to load more
+        this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, scrollEl, xmlURL);
+        await sleep(200);
 
-      // push element with callback to load more
-      this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, scrollEl, xmlURL);
-      await sleep(200);
-
-      // remark 'inlist' elements
-      for (const ep of inPlaylist) {
-        const wrapper = qs(`[data-filename="${ep.dataset.filename}"]`, scrollEl);
-        toggleAttribute(wrapper, 'inlist');
+        // remark 'inlist' elements
+        for (const ep of inPlaylist) {
+          const wrapper = qs(`[data-filename="${ep.dataset.filename}"]`, scrollEl);
+          toggleAttribute(wrapper, 'inlist');
+        }
+      } catch(e) {
+        qs('.podcast-title', scrollEl.parentElement).textContent = "Failed getting data..."
       }
+      
     }).catch(error => {
       console.error('Error fetching XML:', error);
     }); 
