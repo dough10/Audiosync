@@ -27,6 +27,7 @@ change_log = ChangeLog()
 
 
 
+
 def estimate_file_size(text:str) -> int:
   """
   estimate size of the text to be writter to a file
@@ -87,7 +88,7 @@ def process_image(root, filename) -> None:
 class File_manager:
   
 
-  def formatFilename(self, s):
+  def formatFilename(self, s:str) -> str:
     """
     Format the given string to be a valid filename.
 
@@ -98,14 +99,14 @@ class File_manager:
     str: The formatted filename.
     """
     valid_chars = "-_.() %s%s" % (string.ascii_letters, string.digits)
-    filename = ''.join(c for c in s.replace('&','and') if c in valid_chars)
+    filename = ''.join(c for c in s.replace('&', 'and') if c in valid_chars)
     return filename  
 
 
 
 
 
-  def fix_filename(self, root, file):
+  def fix_filename(self, root:str, file:str) -> str:
     """
     fixes filename removing any unsupported characters
     
@@ -114,8 +115,7 @@ class File_manager:
     file (str): the name of the file
     
     Returns:
-    str: updated filename 
-    
+    str: updated filename
     """
     new_name = self.formatFilename(file)
     if new_name == file:
@@ -130,7 +130,7 @@ class File_manager:
 
 
 
-  def copy_file(self, source, destination, path, max_retries=5, timeout=10) -> None:
+  def copy_file(self, source:str, destination:str, path:str, max_retries=5, timeout=10) -> None:
     """
     Copy a file from the source path to the destination path with retries.
 
@@ -173,7 +173,7 @@ class File_manager:
 
 
 
-  def transcode_flac(self, src:str, dest:str, file:str) -> None:
+  def transcode_to_mp3(self, src:str, dest:str, file:str, ext:str) -> None:
     """
     transcodes a flac file to mp3 and copys needed ID3 information to the new file
     
@@ -181,33 +181,41 @@ class File_manager:
     src (str): path to the source file
     dest (str): path new file will be saved
     file (str): original filename with it's extension
+    ext (str): file extension
     
     Returns:
     None
     """
-    mp3_path = os.path.join(dest, file.replace('.flac', '.mp3'))
+    mp3_path = os.path.join(dest, file.replace(ext, '.mp3'))
     if os.path.exists(mp3_path):
       return
-    flac_audio = AudioSegment.from_file(src, format="flac")
+    print()
+    flac_audio = AudioSegment.from_file(src, format=ext.replace('.', ''))
     flac_audio.export(mp3_path, format="mp3", bitrate="320k")
-    id3 = FLAC(src)
+    if ext == '.flac':
+      id3 = FLAC(src)
+    else:
+      id3 = MP3.load_file(src)
     new_mp3 = MP3.load_file(mp3_path)
     new_mp3['albumartist'] = id3['albumartist']
     new_mp3['album'] = id3['album']
     try:
       new_mp3['artist'] = id3['artist']
     except KeyError:
-      pass
+      new_mp3['artist'] = id3['albumartist']
     new_mp3['title'] = id3['title']
     new_mp3['tracknumber'] = id3['tracknumber']
-    new_mp3['discnumber'] = id3['discnumber']
+    try:
+      new_mp3['discnumber'] = id3['discnumber']
+    except KeyError:
+      new_mp3['discnumber'] = 1
     new_mp3.save()
     change_log.file_wrote()
 
 
 
 
-  def rename_images(self, directory_path) -> None:
+  def rename_images(self, directory_path:str) -> None:
     """
     rename & resize album art image
     
@@ -224,7 +232,7 @@ class File_manager:
 
 
 
-  def save_lrc_file(self, lrc, artist, title) -> None:
+  def save_lrc_file(self, lrc:str, artist:str, title:str) -> None:
     """
     Save the lyrics content to the specified LRC file.
 
@@ -249,7 +257,7 @@ class File_manager:
 
 
 
-  def remove_cue_files(self, path) -> None:
+  def remove_cue_files(self, path:str) -> None:
     """
     Remove CUE, M3U, and M3U8 files from the specified path.
 
@@ -264,7 +272,7 @@ class File_manager:
 
 
 
-  def remove_lrc(self, path) -> None:
+  def remove_lrc(self, path:str) -> None:
     """
     Remove LRC files from the specified path.
 
@@ -279,7 +287,7 @@ class File_manager:
 
 
 
-  def remove_folder(self, folder) -> None:
+  def remove_folder(self, folder:str) -> None:
     """
     removes filder and it's contained files
     
@@ -296,7 +304,7 @@ class File_manager:
 
 
 
-  def count_folder_content(self, folder) -> None:
+  def count_folder_content(self, folder:str) -> None:
     """
     count the contents of the folder
     
