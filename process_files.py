@@ -209,8 +209,8 @@ def move_file(root:str, file:str, ext:str) -> None:
     file_manager.copy_file(lrc, dest, os.path.join(dest, lrc_filename))
 
 
-  if config_controler.get_key('mp3_only') and ext == '.flac':
-    file_manager.transcode_flac(source_file, dest, file)
+  if config_controler.get_key('mp3_only') and not ext == '.mp3':
+    file_manager.transcode_to_mp3(source_file, dest, file, ext)
   else:
     if import_cues:
       pl_manager.import_m3u_files(root, dest)
@@ -404,12 +404,17 @@ def run_sync(window:dict) -> None:
 
   # copy files
   notify({
-    "text": 'Starting audio file transfers.',
+    "text": 'Starting audio file transfer.',
     "summary" : False,
     "toast" : False
   }, window)
   process_audio_files(window)
 
+  notify({
+    "text": 'Saving music library',
+    "summary" : False,
+    "toast" : False
+  }, window)
   # sort tracks by disc then track number
   for artist in lib_data:
     # sory artists albums alphabeticly
@@ -431,10 +436,20 @@ def run_sync(window:dict) -> None:
 
   # copy / delete podcasts and add those changes to the total changes
   if podcast:
+    notify({
+      "text": 'Starting podcast transfer.',
+      "summary" : False,
+      "toast" : False
+    }, window)
     updatePodcast(sorted_dir, window, bypass=True, logger=log)
   
   # create .cue / .m3u8 file for each album that doesn't already have one
   if import_cues:
+    notify({
+      "text": 'Creating playlist files.',
+      "summary" : False,
+      "toast" : False
+    }, window)
     pl_manager.create_cue_files(sorted_dir, window)
   
     # create folder for new_files playlist  
@@ -442,19 +457,29 @@ def run_sync(window:dict) -> None:
       os.makedirs(playlist_folder)
       change_log.new_folder()
 
+    notify({
+      "text": 'Creating new_files.m3u8.',
+      "summary" : False,
+      "toast" : False
+    }, window)
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
 
   if import_custom_radio:
     # create radio.txt file
     try:
+      notify({
+        "text": 'Creating radio.txt.',
+        "summary" : False,
+        "toast" : False
+      }, window)
       create_radio_txt(config_controler.get_key('radio_data_url'), sorted_dir, config_controler.get_key('radio_genres'))
     except:
       pass
 
   # output file containing trouble files
   notify({
-    "text": 'Generating trouble file.',
+    "text": 'Creating trouble file.',
     "summary" : False,
     "toast" : False
   }, window)
