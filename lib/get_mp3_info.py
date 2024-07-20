@@ -20,8 +20,11 @@ file_manager = File_manager()
 def get_mp3_info(source_file:str, file:str):
   jpg = source_file.replace(file, 'cover.jpg')
 
-  id3 = MP3.load_file(source_file)
-
+  try:
+    id3 = MP3.load_file(source_file)
+  except:
+    return None
+   
   # artist name for file sorting
   if 'albumartist' in id3:
     artist = file_manager.formatFilename(str(id3['albumartist']))
