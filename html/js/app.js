@@ -313,7 +313,9 @@ async function load_app() {
     await MENU_DRAWER.close();
 
     if (!SYNC_UI_ELEMENT.source) {
-      SYNC_UI_ELEMENT.source = await pywebview.api.set_source();
+      const source = await pywebview.api.set_source();
+      if (!source) return;
+      SYNC_UI_ELEMENT.source = source;
       qs('#sync-text').textContent = 'sync';
       await sleep(200);
       MUSIC_LIBRARY.go();

@@ -192,6 +192,7 @@ class SyncUI extends HTMLElement {
     if (!obj.summary) {
       this.output.appendChild(DIV);
     } else {
+      this.source = await pywebview.api.remove_source();
       new Toast('Sync Complete');
       this.summary.appendChild(DIV);
       this.button.removeAttribute('disabled');
@@ -240,7 +241,7 @@ class SyncUI extends HTMLElement {
       await sleep(200);
       qs(id, this.shadowRoot).setAttribute('percent', 0);
       qs(`${id}-text`, this.shadowRoot).textContent = '0%';
-      qs('#sync-text').textContent = 'sync';
+      qs('#sync-text').textContent = 'Set destination';
     });
     qs('#scan').removeAttribute('disabled');
   }

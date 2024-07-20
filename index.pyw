@@ -407,6 +407,11 @@ class Api:
 
 
 
+  def remove_source(self):
+    global sync_file
+    sync_file = ''
+    return sync_file
+
 
 # run the application
 if __name__ == '__main__':
