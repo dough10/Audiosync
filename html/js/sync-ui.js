@@ -16,7 +16,8 @@ class SyncUI extends HTMLElement {
         "flex-direction": "column",
         "justify-content": "flex-end",
         "margin-top": "8px",
-        "margin-bottom": "8px"
+        "margin-bottom": "8px",
+        overflow: 'hidden'
       },
       ".console-output div": {
         "margin-bottom": "4px"
