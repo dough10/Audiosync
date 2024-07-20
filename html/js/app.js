@@ -66,6 +66,10 @@ async function toggleSwitchCallback(ev) {
     CONFIG_CHANGES['remove_lrc_wd'] = ev.detail.state;
   } else if (ev.detail.id === 'podcast') {
     CONFIG_CHANGES['podcast'] = ev.detail.state;
+  } else if (ev.detail.id === 'mp3') {
+    CONFIG_CHANGES['mp3_only'] = ev.detail.state;
+  } else if (ev.detail.id === 'radio') {
+    CONFIG_CHANGES['import_custom_radio'] = ev.detail.state;
   }
   const CURRENT_STATES = await pywebview.api.update_config(CONFIG_CHANGES);
 
@@ -84,13 +88,13 @@ async function toggleSwitchCallback(ev) {
   }
 
   // reset lyric files switch
-  if (!CURRENT_STATES.import_lyrics) {
-    await fadeOut(RESET_LYRIC_FILES_SWITCH);
-    RESET_LYRIC_FILES_SWITCH.style.display = 'none';
-  } else {
-    RESET_LYRIC_FILES_SWITCH.style.removeProperty('display');
-    fadeIn(RESET_LYRIC_FILES_SWITCH);
-  }
+  // if (!CURRENT_STATES.import_lyrics) {
+  //   await fadeOut(RESET_LYRIC_FILES_SWITCH);
+  //   RESET_LYRIC_FILES_SWITCH.style.display = 'none';
+  // } else {
+  //   RESET_LYRIC_FILES_SWITCH.style.removeProperty('display');
+  //   fadeIn(RESET_LYRIC_FILES_SWITCH);
+  // }
 }
 
 /**
@@ -142,6 +146,8 @@ async function load_app() {
   const IMPORT_PLAYLISTS_SWITCH = qs('#cues');
   const IMPORT_LYRICS_SWITCH = qs('#lyrics');
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
+  const CREATE_RADIO_SWITCH = qs('#radio');
+  const MP3_ONLY_SWITCH = qs('#mp3');
   const IMPORT_PODCASTS_SWITCH = qs('#podcast');
   const TOGGLE_SWITCHES = qsa('audiosync-switch');
   const MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON = qs('#view');
@@ -399,9 +405,14 @@ async function load_app() {
     SYNC_UI_ELEMENT.hideBar('#playlists-bar');
   }
 
+
   // lyrics import
   // IMPORT_LYRICS_SWITCH.setState(CONFIG_OBJECT.import_lyrics);
   // RESET_LYRIC_FILES_SWITCH.setState(CONFIG_OBJECT.remove_lrc_wd);
+
+  MP3_ONLY_SWITCH.setState(CONFIG_OBJECT.mp3_only);
+
+  CREATE_RADIO_SWITCH.setState(CONFIG_OBJECT.import_custom_radio)
 
   // podcast import ui
   IMPORT_PODCASTS_SWITCH.setState(CONFIG_OBJECT.podcast);

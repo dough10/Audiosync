@@ -195,7 +195,13 @@
 					<span class="select-bar"></span>
 					<label class="select-label">default library view</label>
 				</div>
-        <audiosync-switch id="cues">
+        <audiosync-switch id="mp3" title="converts .flac to .mp3 requires ffmpeg">
+          MP3 only
+        </audiosync-switch>
+        <audiosync-switch id="radio" title="saves online radio urls to radio.txt">
+          create radio.txt
+        </audiosync-switch>
+        <audiosync-switch id="cues" title="generate .cue or .m3u8 files">
           Import playlists
         </audiosync-switch>
         <!-- <audiosync-switch id="lyrics">
@@ -204,7 +210,7 @@
         <audiosync-switch id="remove-lrc" >
           Generate new LRC files
         </audiosync-switch> -->
-        <audiosync-switch id="podcast">
+        <audiosync-switch id="podcast" title="copy new downloaded podcast files">
           Import podcast
         </audiosync-switch>
       </audiosync-settings>
