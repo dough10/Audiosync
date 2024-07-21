@@ -198,6 +198,18 @@
         <audiosync-switch id="mp3" title="converts .flac to .mp3 requires ffmpeg">
           MP3 only
         </audiosync-switch>
+        <div class="select">
+					<select class="select-text" id="bitrate_select" required>
+            <option value="96">96</option>
+            <option value="128">128</option>
+            <option value="192">192</option>
+            <option value="256">256</option>
+            <option value="320">320</option>
+          </select>
+					<span class="select-highlight"></span>
+					<span class="select-bar"></span>
+					<label class="select-label">target bitrate</label>
+				</div>
         <audiosync-switch id="radio" title="saves online radio urls to radio.txt">
           create radio.txt
         </audiosync-switch>
