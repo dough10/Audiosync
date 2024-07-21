@@ -189,7 +189,6 @@ class File_manager:
     mp3_path = os.path.join(dest, file.replace(ext, '.mp3'))
     if os.path.exists(mp3_path):
       return
-    print()
     flac_audio = AudioSegment.from_file(src, format=ext.replace('.', ''))
     flac_audio.export(mp3_path, format="mp3", bitrate="320k")
     if ext == '.flac':
