@@ -134,10 +134,21 @@ class MusicLibrary extends HTMLElement {
         position:'absolute',
         transition: 'opacity 150ms ease'
       },
+      '.album-grid[playing] > .playing-svg': {
+        bottom:'23px',
+        right:'5px',
+        opacity: 0.5
+      },
       '.album-grid[favorite] > .fav': {
         bottom:'23px',
         right:'5px',
         opacity: 0.5
+      },
+      '.album-grid[playing][favorite] > .fav': {
+        opacity: 0
+      },
+      '.album-grid[playing] > div:nth-child(2)': {
+        'max-width': '120px'
       },
       '.album-grid[favorite] > div:nth-child(2)': {
         'max-width': '120px'
@@ -145,10 +156,6 @@ class MusicLibrary extends HTMLElement {
       '.album-grid[inlist] > .listed': {
         left: '52px',
         transform: 'translateX(-50%)',
-        opacity: 0.6
-      },
-      '.album-grid[playing] > .playing-svg': {
-        left:'77px',
         opacity: 0.6
       },
       '.album-grid[selected] > .selected': {
@@ -352,11 +359,7 @@ class MusicLibrary extends HTMLElement {
       await this._albumGrid(MUSIC_LIBRARY_DATA);
     }
 
-    // get sync.json data
-    const SYNC_JSON = await pywebview.api.sync_file();
-
-    // make "selected" albums & artist
-    this._compareData(SYNC_JSON);
+    await this.loadSyncFile();
 
     // favorites.json
     const FAVORITES = await pywebview.api.load_favorites();
@@ -383,6 +386,21 @@ class MusicLibrary extends HTMLElement {
       detail:{lib_size: this.libSize}
     });
     this.dispatchEvent(CUSTOM_EVENT);
+  }
+
+  /**
+   * load sync file data to UI
+   * @public
+   * @function
+   * 
+   * @returns {void}
+   */
+  async loadSyncFile() {
+    // get sync.json data
+    const SYNC_JSON = await pywebview.api.sync_file();
+
+    // make "selected" albums & artist
+    this._compareData(SYNC_JSON);
   }
 
   /**
