@@ -404,8 +404,6 @@ async function load_app() {
     theme = nameToIndex('#theme', 'dark');
   }
 
-  console.log(CONFIG_OBJECT.max_bitrate)
-
   BITRATE_SELECT.selectedIndex = nameToIndex('#bitrate_select', String(CONFIG_OBJECT.max_bitrate));
 
   THEME_DROPDOWN.selectedIndex = theme;
