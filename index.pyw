@@ -364,12 +364,12 @@ class Api:
 
 
 
-  def downloadEpisode(self, title, epObj, download_url, path, filename, xmlURL) -> None:
+  def downloadEpisode(self, title:str, epObj:dict, download_url:str, path:str, filename:str, xmlURL:str) -> None:
 
-    def callback(bytes_downloaded, total_bytes, start_time):
+    def callback(bytes_downloaded:int, total_bytes:int, start_time:int):
       window.evaluate_js(f'document.querySelector("audiosync-podcasts").update("{xmlURL}", {bytes_downloaded}, {total_bytes}, {start_time}, "{filename}");')
     
-    def image_fallback(file):
+    def image_fallback(file:str):
       cover_path = os.path.join(podcast_dir, path.replace(filename, 'cover.jpg'))
       id3Image(file, load_saved_image(cover_path))
 
@@ -407,7 +407,7 @@ class Api:
 
 
 
-  def remove_source(self):
+  def remove_source(self) -> str:
     global sync_file
     sync_file = ''
     return sync_file
