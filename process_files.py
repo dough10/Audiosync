@@ -474,6 +474,7 @@ def run_sync(window:dict) -> None:
         "toast" : False
       }, window)
       create_radio_txt(config_controler.get_key('radio_data_url'), sorted_dir, config_controler.get_key('radio_genres'))
+      change_log.file_wrote()
     except:
       pass
 
