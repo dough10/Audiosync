@@ -2,9 +2,10 @@ import os
 import time
 import shutil
 import string
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
 
-from pydub import AudioSegment
+
 import music_tag as MP3
 from mutagen.flac import FLAC
 
@@ -14,6 +15,7 @@ try:
   from lib.resize_image import resize_image
   from lib.rename_file import rename_file
   from lib.change_log import ChangeLog
+  from lib.get_bitrate import get_bitrate
 
 except ModuleNotFoundError:
   from lyrics import get_lyrics
@@ -21,6 +23,7 @@ except ModuleNotFoundError:
   from resize_image import resize_image
   from rename_file import rename_file
   from change_log import ChangeLog
+  from get_bitrate import get_bitrate
 
   
 change_log = ChangeLog()
@@ -173,6 +176,7 @@ class File_manager:
 
 
 
+
   def transcode_to_mp3(self, src:str, dest:str, file:str, ext:str) -> None:
     """
     transcodes a flac file to mp3 and copys needed ID3 information to the new file
@@ -189,12 +193,30 @@ class File_manager:
     mp3_path = os.path.join(dest, file.replace(ext, '.mp3'))
     if os.path.exists(mp3_path):
       return
-    flac_audio = AudioSegment.from_file(src, format=ext.replace('.', ''))
-    flac_audio.export(mp3_path, format="mp3", bitrate="320k")
+    
     if ext == '.flac':
       id3 = FLAC(src)
     else:
       id3 = MP3.load_file(src)
+    
+    startupinfo = None
+    if os.name == "nt":
+      startupinfo = subprocess.STARTUPINFO()
+      startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+      startupinfo.wShowWindow = subprocess.SW_HIDE
+
+    process = subprocess.Popen([
+      "ffmpeg",
+      "-i", src,
+      "-ab", get_bitrate(src),
+      "-f", "mp3",
+      mp3_path
+    ], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    _, stderr = process.communicate()
+    if process.returncode != 0:
+      print("Error converting file:", stderr.decode())
+      return
+  
     new_mp3 = MP3.load_file(mp3_path)
     new_mp3['albumartist'] = id3['albumartist']
     new_mp3['album'] = id3['album']
@@ -316,3 +338,10 @@ class File_manager:
     for _, dirs, files in os.walk(folder):
       change_log.folder_contained(len(files))
       change_log.folder_deleted(len(dirs))
+      
+      
+      
+if __name__ == "__main__":
+  file = 'z:\\Music\\Unsorted\\D&B\\Blu Mar Ten\\Love Is the Devil\\01 Into the Light (feat. Airwalker).m4a'
+  fm = File_manager()
+  fm.transcode_to_mp3(file, 'g:\\', '01 Into the Light (feat. Airwalker).m4a', '.m4a')
