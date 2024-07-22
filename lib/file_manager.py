@@ -78,13 +78,18 @@ def process_image(root, filename) -> None:
   Parameters:
   root (str): file root path
   filename (str): name of the file
-  changes (dict): ChangeLog instance
+  
+  Returns:
+  None
   """
   # rename image first
-  f = rename_file(root, filename)
+  jpg = os.path.join(root, rename_file(root, filename))
   # resized image filename will match new filename
-  resize_image(os.path.join(root, f), 1000, os.path.join(root, f))
-
+  resize_image(jpg, 1000, jpg)
+  # create 150px thumb.webp
+  thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
+  if not os.path.exists(thumbnail_name):
+    resize_image(jpg, 150, thumbnail_name, ext='WEBP')
 
 
 
@@ -338,10 +343,3 @@ class File_manager:
     for _, dirs, files in os.walk(folder):
       change_log.folder_contained(len(files))
       change_log.folder_deleted(len(dirs))
-      
-      
-      
-if __name__ == "__main__":
-  file = 'z:\\Music\\Unsorted\\D&B\\Blu Mar Ten\\Love Is the Devil\\01 Into the Light (feat. Airwalker).m4a'
-  fm = File_manager()
-  fm.transcode_to_mp3(file, 'g:\\', '01 Into the Light (feat. Airwalker).m4a', '.m4a')
