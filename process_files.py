@@ -530,10 +530,6 @@ def build_lib(root:str, file:str, ext:str):
   # reject if cover doesn't exist
   if not os.path.exists(jpg):
     return
-  # create 150px thumb.webp
-  thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
-  if not os.path.exists(thumbnail_name):
-    resize_image(jpg, 150, thumbnail_name, ext='WEBP')
   # add to lib_data
   add_to_lib(info['artist'], info['album'], root.replace(config_controler.get_key('source'), ''), file, info['title'], info['track'], info['disc'])
 
