@@ -279,7 +279,7 @@ class Api:
    
     
   # save favorites to file
-  def save_favorites(self, favs:json) -> None:
+  def save_favorites(self, favs:dict) -> None:
     """
     save given json data as favorites.json
     
@@ -297,12 +297,30 @@ class Api:
 
   # get data copied to clipboard
   def get_clipboard(self) -> str:
+    """
+    gets copied data from clipbaord
+    
+    Parameters:
+    None
+    
+    Returns:
+    None
+    """
     return clipboard.paste()
 
 
 
 
   def lrcraw_exists(self, path:list) -> bool:
+    """
+    check if a file exists
+    
+    Parameters:
+    path (str): file path to check
+    
+    Returns:
+    Bool: true / false does file exist 
+    """
     lrc_file_path = os.path.join(*[config['source'], *path])
     return os.path.exists(lrc_file_path)
 
@@ -311,6 +329,15 @@ class Api:
 
   # subscribe to URL
   def subscribe(self, url:str) -> None:
+    """
+    subscribe to a provided xml feed
+    
+    Parameters:
+    url (str): pat to xml file
+    
+    Returns:
+    None
+    """
     Podcast(url).subscribe(window)
 
 
@@ -318,6 +345,15 @@ class Api:
 
   #  unsub podcast url
   def unsubscribe(self, url:str) -> None:
+    """
+    unsubscribe from a provided xml feed
+    
+    Parameters:
+    url (str): pat to xml file
+    
+    Returns:
+    None
+    """
     Podcast(url).unsubscribe(window) 
 
 
@@ -325,7 +361,15 @@ class Api:
 
   # get synscriptions from config.json
   def list_subscriptions(self) -> list:
-    config_controler.reload()
+    """
+    returns a list of subscribed podcast urls
+    
+    Parameters:
+    None
+    
+    Returns:
+    list: podcast urls
+    """
     return config_controler.get_key('subscriptions')
   
   
@@ -334,6 +378,15 @@ class Api:
   
   # runs podcast update and sends update info to UI
   def get_podcasts(self) -> None:
+    """
+    scan for new episodes
+    
+    Parameters:
+    None
+    
+    Returns:
+    None
+    """
     window.evaluate_js(f'document.querySelector("audiosync-podcasts").update();')
     length = len(config['subscriptions'])
     for ndx, url in enumerate(config['subscriptions']):
@@ -346,6 +399,15 @@ class Api:
 
   # frontend xml proxy
   def xmlProxy(self, url:str) -> dict:
+    """
+    xml proxy server
+    
+    Parameters: 
+    url (str): xml path
+    
+    Returns: 
+    dict: xml data
+    """
     res = requests.get(url)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
@@ -359,6 +421,16 @@ class Api:
 
 
   def episodeExists(self, title:str, episode:dict) -> bool:
+    """
+    check if podcast episode exists
+    
+    Parameters:
+    title (str):
+    episode (dict):
+    
+    Returns:
+    bool: exists true / false 
+    """
     return episodeExists(title, episode)
 
 
