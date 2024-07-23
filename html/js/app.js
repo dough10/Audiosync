@@ -12,6 +12,8 @@ import { Toast } from './Toast/Toast.js';
   
 let _loadTimer = 0;
 
+export {nameToIndex}
+
 /**
  * returns index of theme with the given name
  * 
@@ -350,6 +352,7 @@ async function load_app() {
 
   async function allowClose() {
     const CONFIG_OBJECT = await pywebview.api.get_config();
+    console.log(CONFIG_OBJECT)
     if (await pywebview.api.path_exists(CONFIG_OBJECT.source) && await pywebview.api.path_exists(CONFIG_OBJECT.podcast_folder)) {
       qs('audiosync-small-button', SETTINGS_DRAWER.shadowRoot).removeAttribute('disabled');
     }
@@ -396,9 +399,7 @@ async function load_app() {
     qs('#podcast_text').textContent = CONFIG_OBJECT.podcast_folder;
   }
 
-  let theme = nameToIndex('#theme', 'light');
-
-  theme = CONFIG_OBJECT.theme;
+  let theme = CONFIG_OBJECT.theme || nameToIndex('#theme', 'light');
 
   if (isDarkMode()) {
     theme = nameToIndex('#theme', 'dark');
