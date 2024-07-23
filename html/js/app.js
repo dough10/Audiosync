@@ -352,7 +352,6 @@ async function load_app() {
 
   async function allowClose() {
     const CONFIG_OBJECT = await pywebview.api.get_config();
-    console.log(CONFIG_OBJECT)
     if (await pywebview.api.path_exists(CONFIG_OBJECT.source) && await pywebview.api.path_exists(CONFIG_OBJECT.podcast_folder)) {
       qs('audiosync-small-button', SETTINGS_DRAWER.shadowRoot).removeAttribute('disabled');
     }
