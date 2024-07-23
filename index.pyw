@@ -105,7 +105,9 @@ class Api:
     Returns: 
     json: config object
     """
-    return config_controler.get()
+    global config
+    config = config_controler.get()
+    return config
 
 
 
@@ -121,7 +123,9 @@ class Api:
     Returns: 
     json: config data 
     """
-    return config_controler.update(frontend_config)
+    global config
+    config = config_controler.update(frontend_config)
+    return config
 
 
 
