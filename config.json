@@ -1,18 +1,20 @@
 {
   "source": "",
   "podcast_folder": "",
-  "view": 0,
-  "theme": 0,
+  "view": 1,
+  "theme": 1,
   "import_custom_radio": 1,
+  "radio_data_url": "http://localhost:3000",
+  "radio_genres": [],
   "import_cues": 1,
   "import_lyrics": 0,
   "remove_lrc_wd": 0,
   "podcast": 1,
+  "mp3_only": 0,
+  "max_bitrate": 320,
   "debug": true,
   "genius": "",
   "discogs_token": "",
-  "lrc_ignore_folders": [
-  ],
-  "subscriptions": [
-  ]
+  "lrc_ignore_folders": [],
+  "subscriptions": []
 }
