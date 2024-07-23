@@ -30,9 +30,7 @@ open the dialog element also displaying backdrop
 **Access**: public  
 **Example**  
 ```js
-const dialog = document.createElement('audiosync-dialog');
-document.querySelector('body').appendChild(dialog);
-dialog.open();
+const dialog = document.createElement('audiosync-dialog');document.querySelector('body').appendChild(dialog);dialog.open();
 ```
 <a name="AudioSyncDialog+close"></a>
 
@@ -43,6 +41,5 @@ close the dialog and hide backdrop
 **Access**: public  
 **Example**  
 ```js
-const dialog = document.querySelector('audiosync-dialog');
-dialog.close();
+const dialog = document.querySelector('audiosync-dialog');dialog.close();
 ```

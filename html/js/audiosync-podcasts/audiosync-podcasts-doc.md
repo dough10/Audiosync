@@ -28,8 +28,7 @@ const podcastLibrary = document.createElement('audiosync-podcasts');
 <a name="AudioSyncPodcasts+resetPlaylist"></a>
 
 ### audioSyncPodcasts.resetPlaylist() ⇒ <code>Void</code>
-audioplayer has reset playlist. (unmarks elements marked with 'inlist') 
-Used in audiosync-player.playAlbum()
+audioplayer has reset playlist. (unmarks elements marked with 'inlist') Used in audiosync-player.playAlbum()
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
 **Access**: public  
@@ -40,8 +39,7 @@ podcastLibrary.resetPlaylist();
 <a name="AudioSyncPodcasts+openAddPodcastDialog"></a>
 
 ### audioSyncPodcasts.openAddPodcastDialog() ⇒ <code>Promise.&lt;Void&gt;</code>
-creates and opens a dislog with options to add a url
-Used in <audiosync-podcasts>
+creates and opens a dislog with options to add a urlUsed in <audiosync-podcasts>
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
 **Access**: public  
@@ -52,8 +50,7 @@ button.onClick(_ => poscastLibrary.openAddPodcastDialog());
 <a name="AudioSyncPodcasts+subResponse"></a>
 
 ### audioSyncPodcasts.subResponse(message) ⇒ <code>Void</code>
-responds to subscription input. 
-refreshes podcast ui data and closes add url dialog
+responds to subscription input. refreshes podcast ui data and closes add url dialog
 
 **Kind**: instance method of [<code>AudioSyncPodcasts</code>](#AudioSyncPodcasts)  
 **Access**: public  
@@ -98,15 +95,7 @@ syncs ui with currently playing audio
 
 **Example**  
 ```js
-pocastLibrary.nowPlaying({
-  "art" : "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\cover.jpg"
-  "path": "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\09 Stink Bug.mp3",
-  "album": "Hello Nasty Remastered (Disc 2)",
-  "artist": "The Beastie Boys",
-  "title": "Stink Bug",
-  "track": 9,
-  "disc": 2
-});
+pocastLibrary.nowPlaying({  "art" : "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\cover.jpg"  "path": "Other\\Beastie Boys\\Hello Nasty_ Remastered (Disc 2)\\09 Stink Bug.mp3",  "album": "Hello Nasty Remastered (Disc 2)",  "artist": "The Beastie Boys",  "title": "Stink Bug",  "track": 9,  "disc": 2});
 ```
 <a name="AudioSyncPodcasts+update"></a>
 
