@@ -12,7 +12,7 @@ import { Toast } from './Toast/Toast.js';
   
 let _loadTimer = 0;
 
-export {nameToIndex}
+// export {nameToIndex}
 
 /**
  * returns index of theme with the given name
@@ -361,7 +361,7 @@ async function load_app() {
   SOURCE_SELECT.addEventListener('click', async _ => {
     const source = await pywebview.api.folder_select(qs('#source_text').textContent);
     if (!source) return;
-    pywebview.api.update_config({source});
+    await pywebview.api.update_config({source});
     qs('#source_text').textContent = source;
     new Toast(`Source folder: ${source}`);
     allowClose();
@@ -372,7 +372,7 @@ async function load_app() {
   PODCAST_FOLDER.addEventListener('click', async  _ => {
     const podcast_folder = await pywebview.api.folder_select(qs('#podcast_text').textContent);
     if (!podcast_folder) return;
-    pywebview.api.update_config({podcast_folder});
+    await pywebview.api.update_config({podcast_folder});
     qs('#podcast_text').textContent = podcast_folder;
     new Toast(`Podcast folder: ${podcast_folder}`);
     allowClose();
