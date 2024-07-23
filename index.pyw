@@ -105,7 +105,7 @@ class Api:
     Returns: 
     json: config object
     """
-    return config
+    return config_controler.get()
 
 
 
@@ -231,7 +231,7 @@ class Api:
     theme_dir = os.path.join(script_folder, 'themes', '*.json')
     themes = [{'name': os.path.splitext(os.path.basename(theme_location))[0], 'path': theme_location}
               for theme_location in glob.glob(theme_dir)]
-    return themes
+    return sorted(themes, key=lambda x: x['name'])
 
 
 
