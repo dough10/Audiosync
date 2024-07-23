@@ -10,7 +10,7 @@ import {
 } from './helpers.js';
 import { Toast } from './Toast/Toast.js';
   
-let _loadTimer = 0
+let _loadTimer = 0;
 
 /**
  * returns index of theme with the given name
@@ -23,7 +23,7 @@ let _loadTimer = 0
 function nameToIndex(dropdown_id, name) {
   const OPTIONS = qsa('option', qs(dropdown_id));
   for (let i = 0; i < OPTIONS.length; i++) {
-    const VALUE = getFilenameWithoutExtension(OPTIONS[i].value)
+    const VALUE = getFilenameWithoutExtension(OPTIONS[i].value);
     if (name === VALUE) return i;
   }
   return -1;
@@ -58,19 +58,19 @@ async function toggleSwitchCallback(ev) {
   const SYNC_UI_ELEMENT = qs('sync-ui');
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
   
-  const CONFIG_CHANGES = {}
+  const CONFIG_CHANGES = {};
   if (ev.detail.id === 'cues') {
-    CONFIG_CHANGES['import_cues'] = ev.detail.state;
+    CONFIG_CHANGES.import_cues = ev.detail.state;
   } else if (ev.detail.id === 'lyrics') {
-    CONFIG_CHANGES['import_lyrics'] = ev.detail.state;
+    CONFIG_CHANGES.import_lyrics = ev.detail.state;
   } else if (ev.detail.id === 'remove-lrc') {
-    CONFIG_CHANGES['remove_lrc_wd'] = ev.detail.state;
+    CONFIG_CHANGES.remove_lrc_wd = ev.detail.state;
   } else if (ev.detail.id === 'podcast') {
-    CONFIG_CHANGES['podcast'] = ev.detail.state;
+    CONFIG_CHANGES.podcast = ev.detail.state;
   } else if (ev.detail.id === 'mp3') {
-    CONFIG_CHANGES['mp3_only'] = ev.detail.state;
+    CONFIG_CHANGES.mp3_only = ev.detail.state;
   } else if (ev.detail.id === 'radio') {
-    CONFIG_CHANGES['import_custom_radio'] = ev.detail.state;
+    CONFIG_CHANGES.import_custom_radio = ev.detail.state;
   }
   const CURRENT_STATES = await pywebview.api.update_config(CONFIG_CHANGES);
 
@@ -165,7 +165,7 @@ async function load_app() {
   }
 
   BITRATE_SELECT.addEventListener('change', async _ => {
-    pywebview.api.update_config({max_bitrate: Number(BITRATE_SELECT.value)})
+    pywebview.api.update_config({max_bitrate: Number(BITRATE_SELECT.value)});
   });
 
   THEME_DROPDOWN.addEventListener('change', async e => {
@@ -257,7 +257,7 @@ async function load_app() {
     if (PAGES.getAttribute('selected') === '1') return;
     PODCAST_LIBRARY.style.setProperty('--animation-time', '0ms');
     PAGES.setAttribute('selected', 1);
-    SCROLL_ELEMENT.offScreen()
+    SCROLL_ELEMENT.offScreen();
     MUSIC_HEADER_BUTTONS.forEach(hideElement);
     await sleep(500);
     PODCAST_HEADER_BUTTONS.forEach(showElement);
@@ -426,7 +426,7 @@ async function load_app() {
 
   MP3_ONLY_SWITCH.setState(CONFIG_OBJECT.mp3_only);
 
-  CREATE_RADIO_SWITCH.setState(CONFIG_OBJECT.import_custom_radio)
+  CREATE_RADIO_SWITCH.setState(CONFIG_OBJECT.import_custom_radio);
 
   // podcast import ui
   IMPORT_PODCASTS_SWITCH.setState(CONFIG_OBJECT.podcast);
@@ -469,7 +469,7 @@ async function load_app() {
 
   // load screen animation
   qs('#app').style.removeProperty('display');
-  await sleep(400)
+  await sleep(400);
   qs('audiosync-loader').reveal();
 }
 
