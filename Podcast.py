@@ -425,6 +425,9 @@ class Podcast:
       print('Error connecting to the internet. Please check network connection and try again')
       sys.exit()
 
+    global folder
+    folder = config_controler.get_key('podcast_folder')
+
     # check folder exists
     if not os.path.exists(folder):
       print(f'Folder {folder} does not exist. check config.py')
