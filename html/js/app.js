@@ -12,7 +12,7 @@ import { Toast } from './Toast/Toast.js';
   
 let _loadTimer = 0;
 
-// export {nameToIndex}
+export {nameToIndex}
 
 /**
  * returns index of theme with the given name
