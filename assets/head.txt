@@ -1,9 +1,9 @@
-A python application with HTML GUI for writing a SD Card for use in a Digital Audio Player.
+A python application with a HTML GUI created for writing an sd card or USB drive of audio files for playback in a Digital audio player or car entertainment system.
 
-- writes files to sdcard (audio files, cover images, playlist files)
-- play audio files HTML5 audio tag
-- creates playlist (.cue for mp3 .m3u8 for flac) for each album transfered
-- generate a playlist for any files with a modified date newer then a month old
-- podcast downloading, deleting, subscribing
-- generates radio.txt for "custom radio" feature on hiby players from MrNaturalAZ's file posted to head-fi forum
-- WIP .lrc file generation for song lyrics 
+- writes files to desired destination (audio files, cover images, playlist files)
+- play audio files
+- option to convert flac or m4a file to mp3 to ensure playback on devices with limited file type support
+- option to create playlist (.cue for mp3 .m3u8 for flac) for each album transfered also generates a playlist listing any files with a modified date newer then a month old
+- podcast support: downloading, subscribing and listening
+- option to generate a radio.txt file for the "custom radio" feature on hiby players
+- WIP option .lrc file generation for song lyrics 
