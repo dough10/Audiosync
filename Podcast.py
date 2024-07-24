@@ -81,10 +81,13 @@ def nonhidden_file_count(dest):
 # write new podcast episodes to the given directory / player address
 def updatePlayer(player, window, bypass=False, logger=print):
   start_time = time.time()
+  
+  global folder
+  folder = config_controler.get_key('podcast_folder')
+  
   # check locations exist
   if not os.path.exists(folder):
-    print(f'Folder {folder} does not exist. check config.py')
-    sys.exit()
+    raise FileNotFoundError(f"Error accessing {folder}. Check if the drive is mounted")
 
   if not os.path.exists(player):
     raise FileNotFoundError(f"Error accessing {player}. Check if the drive is mounted")
