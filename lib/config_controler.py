@@ -46,8 +46,7 @@ class Config:
     Returns:
     dict: config.json data
     """
-    self.reload()
-    return self.config_
+    return self.reload()
 
 
 
@@ -84,8 +83,7 @@ class Config:
     
     """
     for key, value in frontend_config.items():
-      if key in self.config_:
-        self.config_[key] = value
+      self.config_[key] = value
     return self.save_()
   
 
@@ -132,12 +130,12 @@ class Config:
     """
     with open(self.config_path_, 'w') as file:
       file.write(json.dumps(self.config_, indent=2))
-    return self.config_
+    return self.reload()
 
 
 
 
-  def subscribe(self, url):
+  def subscribe(self, url:str) -> dict:
     """
     add podcast url from subscriptions
     
@@ -148,13 +146,12 @@ class Config:
     dict: updated data
     """
     self.config_['subscriptions'].append(url)
-    self.reload()
     return self.save_()
 
 
 
 
-  def unsubscribe(self, url):
+  def unsubscribe(self, url:str) -> dict:
     """
     remove podcast url from subscriptions
     
@@ -166,5 +163,4 @@ class Config:
     """
     if (url in self.config_['subscriptions']):
       self.config_['subscriptions'] = remove_string_from_list(self.config_['subscriptions'], url)
-    self.reload()
     return self.save_()
