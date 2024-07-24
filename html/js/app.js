@@ -71,8 +71,6 @@ async function toggleSwitchCallback(ev) {
     CONFIG_CHANGES.podcast = ev.detail.state;
   } else if (ev.detail.id === 'mp3') {
     CONFIG_CHANGES.mp3_only = ev.detail.state;
-  } else if (ev.detail.id === 'radio') {
-    CONFIG_CHANGES.import_custom_radio = ev.detail.state;
   }
   const CURRENT_STATES = await pywebview.api.update_config(CONFIG_CHANGES);
 
@@ -149,7 +147,6 @@ async function load_app() {
   const IMPORT_PLAYLISTS_SWITCH = qs('#cues');
   const IMPORT_LYRICS_SWITCH = qs('#lyrics');
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
-  const CREATE_RADIO_SWITCH = qs('#radio');
   const MP3_ONLY_SWITCH = qs('#mp3');
   const IMPORT_PODCASTS_SWITCH = qs('#podcast');
   const TOGGLE_SWITCHES = qsa('audiosync-switch');
@@ -210,7 +207,7 @@ async function load_app() {
     [
       PODCAST_LIBRARY,
       MUSIC_LIBRARY
-    ].forEach(el =>  el.nowPlaying(playing));
+    ].forEach(el => el.nowPlaying(playing));
   });
 
   PLAYER.addEventListener('playlist-reset', _ => {
@@ -398,7 +395,7 @@ async function load_app() {
     qs('#podcast_text').textContent = CONFIG_OBJECT.podcast_folder;
   }
 
-  let theme = CONFIG_OBJECT.theme || nameToIndex('#theme', 'light');
+  let theme = CONFIG_OBJECT.theme;
 
   if (isDarkMode()) {
     theme = nameToIndex('#theme', 'dark');
@@ -425,8 +422,6 @@ async function load_app() {
   // RESET_LYRIC_FILES_SWITCH.setState(CONFIG_OBJECT.remove_lrc_wd);
 
   MP3_ONLY_SWITCH.setState(CONFIG_OBJECT.mp3_only);
-
-  CREATE_RADIO_SWITCH.setState(CONFIG_OBJECT.import_custom_radio);
 
   // podcast import ui
   IMPORT_PODCASTS_SWITCH.setState(CONFIG_OBJECT.podcast);

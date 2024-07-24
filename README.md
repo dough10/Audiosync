@@ -1,13 +1,12 @@
 # audiosync V:1.0.0
 A python application with a HTML GUI created for writing an sd card or USB drive of audio files for playback in a Digital audio player or car entertainment system.
 
-- writes files to desired destination (audio files, cover images, playlist files)
 - play audio files
+- writes files to desired destination (audio files, cover images, playlist files)
 - option to convert flac or m4a file to mp3 to ensure playback on devices with limited file type support
 - option to create playlist (.cue for mp3 .m3u8 for flac) for each album transfered also generates a playlist listing any files with a modified date newer then a month old (new_files.m3u8)
 - podcast support: downloading, subscribing and listening
-- option to generate a radio.txt file for the "custom radio" feature on hiby players
-- WIP option .lrc file generation for song lyrics 
+
 
 ## JSDocs Documentation
 

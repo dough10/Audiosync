@@ -14,7 +14,6 @@ from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, files_with_issues, need_attention, reset_log
-from lib.create_radio_txt import create_radio_txt
 from lib.resize_image import resize_image
 from lib.config_controler import Config
 from lib.change_log import ChangeLog
@@ -38,7 +37,6 @@ remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
 import_lyrics = False
-import_custom_radio = False
 sync_file_data = {}
 lib_data = {}
 
@@ -316,7 +314,6 @@ def run_sync(window:dict) -> None:
   global use_sync_file
   global import_cues
   global import_lyrics
-  global import_custom_radio
   global sync_file_data
   global sync_file
   global lib_data
@@ -341,7 +338,6 @@ def run_sync(window:dict) -> None:
   import_cues = config['import_cues']
   import_lyrics = config['import_lyrics']
   remove_lrc_wd = config['remove_lrc_wd']
-  import_custom_radio = config['import_custom_radio']
   podcast = config['podcast']
 
   reset_log()
@@ -464,19 +460,6 @@ def run_sync(window:dict) -> None:
     }, window)
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
-
-  if import_custom_radio:
-    # create radio.txt file
-    try:
-      notify({
-        "text": 'Creating radio.txt.',
-        "summary" : False,
-        "toast" : False
-      }, window)
-      create_radio_txt(config_controler.get_key('radio_data_url'), sorted_dir, config_controler.get_key('radio_genres'))
-      change_log.file_wrote()
-    except:
-      pass
 
   # output file containing trouble files
   notify({
