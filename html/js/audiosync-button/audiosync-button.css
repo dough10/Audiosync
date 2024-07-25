@@ -19,7 +19,7 @@
   justify-content: center;
   align-items: center;
   transition: var(--button-bg-animation, 'background-color 150ms linear');
-  overflow: hidden;
+  overflow: visible;
   transform: translate3d(0, 0, 0);
 }
 .button:after {
