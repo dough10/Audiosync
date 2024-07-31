@@ -14,7 +14,7 @@ import urllib.parse
 
 from lib.select_folder import select_folder
 from process_files import run_sync, sync_file, create_lib_json, set_source
-from Podcast import Podcast, episodeExists, dlWithProgressBar, update_ID3, load_saved_image, id3Image, folder as podcast_dir
+from Podcast import Podcast, headers, episodeExists, dlWithProgressBar, update_ID3, load_saved_image, id3Image, folder as podcast_dir
 from lib.config_controler import Config
 
 config_controler = Config()
@@ -412,7 +412,7 @@ class Api:
     Returns: 
     dict: xml data
     """
-    res = requests.get(url)
+    res = requests.get(url, headers=headers)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
       return

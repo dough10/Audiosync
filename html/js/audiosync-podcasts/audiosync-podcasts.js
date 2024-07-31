@@ -1,5 +1,5 @@
-import {qs, qsa, ce, svgIcon, sleep, formatDownloadSpeed, calcPercentage, isValidURL, fillButton, appendElements, toggleAttribute, createButtonWithIcon} from '../helpers.js';
-import {Toast} from '../Toast/Toast.js';
+import { qs, qsa, ce, svgIcon, sleep, formatDownloadSpeed, calcPercentage, isValidURL, fillButton, appendElements, toggleAttribute, createButtonWithIcon } from '../helpers.js';
+import { Toast } from '../Toast/Toast.js';
 
 /**
  * Ui for managing podcast shows and episodes
@@ -22,7 +22,7 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   constructor() {
     super();
-    this.attachShadow({mode: 'open'});
+    this.attachShadow({ mode: 'open' });
   }
 
   /**
@@ -46,7 +46,7 @@ class AudioSyncPodcasts extends HTMLElement {
     const elementStyles = ce('link');
     elementStyles.setAttribute("rel", "stylesheet");
     elementStyles.setAttribute("href", altCss || "./js/audiosync-podcasts/audiosync-podcasts.css");
-        
+
     this._container = ce('div');
     this._container.classList.add('container');
 
@@ -73,7 +73,7 @@ class AudioSyncPodcasts extends HTMLElement {
    */
   attributeChangedCallback(name, oldVal, newVal) {
     if (name != 'alt-css') return;
-    if (qs('link',this.shadowRoot)) qs('link',this.shadowRoot).href = newVal;
+    if (qs('link', this.shadowRoot)) qs('link', this.shadowRoot).href = newVal;
   }
 
   /**
@@ -239,7 +239,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
       // how long the download has ran
       const TIME_PAST = (new Date().getTime() - startTime) / 1000;
-      
+
       // speed of the download
       const DOWNLOAD_SPEED = formatDownloadSpeed(bytes / TIME_PAST);
 
@@ -258,12 +258,12 @@ class AudioSyncPodcasts extends HTMLElement {
       // dowload stats element in podcast wrapper
       const dlStats = qs('.dl-stats', wrapper);
       dlStats.textContent = `${DOWNLOADED_PRECENTAGE.toFixed(1)}% @ ${DOWNLOAD_SPEED}`;
-      
+
       // enables display of ui elements showing progress of update
       wrapper.removeAttribute('updating');
       toggleAttribute(wrapper, 'downloading');
       wrapper.style.setProperty('--progress', `-${100 - DOWNLOADED_PRECENTAGE}%`);
-      
+
       // download completed
       if (DOWNLOADED_PRECENTAGE == 100) {
         wrapper.style.setProperty('--progress', `-100%`);
@@ -303,7 +303,7 @@ class AudioSyncPodcasts extends HTMLElement {
     refreshIcon.style.height = '40px';
     refreshIcon.style.width = '40px';
     refreshIcon.classList.add('spinning');
-    
+
     // container for animated loading Icon
     const loaderElement = ce('div');
     loaderElement.classList.add('loading');
@@ -314,14 +314,14 @@ class AudioSyncPodcasts extends HTMLElement {
     inputLabel.classList.add('form__label');
     inputLabel.textContent = 'Podcast XML URL';
     inputLabel.setAttribute('for', 'url');
-    
+
     // URL input
     const inputElement = ce('input');
     inputElement.setAttribute('placeholder', 'Podcast XML URL');
     inputElement.type = 'url';
     inputElement.id = 'url';
     inputElement.classList.add('form__field');
-    
+
     // input and label wrapper
     const inputGroup = ce('div');
     inputGroup.classList.add('form__group');
@@ -330,12 +330,12 @@ class AudioSyncPodcasts extends HTMLElement {
       inputElement,
       inputLabel
     ]);
-    
+
     // submit / add button
     const addPodcastButton = ce('audiosync-button');
     addPodcastButton.appendChild(fillButton('add', 'add'));
     toggleAttribute(addPodcastButton, 'disabled');
-    
+
     // animated dialog card
     const addPodcastDialog = ce('audiosync-dialog');
     toggleAttribute(addPodcastDialog, 'cleanup');
@@ -345,7 +345,7 @@ class AudioSyncPodcasts extends HTMLElement {
       addPodcastButton,
       loaderElement
     ]);
-    
+
     // input callback
     inputElement.oninput = e => {
       // enable button for valid url only
@@ -355,14 +355,14 @@ class AudioSyncPodcasts extends HTMLElement {
         toggleAttribute(addPodcastButton, 'disabled');
       }
     };
-    
+
     // add button clicked
     addPodcastButton.onClick(async e => {
       await sleep(200);
       toggleAttribute(addPodcastButton, 'disabled');
       pywebview.api.subscribe(inputElement.value);
     });
-    
+
     // if clipboard data is a url fill in the input element
     const pasteData = await pywebview.api.get_clipboard();
     if (isValidURL(pasteData)) {
@@ -386,7 +386,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * @example
    * button.onClick(e => this._close(e));
    */
-  async _close (e) {
+  async _close(e) {
     const svg = e.target;
     const wrapper = svg.parentNode.parentNode;
     svg.removeEventListener('click', this._close);
@@ -459,7 +459,7 @@ class AudioSyncPodcasts extends HTMLElement {
     const deleteConfirmationText = ce('div');
     deleteConfirmationText.classList.add('delete-notification-text');
     deleteConfirmationText.textContent = `Unsubscribe from '${podcastTitleElement.textContent}'?`;
-    
+
     const willRemoveFiles = ce('div');
     willRemoveFiles.classList.add('will-remove-files');
     willRemoveFiles.textContent = 'Will delete any downloaded files';
@@ -470,7 +470,7 @@ class AudioSyncPodcasts extends HTMLElement {
     const yesButton = ce('audiosync-button');
     const noButton = ce('audiosync-button');
 
-    const dialogsButtons = [yesButton,noButton];
+    const dialogsButtons = [yesButton, noButton];
 
     yesButton.appendChild(fillButton('check', 'yes'));
     toggleAttribute(yesButton, 'noshadow');
@@ -484,7 +484,7 @@ class AudioSyncPodcasts extends HTMLElement {
       await sleep(350);
       deleteConfirmationDialog.remove();
     });
-    
+
     noButton.appendChild(fillButton('close', 'no'));
     noButton.setAttribute('color', 'var(--main-color)');
     toggleAttribute(noButton, 'noshadow');
@@ -501,7 +501,7 @@ class AudioSyncPodcasts extends HTMLElement {
       yesButton,
       noButton
     ]);
-    
+
     qs('body').appendChild(deleteConfirmationDialog);
     await sleep(20);
     deleteConfirmationDialog.open();
@@ -509,6 +509,7 @@ class AudioSyncPodcasts extends HTMLElement {
 
   /**
    * clears and repopulates episode list
+   * 
    * @private
    * @function
    * 
@@ -520,36 +521,32 @@ class AudioSyncPodcasts extends HTMLElement {
    * @example
    * this._updateEpisodeList('https://example.com/rssfeed.xml', <ui podcast list>);
    */
-  _updateEpisodeList(xmlURL, scrollEl) {
+  async _updateEpisodeList(xmlURL, scrollEl) {
     // cache items marked as 'inlist'
     const inPlaylist = qsa('.episode[inlist]', scrollEl);
 
-    // get podcast data
-    pywebview.api.xmlProxy(xmlURL).then(async xmlString => {
-
+    try {
+      // get podcast data
+      const xmlString = await pywebview.api.xmlProxy(xmlURL);
+      
       // update title
-      try {
-        qs('.podcast-title', scrollEl.parentElement).textContent = xmlString.rss.channel.title;
-      
-        // clear parent element
-        scrollEl.innerHTML = '';
+      qs('.podcast-title', scrollEl.parentElement).textContent = xmlString.rss.channel.title;
 
-        // push element with callback to load more
-        this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, scrollEl, xmlURL);
-        await sleep(200);
+      // clear parent element
+      scrollEl.innerHTML = '';
 
-        // remark 'inlist' elements
-        for (const ep of inPlaylist) {
-          const wrapper = qs(`[data-filename="${ep.dataset.filename}"]`, scrollEl);
-          toggleAttribute(wrapper, 'inlist');
-        }
-      } catch(e) {
-        qs('.podcast-title', scrollEl.parentElement).textContent = "Failed getting data..."
+      // push element with callback to load more
+      this._lazyLoadOnScroll(xmlString.rss.channel.title, xmlString.rss.channel.item, scrollEl, xmlURL);
+      await sleep(200);
+
+      // remark 'inlist' elements
+      for (const ep of inPlaylist) {
+        const wrapper = qs(`[data-filename="${ep.dataset.filename}"]`, scrollEl);
+        toggleAttribute(wrapper, 'inlist');
       }
-      
-    }).catch(error => {
-      console.error('Error fetching XML:', error);
-    }); 
+    } catch (e) {
+      qs('.podcast-title', scrollEl.parentElement).textContent = "Failed getting data..."
+    }
   }
 
   /**
@@ -566,7 +563,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * button.onClick(_ => this._addEpisodeToPlaylist(<podcast episode>, {}));
    */
   _addEpisodeToPlaylist(wrapper, play_object) {
-    toggleAttribute(wrapper,'inlist');
+    toggleAttribute(wrapper, 'inlist');
     qs('audiosync-player').addToPlaylist(play_object);
   }
 
@@ -614,20 +611,20 @@ class AudioSyncPodcasts extends HTMLElement {
 
     // download file
     await pywebview.api.downloadEpisode(
-      title, 
-      episode, 
-      episode.enclosure['@url'], 
-      fileStats.path, 
-      fileStats.filename, 
+      title,
+      episode,
+      episode.enclosure['@url'],
+      fileStats.path,
+      fileStats.filename,
       xmlURL
     );
-    
+
     parent.removeAttribute('downloading');
     dlButtons.forEach(el => el.removeAttribute('disabled'));
 
     // reenable buttons
     unsub_button.removeAttribute('disabled');
-    
+
     // get refresh xml data 
     this._updateEpisodeList(xmlURL, episodeList);
   }
@@ -652,7 +649,7 @@ class AudioSyncPodcasts extends HTMLElement {
     qsa('audiosync-small-button', ep_wrapper).forEach(button => toggleAttribute(button, 'disabled'));
     toggleAttribute(ep_wrapper, 'updating');
     await pywebview.api.deleteEpisode(fileStats);
-    this._updateEpisodeList(xmlURL, scrollEl);  
+    this._updateEpisodeList(xmlURL, scrollEl);
   }
 
   /**
@@ -691,8 +688,10 @@ class AudioSyncPodcasts extends HTMLElement {
    * @private
    * @function
    * 
+   * @param {String} title
    * @param {Object} episode 
-   * @param {HTMLElement} EPISODE_LIST 
+   * @param {HTMLElement} EPISODE_LIST
+   * @param {String} xmlURL
    * 
    * @returns {Promise<Void>}
    * 
@@ -706,25 +705,18 @@ class AudioSyncPodcasts extends HTMLElement {
     const prog_bar = ce('div');
     prog_bar.classList.add('ep-prog-bar');
 
-    const play_button = createButtonWithIcon('audiosync-small-button', 'play', ['ep-play']);
-
-    const add_to_playlist_button = createButtonWithIcon('audiosync-small-button', 'add', [
-      'ep-add',
-      'hidden'
-    ]);
-    
     const updatingIcon = svgIcon('refresh');
     updatingIcon.classList.add('updating-icon');
 
     const ep_title = ce('span');
     ep_title.classList.add('ep-name');
     ep_title.textContent = episode.title;
-    
+
     const ep_wrapper = ce('li');
     ep_wrapper.classList.add('episode');
     ep_wrapper.dataset.episode = episode.title;
     ep_wrapper.dataset.title = title;
-    
+
     if ('itunes:episode' in episode) {
       const ep_num = ce('span');
       ep_num.textContent = episode['itunes:episode'];
@@ -732,20 +724,12 @@ class AudioSyncPodcasts extends HTMLElement {
       ep_wrapper.appendChild(ep_num);
     }
 
-    appendElements(ep_wrapper, [
-      updatingIcon,
-      prog_bar,
-      ep_title,
-      play_button,
-      add_to_playlist_button
-    ]);
-
     episodeList.appendChild(ep_wrapper);
 
     const fileStats = await pywebview.api.episodeExists(title, episode);
 
     const path = fileStats.path.replace(/\\/g, '/');
-    
+
     const play_Object = {
       tracks: [
         {
@@ -762,32 +746,62 @@ class AudioSyncPodcasts extends HTMLElement {
 
     ep_wrapper.dataset.filename = fileStats.filename;
 
+    const buttonData = [
+      {
+        type: 'audiosync-small-button',
+        icon: 'play',
+        classes: [
+          'ep-play'
+        ],
+        onClick: _ => this._playEpisode(ep_wrapper, fileStats, play_Object, episode)
+      },
+      {
+        type: 'audiosync-small-button',
+        icon: 'add',
+        classes: [
+          'ep-add',
+          'hidden'
+        ],
+        onClick: _ => this._addEpisodeToPlaylist(ep_wrapper, play_Object)
+      }
+    ];
+
+    appendElements(ep_wrapper, [
+      updatingIcon,
+      prog_bar,
+      ep_title,
+      ...buttonData.map(createButtonWithIcon)
+    ]);
+
     if (!fileStats.exists) {
       // download button if file doesn't exist
-      const download_button = createButtonWithIcon('audiosync-small-button', 'download', ['dl']);
-      download_button.onClick(_ => this._downloadEpisode(
-        title, 
-        episode, 
-        fileStats, 
-        xmlURL, 
-        episodeList, 
-        ep_wrapper, 
-        parent, 
-        unsub_button
-      ));
+      const download_button = createButtonWithIcon({
+        type: 'audiosync-small-button',
+        icon: 'download',
+        classes: ['dl'],
+        onClick: _ => this._downloadEpisode(
+          title,
+          episode,
+          fileStats,
+          xmlURL,
+          episodeList,
+          ep_wrapper,
+          parent,
+          unsub_button
+        )
+      });
       // if downloading an episode toggle disabled attribute
       if (parent.hasAttribute('updating')) toggleAttribute(download_button, 'disabled');
       if (parent.hasAttribute('downloading')) toggleAttribute(download_button, 'disabled');
       ep_wrapper.appendChild(download_button);
-    } else {
-      const DELETE_EPISODE_BUTTON = createButtonWithIcon('audiosync-small-button', 'delete', ['ep-del']);
-      DELETE_EPISODE_BUTTON.onClick(_ => this._deleteEpisode(ep_wrapper, fileStats, xmlURL, episodeList));
-      ep_wrapper.appendChild(DELETE_EPISODE_BUTTON);
+      return;
     }
-
-    add_to_playlist_button.onClick(_ => this._addEpisodeToPlaylist(ep_wrapper, play_Object));
-
-    play_button.onClick(_ => this._playEpisode(ep_wrapper, fileStats, play_Object, episode));
+    ep_wrapper.appendChild(createButtonWithIcon({
+      type: 'audiosync-small-button',
+      icon: 'delete',
+      classes: ['ep-del'],
+      onClick: _ => this._deleteEpisode(ep_wrapper, fileStats, xmlURL, episodeList)
+    }));
   }
 
   /**
@@ -843,6 +857,7 @@ class AudioSyncPodcasts extends HTMLElement {
    * podcastList.forEach(url => this._fetchAndParseXML(url));
    */
   async _fetchAndParseXML(url) {
+
     const dlProgess = ce('div');
     dlProgess.classList.add('dl-progress');
 
@@ -859,19 +874,25 @@ class AudioSyncPodcasts extends HTMLElement {
     podcastTitleElement.classList.add('podcast-title');
     podcastTitleElement.textContent = 'Loading';
 
-    const unsubPodcastButton = createButtonWithIcon('audiosync-small-button', 'delete', ['unsub']);
-    unsubPodcastButton.onClick(_ => this._createUnsubDialog(podcastTitleElement, url));
-
-    const closeButton = createButtonWithIcon('audiosync-small-button', 'close', []);
-    closeButton.id = 'close';
+    const buttonData = [
+      {
+        type: 'audiosync-small-button',
+        icon: 'delete',
+        classes: ['unsub'],
+        onClick: _ => this._createUnsubDialog(podcastTitleElement, url)
+      },
+      {
+        type: 'audiosync-small-button',
+        icon: 'close',
+        classes: [],
+        id: 'close'
+      }
+    ];
 
     const buttonContainer = ce('div');
     buttonContainer.classList.add('buttons');
 
-    appendElements(buttonContainer, [
-      unsubPodcastButton,
-      closeButton
-    ]);
+    appendElements(buttonContainer, buttonData.map(createButtonWithIcon));
 
     const episodeList = ce('ui');
     episodeList.classList.add('podcast-episodes');

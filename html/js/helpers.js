@@ -414,13 +414,6 @@ function findGoldieLocksColor(palette, skipIndex, bLimit = 0.7, dLimit = 0.3) {
 }
 
 
-
-
-
-
-
-
-
 /**
  * convert seconds to mm:ss format
  * 
@@ -714,15 +707,20 @@ function toggleAttribute(element, attribute) {
  * creates a button element with an svg icon 
  * @function 
  * 
- * @param {String} buttonType 
- * @param {String} iconType 
- * @param {String} classes 
+ * @param {Object} buttonData
+ * @param {String} buttonData.type 
+ * @param {String} buttonData.icon
+ * @param {String} buttonData.classes 
+ * @param {String} buttonData.id
+ * @param {Function} buttonData.onClick 
  * 
  * @returns {HTMLElement}
  */
-function createButtonWithIcon(buttonType, iconType, classes) {
-  const button = ce(buttonType);
-  button.appendChild(svgIcon(iconType));
+function createButtonWithIcon({type, icon, classes, id, onClick}) {
+  const button = ce(type);
+  if (id) button.id = id;
+  if (onClick) button.onClick(onClick);
+  button.appendChild(svgIcon(icon));
   classes.forEach(cssClass => button.classList.add(cssClass));
   return button;
 }

@@ -33,6 +33,10 @@ script_folder = os.path.dirname(file_path)
 
 folder = config_controler.get_key('podcast_folder')
 
+headers = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+}
+
 # check internet connections status
 def is_connected():
   return is_live_url("https://google.com")
@@ -48,7 +52,7 @@ def validate_url(url):
 # make sure URL returns 200 status
 def is_live_url(url):
   try:
-    response = requests.get(url, timeout=5)
+    response = requests.get(url, timeout=5, headers=headers )
     return response.status_code == 200
   except requests.exceptions.RequestException:
     return False
@@ -219,7 +223,7 @@ def dlWithProgressBar(url, path, progress_callback=None):
   chunk_size = 4096
   try:
     session = requests.Session()
-    media = session.get(url, stream=True)
+    media = session.get(url, stream=True, headers=headers)
     media.raise_for_status()  # Raise an exception for any HTTP errors (status code >= 400)
     total_bytes = int(media.headers.get('content-length', 0))
     bytes_downloaded = 0
@@ -448,7 +452,7 @@ class Podcast:
       
     print(time_stamp())
     print(f'Fetching XML from {self.__xmlURL}')
-    res = requests.get(self.__xmlURL)
+    res = requests.get(self.__xmlURL, headers=headers)
     if res.status_code != 200:
       print(f'Error getting XML data. Error code {res.status_code}')
       sys.exit()
@@ -516,7 +520,7 @@ class Podcast:
     self.__coverJPG = os.path.join(self.__location, 'cover.jpg')
     if not os.path.exists(self.__coverJPG):
       print(f'getting cover art {self.__coverJPG}')
-      res = requests.get(self.__imgURL)
+      res = requests.get(self.__imgURL, headers=headers)
       if res.status_code == 200:
         img = Image.open(BytesIO(res.content))
       else:
@@ -565,9 +569,6 @@ class Podcast:
     print('Starting download. This may take a minuite.')
     self.downloadNewest(window)
 
-
-
-
   def unsubscribe(self, window):
     def go():
       if (self.__xmlURL in config_controler.get_key('subscriptions')):
@@ -591,10 +592,6 @@ class Podcast:
           print(f'Deleteing directory {self.__location}')
         except:
           pass
-
-
-
-
 
   def downloadNewest(self, window):
     self.__mkdir()

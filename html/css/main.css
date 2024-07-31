@@ -1,30 +1,32 @@
-
 html {
   scroll-behavior: smooth;
 }
+
 body {
   position: absolute;
   top: 0;
-  bottom:0;
-  left:0;
-  right:0;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background: var(--background-color);
   font-family: var(--font-family);
   font-size: 13px;
-  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
   user-select: none;
   overflow-x: hidden;
   overflow-y: hidden;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding:0;
-  margin:0;
+  padding: 0;
+  margin: 0;
 }
+
 svg {
-  width:24px;
-  height:24px;
+  width: 24px;
+  height: 24px;
 }
+
 .toast {
   background: #323232;
   padding: 16px;
@@ -43,12 +45,33 @@ svg {
   overflow: visible;
   transform: translate3d(0, 0, 0);
 }
-.toast > * {
+
+.toast:after {
+  display: inline-block;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  opacity: 0;
+  transition: opacity 150ms cubic-bezier(.33, .17, .85, 1.1);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12), 0 5px 5px -3px rgba(0, 0, 0, .4);
+  content: ' ';
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.toast:hover:after {
+  opacity: 1;
+}
+
+.toast>* {
   pointer-events: none;
 }
+
 .toast .yellow-text {
   color: yellow;
 }
+
 .card {
   min-width: 280px;
   color: var(--text-color);
@@ -57,27 +80,31 @@ svg {
   position: relative;
   margin: 0 24px 100px;
   border-radius: 20px;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
   text-align: center;
   margin-bottom: 100px;
   overflow: hidden;
   transition: auto 300ms ease;
 }
+
 .card[view=grid][page='0'] {
   max-width: initial;
   background: var(--background-color);
   box-shadow: none;
 }
+
 .card[view=grid][page='1'] {
   margin: auto auto 100px;
   max-width: 900px;
   background: var(--main-color);
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
 }
+
 .card[view=list] {
   margin: auto auto 100px;
   max-width: 900px;
 }
+
 .alert {
   background: #323232;
   padding: 16px;
@@ -90,19 +117,22 @@ svg {
   top: 8px;
   color: #fff;
   z-index: 11;
-  box-shadow: 0 8px 10px 1px rgba(0,0,0,.14), 0 3px 14px 2px rgba(0,0,0,.12), 0 5px 5px -3px rgba(0,0,0,.4);
+  box-shadow: 0 8px 10px 1px rgba(0, 0, 0, .14), 0 3px 14px 2px rgba(0, 0, 0, .12), 0 5px 5px -3px rgba(0, 0, 0, .4);
   min-width: 200px;
   cursor: pointer;
   margin: 0 2em;
   overflow: hidden;
 }
-.alert > * {
+
+.alert>* {
   pointer-events: none;
 }
+
 .alert.hidden {
-  opacity:0;
+  opacity: 0;
   transform: translateY(-120%);
 }
+
 .alert .yellow-text {
   margin-left: 30px;
   color: yellow;
@@ -111,24 +141,27 @@ svg {
   align-items: center;
   display: flex;
 }
+
 .loading {
   display: none;
   position: absolute;
-  top:0;
-  bottom:0;
-  left:0;
-  right:0;
-  opacity:0;
-  background-color: rgba(255,255,255,0.6);
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  opacity: 0;
+  background-color: rgba(255, 255, 255, 0.6);
   justify-content: center;
   align-items: center;
 }
+
 .form__group {
   position: relative;
   padding: 15px 0 0;
   margin-top: 10px;
   margin-bottom: 24px;
 }
+
 .form__field {
   font-family: inherit;
   width: 100%;
@@ -141,16 +174,19 @@ svg {
   background: transparent;
   transition: border-color 0.2s;
 }
+
 .form__field::placeholder {
   color: transparent;
 }
-.form__field:placeholder-shown ~ .form__label {
+
+.form__field:placeholder-shown~.form__label {
   font-size: 16px;
   cursor: text;
   top: 20px;
 }
+
 label,
-.form__field:focus ~ .form__label {
+.form__field:focus~.form__label {
   position: absolute;
   top: 0;
   display: block;
@@ -158,41 +194,50 @@ label,
   font-size: 12px;
   color: var(--text-color);
 }
-.form__field:focus ~ .form__label {
+
+.form__field:focus~.form__label {
   color: var(--pop-color);
 }
+
 .form__field:focus {
   padding-bottom: 6px;
   border-bottom: 2px solid var(--pop-color);
 }
+
 .delete-notification-text {
   font-size: 16px;
   max-height: 18px;
   margin-top: 24px;
   margin-bottom: 24px;
 }
+
 .will-remove-files {
   font-size: 12px;
   margin-bottom: 24px;
 }
-audiosync-header > div {
+
+audiosync-header>div {
   display: flex;
 }
+
 audiosync-dialog {
   margin: auto 16px;
 }
-audiosync-dialog > .img-wrapper {
+
+audiosync-dialog>.img-wrapper {
   overflow: hidden;
   height: 450px;
   width: 450px;
   border-radius: 10px;
-  box-shadow: 0 2px 2px 0 rgba(0,0,0,0.14),0 1px 5px 0 rgba(0,0,0,0.12),0 3px 1px -2px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 0 1px 5px 0 rgba(0, 0, 0, 0.12), 0 3px 1px -2px rgba(0, 0, 0, 0.2);
 }
-audiosync-dialog > .img-wrapper > img {
+
+audiosync-dialog>.img-wrapper>img {
   height: 100%;
   width: 100%;
 }
-audiosync-dialog > .img-wrapper > .img-placeholder {
+
+audiosync-dialog>.img-wrapper>.img-placeholder {
   height: 100%;
   width: 100%;
   background-color: var(--main-color);
@@ -200,22 +245,26 @@ audiosync-dialog > .img-wrapper > .img-placeholder {
   justify-content: center;
   align-items: center;
 }
-audiosync-dialog > .tracklist {
+
+audiosync-dialog>.tracklist {
   max-height: 245px;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
 }
-audiosync-dialog > .tracklist::-webkit-scrollbar {
+
+audiosync-dialog>.tracklist::-webkit-scrollbar {
   width: 0;
 }
-audiosync-dialog > .tracklist > .album-head {
+
+audiosync-dialog>.tracklist>.album-head {
   padding: 8px;
   display: flex;
   flex-direction: column;
   border-bottom: var(--seperator-line);
 }
-audiosync-dialog > .tracklist > .album-head > div {
+
+audiosync-dialog>.tracklist>.album-head>div {
   max-width: 400px;
   display: flex;
   align-items: start;
@@ -225,13 +274,16 @@ audiosync-dialog > .tracklist > .album-head > div {
   text-overflow: ellipsis;
   margin-bottom: 4px;
 }
-audiosync-dialog > .tracklist > .album-head > div:first-child {
+
+audiosync-dialog>.tracklist>.album-head>div:first-child {
   font-size: 24px;
 }
-audiosync-dialog > .tracklist > .track:hover {
+
+audiosync-dialog>.tracklist>.track:hover {
   background: var(--hover-color);
 }
-audiosync-dialog > .tracklist > .track {
+
+audiosync-dialog>.tracklist>.track {
   display: flex;
   flex-direction: row;
   border-bottom: var(--seperator-line);
@@ -239,15 +291,18 @@ audiosync-dialog > .tracklist > .track {
   transition: var(--button-bg-animation);
   cursor: pointer;
 }
-audiosync-dialog > .tracklist > .track[playing] {
-  background-color: rgba(var(--pop-rgb),0.4)
+
+audiosync-dialog>.tracklist>.track[playing] {
+  background-color: rgba(var(--pop-rgb), 0.4)
 }
-audiosync-dialog > .tracklist > .track > div:first-child {
+
+audiosync-dialog>.tracklist>.track>div:first-child {
   margin-left: 8px;
   padding: 8px;
   margin-right: 16px;
 }
-audiosync-dialog > .tracklist > .track > div:nth-child(2) {
+
+audiosync-dialog>.tracklist>.track>div:nth-child(2) {
   padding: 8px;
   width: 70%;
   margin: auto;
@@ -256,25 +311,29 @@ audiosync-dialog > .tracklist > .track > div:nth-child(2) {
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-audiosync-dialog > .fav {
+
+audiosync-dialog>.fav {
   position: absolute;
-  top:10px;
-  right:10px;
-}
-audiosync-dialog > .add {
-  position: absolute;
-  top:10px;
-  left:10px;
+  top: 10px;
+  right: 10px;
 }
 
-audiosync-button > div {
+audiosync-dialog>.add {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}
+
+audiosync-button>div {
   display: flex;
   flex-direction: row;
 }
-audiosync-button > div > :first-child {
+
+audiosync-button>div> :first-child {
   margin-right: 16px;
 }
-audiosync-button > div > :nth-child(2) {
+
+audiosync-button>div> :nth-child(2) {
   display: flex;
   align-items: center;
   margin-right: 16px;
@@ -286,6 +345,7 @@ select {
   padding: 8px;
   text-transform: uppercase;
 }
+
 option {
   background-color: var(--main-color);
   color: var(--text-color);
@@ -316,7 +376,7 @@ option {
 }
 
 .select .select-text {
-  -webkit-appearance:none;
+  -webkit-appearance: none;
   appearance: nonee
 }
 
@@ -333,6 +393,7 @@ option {
   border-top: 6px solid var(--text-color);
   pointer-events: none;
 }
+
 .select-label {
   text-transform: uppercase;
   color: var(--pop-color);
@@ -344,18 +405,23 @@ option {
   top: 10px;
   transition: 0.2s ease all;
 }
-.select-text:focus ~ .select-label, .select-text:valid ~ .select-label {
+
+.select-text:focus~.select-label,
+.select-text:valid~.select-label {
   color: var(--pop-color);
   top: -20px;
   transition: 0.2s ease all;
   font-size: 14px;
 }
+
 .select-bar {
   position: relative;
   display: block;
   width: 350px;
 }
-.select-bar:before, .select-bar:after {
+
+.select-bar:before,
+.select-bar:after {
   content: '';
   height: 2px;
   width: 0;
@@ -373,9 +439,11 @@ option {
   right: 50%;
 }
 
-.select-text:focus ~ .select-bar:before, .select-text:focus ~ .select-bar:after {
+.select-text:focus~.select-bar:before,
+.select-text:focus~.select-bar:after {
   width: 50%;
 }
+
 .select-highlight {
   position: absolute;
   height: 60%;
@@ -385,46 +453,56 @@ option {
   pointer-events: none;
   opacity: 0.5;
 }
+
 @keyframes spin {
   from {
     transform: "rotate(0deg)";
   }
+
   to {
     transform: "rotate(360deg)";
   }
 }
+
 .spinning {
   animation: "spin 1.5s linear infinite";
 }
+
 @media screen and (max-width: 700px) {
   .card {
-    margin:auto;
+    margin: auto;
     margin-bottom: 100px;
   }
 }
+
 @media screen and (min-width: 1200px) {
   #menu-button {
     display: none;
   }
 }
+
 @media screen and (min-height: 815px) {
-  audiosync-dialog > .img-wrapper {
+  audiosync-dialog>.img-wrapper {
     height: 525px;
     width: 525px;
   }
-  audiosync-dialog > .tracklist > .track {
+
+  audiosync-dialog>.tracklist>.track {
     max-width: 525px;
   }
 }
+
 @media screen and (min-height: 915px) {
-  audiosync-dialog > .img-wrapper {
+  audiosync-dialog>.img-wrapper {
     height: 600px;
     width: 600px;
   }
-  audiosync-dialog > .tracklist > .track {
+
+  audiosync-dialog>.tracklist>.track {
     max-width: 600px;
   }
 }
+
 .selector_text {
   width: 450px;
   margin: auto;
@@ -436,11 +514,12 @@ option {
   border-radius: 5px;
   padding-left: 12px;
   margin: 20px auto;
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  box-shadow: inset 0px 5px 6px -3px rgba(0,0,0,0.4);
+  box-shadow: inset 0px 5px 6px -3px rgba(0, 0, 0, 0.4);
 }
-.selector_text > span {
+
+.selector_text>span {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
