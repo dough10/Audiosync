@@ -3,8 +3,6 @@ import time
 import shutil
 import string
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
-
 
 import music_tag as MP3
 from mutagen.flac import FLAC
@@ -82,14 +80,15 @@ def process_image(root, filename) -> None:
   Returns:
   None
   """
+  if not filename.endswith('.jpg'): return
   # rename image first
-  jpg = os.path.join(root, rename_file(root, filename))
-  # resized image filename will match new filename
-  resize_image(jpg, 1000, jpg)
+  jpg = rename_file(root, filename)
   # create 150px thumb.webp
   thumbnail_name = jpg.replace('cover.jpg', 'thumb.webp')
   if not os.path.exists(thumbnail_name):
     resize_image(jpg, 150, thumbnail_name, ext='WEBP')
+  # resized image filename will match new filename
+  resize_image(jpg, 1000, jpg)
 
 
 
@@ -251,9 +250,9 @@ class File_manager:
     Returns:
     None
     """
-    with ThreadPoolExecutor(max_workers=2) as executor:
-      for root, _, files in os.walk(directory_path):
-        executor.map(lambda file: process_image(root, file), files)
+    for root, _, files in os.walk(directory_path):
+      for file in files:
+        process_image(root, file)
 
 
 
@@ -343,3 +342,10 @@ class File_manager:
     for _, dirs, files in os.walk(folder):
       change_log.folder_contained(len(files))
       change_log.folder_deleted(len(dirs))
+
+
+
+if __name__ == "__main__":
+  path = 'C:\\Users\\SyncthingServiceAcct\\Music\\Other'
+  fm = File_manager()
+  fm.rename_images(path)

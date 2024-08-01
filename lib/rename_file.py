@@ -15,6 +15,8 @@ def rename_file(root:str, filename:str) -> str:
     if not os.path.exists(new_path):
       os.rename(old_path, new_path)
       change_log.image_renamed()
-      return new_path
+      return os.path.join(root, new_filename)
     else:
-      return old_path
+      return os.path.join(root, filename)
+  else:
+    return os.path.join(root, filename)
