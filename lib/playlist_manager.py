@@ -109,7 +109,7 @@ class Playlist_manager:
         relative_path = os.path.join('..', file['path'].replace(dir, ''))
         playlist.write(f'#EXTINF: {int(file['length'])}, {str(file['artist'])} - {str(file['title'])}\n{relative_path}\n')
 
-    log(f'M3U file generated at {playlist_path}')
+    log(f'Playlist: {playlist_path}')
     change_log.playlist_created()
 
 

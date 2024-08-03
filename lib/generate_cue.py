@@ -112,7 +112,7 @@ def generate_cue(directory:str):
       cue_file.write(f'  TRACK {str(track_num).zfill(2)} AUDIO\n')
       cue_file.write('    INDEX 01 00:00:00\n')
 
-  log(f"CUE file generated at {cue_file_path}")
+  log(f"Playlist: {cue_file_path}")
   change_log.playlist_created()
 
 if __name__ == "__main__":

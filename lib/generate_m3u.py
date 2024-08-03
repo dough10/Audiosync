@@ -87,7 +87,7 @@ def generate_m3u(directory:str):
   
   
   # log change
-  log(f"M3U file generated at {m3u_file_path}")
+  log(f"Playlist: {m3u_file_path}")
   change_log.playlist_created()
     
 

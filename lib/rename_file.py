@@ -2,8 +2,10 @@ import os
 
 try:
   from lib.change_log import ChangeLog
+  from lib.log import log
 except ModuleNotFoundError:
   from change_log import ChangeLog
+  from log import log
   
 change_log = ChangeLog()
 
@@ -14,6 +16,7 @@ def rename_file(root:str, filename:str) -> str:
     new_path = os.path.join(root, new_filename)
     if not os.path.exists(new_path):
       os.rename(old_path, new_path)
+      log(f'Rename: {filename} -> {new_filename}')
       change_log.image_renamed()
       return os.path.join(root, new_filename)
     else:

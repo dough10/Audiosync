@@ -156,7 +156,7 @@ class File_manager:
     retries = 0
     while retries < max_retries:
       try:
-        log(f'{source} -> {path}')
+        log(f'Copy: {source} -> {path}')
         shutil.copy2(source, destination)
         change_log.file_wrote()
         break  # Copy successful, exit the loop
@@ -323,7 +323,7 @@ class File_manager:
     None
     """
     shutil.rmtree(folder)
-    log(f'{folder} -> Trash')
+    log(f'Remove: {folder} -> Trash')
     change_log.folder_deleted()
 
 
