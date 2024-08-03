@@ -111,7 +111,7 @@ Called by audiosync-podcasts [connectedCallback, _fetchAndParseXML, ._createEpis
 <dd><p>sets an attribute true
 Called by {audiosync-podcast}</p>
 </dd>
-<dt><a href="#createButtonWithIcon">createButtonWithIcon(buttonType, iconType, classes)</a> ⇒ <code>HTMLElement</code></dt>
+<dt><a href="#createButtonWithIcon">createButtonWithIcon(buttonData)</a> ⇒ <code>HTMLElement</code></dt>
 <dd><p>creates a button element with an svg icon</p>
 </dd>
 <dt><a href="#svgIcon">svgIcon(name, color)</a> ⇒ <code>HTMLElement</code></dt>
@@ -544,16 +544,19 @@ sets an attribute trueCalled by {audiosync-podcast}
 
 <a name="createButtonWithIcon"></a>
 
-## createButtonWithIcon(buttonType, iconType, classes) ⇒ <code>HTMLElement</code>
+## createButtonWithIcon(buttonData) ⇒ <code>HTMLElement</code>
 creates a button element with an svg icon
 
 **Kind**: global function  
 
 | Param | Type |
 | --- | --- |
-| buttonType | <code>String</code> | 
-| iconType | <code>String</code> | 
-| classes | <code>String</code> | 
+| buttonData | <code>Object</code> | 
+| buttonData.type | <code>String</code> | 
+| buttonData.icon | <code>String</code> | 
+| buttonData.classes | <code>String</code> | 
+| buttonData.id | <code>String</code> | 
+| buttonData.onClick | <code>function</code> | 
 
 <a name="svgIcon"></a>
 
