@@ -155,7 +155,7 @@ def updatePlayer(player, window, bypass=False, logger=print):
     # remove "old" files from player
     for file in files_to_delete:
       try:
-        logger(f'{file} -> Trash')
+        logger(f'Remove: {file} -> Trash')
         os.remove(file)
         change_log.file_deleted()
       except Exception as e:
