@@ -9,7 +9,7 @@ from mutagen.flac import FLAC
 
 try:
   from lib.lyrics import get_lyrics
-  from lib.log import log
+  from lib.log import log, need_attention
   from lib.resize_image import resize_image
   from lib.rename_file import rename_file
   from lib.change_log import ChangeLog
@@ -17,7 +17,7 @@ try:
 
 except ModuleNotFoundError:
   from lyrics import get_lyrics
-  from log import log
+  from log import log, need_attention
   from resize_image import resize_image
   from rename_file import rename_file
   from change_log import ChangeLog
@@ -200,8 +200,11 @@ class File_manager:
     
     if ext == '.flac':
       id3 = FLAC(src)
-    else:
+    elif ext == '.m4a':
       id3 = MP3.load_file(src)
+    else:
+      need_attention.append(f'file: {src}\nissue: file type {ext} not supported')
+      
     
     startupinfo = None
     if os.name == "nt":
@@ -209,33 +212,42 @@ class File_manager:
       startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
       startupinfo.wShowWindow = subprocess.SW_HIDE
 
-    process = subprocess.Popen([
-      "ffmpeg",
-      "-i", src,
-      "-ab", get_bitrate(src),
-      "-f", "mp3",
-      mp3_path
-    ], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    _, stderr = process.communicate()
-    if process.returncode != 0:
-      print("Error converting file:", stderr.decode())
+    try:
+      process = subprocess.Popen([
+        "ffmpeg",
+        "-i", src,
+        "-ab", get_bitrate(src),
+        "-f", "mp3",
+        mp3_path
+      ], startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      _, stderr = process.communicate()
+      if process.returncode != 0:
+        print("Error converting file:", stderr.decode())
+        return
+    except Exception as e:
+      print(f"Error converting file: {e}")
       return
   
-    new_mp3 = MP3.load_file(mp3_path)
-    new_mp3['albumartist'] = id3['albumartist']
-    new_mp3['album'] = id3['album']
     try:
-      new_mp3['artist'] = id3['artist']
-    except KeyError:
-      new_mp3['artist'] = id3['albumartist']
-    new_mp3['title'] = id3['title']
-    new_mp3['tracknumber'] = id3['tracknumber']
-    try:
-      new_mp3['discnumber'] = id3['discnumber']
-    except KeyError:
-      new_mp3['discnumber'] = 1
-    new_mp3.save()
-    change_log.file_wrote()
+      new_mp3 = MP3.load_file(mp3_path)
+      new_mp3['albumartist'] = id3['albumartist']
+      new_mp3['album'] = id3['album']
+      try:
+        new_mp3['artist'] = id3['artist']
+      except KeyError:
+        new_mp3['artist'] = id3['albumartist']
+      new_mp3['title'] = id3['title']
+      new_mp3['tracknumber'] = id3['tracknumber']
+      try:
+        new_mp3['discnumber'] = id3['discnumber']
+      except KeyError:
+        new_mp3['discnumber'] = 1
+      new_mp3.save()
+      change_log.file_wrote()
+    except:
+      os.remove(mp3_path)
+      need_attention.append(f'file: {mp3_path}\nfailed adding "albumartist": {e}\n')
+      return
 
 
 
