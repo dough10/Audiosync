@@ -18,3 +18,4 @@
 /old_config.json
 /old_favorites.json
 /.hintrc
+playlists/*.json
