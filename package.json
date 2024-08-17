@@ -1,8 +1,8 @@
 {
   "scripts": {
     "install-requirments": "npm install && pip3 install -r requirments.txt",
-    "build-win": "pyinstaller --add-data \"config.json:.\" --add-data \"html:./html\" --add-data \"themes:./themes\" --icon=icon/icon_128.ico --hidden-import=clr --name \"Audiosync\" --onedir --clean --noconfirm --windowed index.pyw",
-    "build-OSX": "pyinstaller --add-data \"config.json:.\" --add-data \"html:./html\" --add-data \"themes:./themes\" --add-data \"t:./lib\" --icon=icon/icon_128.ico --hidden-import=clr --name \"Audiosync\" --onedir --clean --noconfirm --windowed index.pyw",
+    "build-win": "pyinstaller --add-data \"config.json:.\" --add-data \"html:./html\" --add-data \"themes:./themes\" --add-data \"playlists:./playlists\" --icon=icon/icon_128.ico --hidden-import=clr --name \"Audiosync\" --onedir --clean --noconfirm --windowed index.pyw",
+    "build-OSX": "pyinstaller --add-data \"config.json:.\" --add-data \"html:./html\" --add-data \"themes:./themes\" --add-data \"playlists:./playlists\" --add-data \"t:./lib\" --icon=icon/icon_128.ico --hidden-import=clr --name \"Audiosync\" --onedir --clean --noconfirm --windowed index.pyw",
     "test-JS": "web-test-runner \"html/tests/**/*.test.js\" --node-resolve",
     "make-docs": "node make-docs"
   },
