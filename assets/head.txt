@@ -20,5 +20,5 @@ if you want multi disc albums in 1 folder just set their disc number in metadata
 - Audiosync currently only sorts music libraby by artist alphabeticlly then album alphabeticlly then tracks by disc then track numbers
 - Audiosync creates a "thumb.webp" in the music source directory for each album used to the album grid view
 I could have just used the the "cover.jpg" and maybe been fine but i thought the cost of 1kb per album worth the faster load
-- Audiosync uses art named "cover.jgp" it will rename folder.jpg, front.jpg and Cover.jpg to "cover.jpg"
+- Audiosync uses art named "cover.jpg" it will rename folder.jpg, front.jpg and Cover.jpg to "cover.jpg"
 - Audiosync will limits art size to 1000x1000 and will resize any cover.jpg larger then that size.
