@@ -14,11 +14,11 @@ from lib.playlist_manager import Playlist_manager
 from lib.cue_from_discogs import  cue_from_releaseid
 from Podcast import updatePlayer as updatePodcast
 from lib.log import log, files_with_issues, need_attention, reset_log
-from lib.resize_image import resize_image
 from lib.config_controler import Config
 from lib.change_log import ChangeLog
 from lib.get_mp3_info import get_mp3_info
 from lib.get_flac_info import get_flac_info
+from lib.custom_playlist import generate_custom_playlists, get_playlist_files
 
 
 change_log = ChangeLog()
@@ -137,8 +137,11 @@ def move_file(root:str, file:str, ext:str) -> None:
   # get info needed to sort the file
   if ext == '.flac':
     info = get_flac_info(source_file, file)
-  else:
+  elif ext == '.mp3' or ext == '.m4a':
     info = get_mp3_info(source_file, file)
+  else:
+    need_attention.append(f'file: {source_file}\nissue: file type {ext} not supported' )
+    return
 
   # return if no info was found
   if not info:
@@ -233,7 +236,7 @@ def get_audio_files() -> list:
   audio_files:list = []
   for root, _, files in os.walk(working_dir):
     for file in files:
-      if is_audio_file(file) and not file.startswith('._'):
+      if is_audio_file(file) and not file.startswith('.'):
         file = file_manager.fix_filename(root, file)
         audio_files.append({'root': root, 'file': file, 'ext': os.path.splitext(file)[-1].lower()})
   return audio_files
@@ -461,6 +464,15 @@ def run_sync(window:dict) -> None:
     # create playlist containing all new files
     pl_manager.new_files_playlist(sorted_dir)
 
+    playlists = get_playlist_files(script_folder)
+    if len(playlists):
+      notify({
+        "text": 'Creating custom playlists.',
+        "summary" : False,
+        "toast" : False
+      }, window)
+      generate_custom_playlists(playlists, sorted_dir)
+
   # output file containing trouble files
   notify({
     "text": 'Creating trouble file.',
@@ -570,3 +582,5 @@ def create_lib_json(window:dict):
 if __name__ == "__main__":
   set_source()
   run_sync(False)
+  # with open('scan.json', 'w') as w:
+  #   w.write(json.dumps(get_audio_files(), indent=2))
