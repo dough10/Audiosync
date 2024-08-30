@@ -21,7 +21,7 @@ class AudioSyncSwitch extends HTMLElement {
         'font-size': '16px',
         'line-height': 1.5,
         'width': '450px',
-        'margin': '8px'
+        'margin': '48px auto 0px'
       },
       '.audiosync-switch > input': {
         'appearance': 'none',

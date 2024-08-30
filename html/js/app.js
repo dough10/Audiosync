@@ -70,7 +70,13 @@ async function toggleSwitchCallback(ev) {
   } else if (ev.detail.id === 'podcast') {
     CONFIG_CHANGES.podcast = ev.detail.state;
   } else if (ev.detail.id === 'mp3') {
+    const br = qs('#bitrate');
     CONFIG_CHANGES.mp3_only = ev.detail.state;
+    if (CONFIG_CHANGES.mp3_only) {
+      br.style.display = 'block';
+    } else {
+      br.style.display = 'none';
+    }
   }
   const CURRENT_STATES = await pywebview.api.update_config(CONFIG_CHANGES);
 
@@ -148,6 +154,7 @@ async function load_app() {
   const IMPORT_LYRICS_SWITCH = qs('#lyrics');
   const RESET_LYRIC_FILES_SWITCH = qs('#remove-lrc');
   const MP3_ONLY_SWITCH = qs('#mp3');
+  const BITRATE = qs('#bitrate');
   const IMPORT_PODCASTS_SWITCH = qs('#podcast');
   const TOGGLE_SWITCHES = qsa('audiosync-switch');
   const MUSIC_LIBRARY_VIEW_TOGGLE_BUTTON = qs('#view');
@@ -422,6 +429,11 @@ async function load_app() {
   // RESET_LYRIC_FILES_SWITCH.setState(CONFIG_OBJECT.remove_lrc_wd);
 
   MP3_ONLY_SWITCH.setState(CONFIG_OBJECT.mp3_only);
+  if (CONFIG_OBJECT.mp3_only) {
+    BITRATE.style.display = 'block';
+  } else {
+    BITRATE.style.display = 'none';
+  }
 
   // podcast import ui
   IMPORT_PODCASTS_SWITCH.setState(CONFIG_OBJECT.podcast);

@@ -169,7 +169,7 @@
 
     <!-- settings drawer -->
     <audiosync-settings>
-      <h4>Music Source</h4>
+      <h2>Music Source</h2>
       <div class="selector_text">
         <span id="source_text">Source Location</span>
         <audiosync-button id="sourceSelect" noshadow>
@@ -182,7 +182,7 @@
           </div>
         </audiosync-button>
       </div>
-      <h4>Podcast Source</h4>
+      <h2>Podcast Source</h2>
       <div class="selector_text">
         <span id="podcast_text">Podcast Location</span>
         <audiosync-button id="podcastSelect" noshadow>
@@ -213,7 +213,7 @@
       <audiosync-switch id="mp3" title="converts .flac to .mp3 requires ffmpeg">
         MP3 only
       </audiosync-switch>
-      <div class="select">
+      <div class="select" id="bitrate">
         <select class="select-text" id="bitrate_select" required>
           <option value="96">96k</option>
           <option value="128">128k</option>
@@ -228,12 +228,6 @@
       <audiosync-switch id="cues" title="generate .cue or .m3u8 files">
         Import playlists
       </audiosync-switch>
-      <!-- <audiosync-switch id="lyrics">
-          Import lyrics
-        </audiosync-switch>
-        <audiosync-switch id="remove-lrc" >
-          Generate new LRC files
-        </audiosync-switch> -->
       <audiosync-switch id="podcast" title="copy new downloaded podcast files">
         Import podcast
       </audiosync-switch>
