@@ -167,6 +167,9 @@ class File_manager:
         else:
           log(f"{path} Maximum retries reached. Copy failed.")
           raise  # Reraise the exception if maximum retries reached
+      except FileNotFoundError as e:
+        print(source)
+        print('error copying missing file:', e)
       except shutil.Error as e:
         log(f"Error copying file: {str(e)}")
         retries += 1
