@@ -32,24 +32,13 @@ script_folder = os.path.dirname(file_path)
 
 sorted_dir = ''
 working_dir = config_controler.get_key('source')
-ignore_folders = config_controler.get_key('lrc_ignore_folders') # folders whos files we will be ignored when attempting tog et lyrics
-remove_lrc_wd = False # default value.  user will be propted if needed
 use_sync_file = False # default value.  user will be propted if needed
 import_cues = False
-import_lyrics = False
 sync_file_data = {}
 lib_data = {}
 
 
 sync_file = os.path.join(sorted_dir, 'sync.json')
-
-
-
-
-def is_ignored(source_file:str):
-  return any(os.path.join(working_dir, folder) in source_file for folder in ignore_folders)
-
-
 
 
 def add_to_lib(artist:str, album:str, location:str, file:str, title:str, track:int, disc:int):
@@ -124,8 +113,6 @@ def move_file(root:str, file:str, ext:str) -> None:
   source_file:str = os.path.join(root, file)
   jpg:str = os.path.join(root, 'cover.jpg')
   alt_jpg:str = os.path.join(root, '..', 'cover.jpg')
-  lrc_filename:str = f'{os.path.splitext(file)[0]}.lrc'
-  lrc:str = os.path.join(root, lrc_filename)
   releaseID:str = os.path.join(root, 'releaseid.txt')
 
   # create cue from discogs data 
@@ -155,7 +142,6 @@ def move_file(root:str, file:str, ext:str) -> None:
 
   artist_folder = info['artist']
   album_folder = file_manager.formatFilename(info['album'])
-  lrc_artist = info['lrc_artist']
   song_title = info['title']
 
   # build data dictonary of artists and albums
@@ -188,9 +174,6 @@ def move_file(root:str, file:str, ext:str) -> None:
         file_manager.remove_folder(albf)
       return
 
-  if import_lyrics and not is_ignored(source_file):
-    file_manager.save_lrc_file(lrc, lrc_artist, song_title)
-
   # setup destination location string and create folders
   dest = os.path.join(sorted_dir, artist_folder, album_folder)
   if not os.path.exists(dest):
@@ -205,9 +188,6 @@ def move_file(root:str, file:str, ext:str) -> None:
     file_manager.copy_file(jpg, dest, img_path)
   elif os.path.exists(alt_jpg): 
     file_manager.copy_file(alt_jpg, dest, img_path)         
-
-  if os.path.exists(lrc) and import_lyrics:
-    file_manager.copy_file(lrc, dest, os.path.join(dest, lrc_filename))
 
 
   if config_controler.get_key('mp3_only') and not ext == '.mp3':
@@ -316,7 +296,6 @@ def run_sync(window:dict) -> None:
   global sorted_dir
   global use_sync_file
   global import_cues
-  global import_lyrics
   global sync_file_data
   global sync_file
   global lib_data
@@ -339,8 +318,6 @@ def run_sync(window:dict) -> None:
   config = config_controler.get()
 
   import_cues = config['import_cues']
-  import_lyrics = config['import_lyrics']
-  remove_lrc_wd = config['remove_lrc_wd']
   podcast = config['podcast']
 
   reset_log()
@@ -384,22 +361,6 @@ def run_sync(window:dict) -> None:
       "toast" : False
     }, window)
     file_manager.remove_cue_files(sorted_dir)
-
-  # attempt to find lyrics for each song
-  if import_lyrics:
-    notify({
-      "text": f'Removing .lrc files from {sorted_dir}',
-      "summary" : False,
-      "toast" : False
-    }, window)
-    file_manager.remove_lrc(sorted_dir)
-    if remove_lrc_wd:
-      notify({
-        "text": f'Removing .lrc files from {working_dir}',
-        "summary" : False,
-        "toast" : False
-      }, window)
-      file_manager.remove_lrc(working_dir)
 
   # copy files
   notify({
