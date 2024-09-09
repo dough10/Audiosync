@@ -445,6 +445,23 @@ class AudioPlayer extends HTMLElement {
       this._setSrc();
     });
 
+    const volLabel = ce('label');
+    volLabel.id = 'vol';
+    const labelText = ce('span');
+    labelText.textContent = 'Volume';
+    const volSlider = ce('input');
+    volSlider.type = 'range';
+    volSlider.min = 0;
+    volSlider.max = 100;
+    volSlider.value = this.player.volume * 100;
+    volLabel.append(labelText, volSlider);
+
+    volSlider.addEventListener('input', _ => {
+      this.player.volume = volSlider.value / 100;
+      // if (changeTimer) clearTimeout(changeTimer);
+      // changeTimer = setTimeout(_ => localStorage.setItem('volume', volSlider.value), 200);
+    });
+
     // elapsed time
     const durationText = ce('div');
     durationText.id = 'duration';
@@ -464,6 +481,7 @@ class AudioPlayer extends HTMLElement {
       progressBar,
       fullScreenToggleButton,
       currentlyPlayingText,
+      volLabel,
       durationText,
       prevoiusTrackButton,
       playPauseButton,
