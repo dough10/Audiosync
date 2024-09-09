@@ -207,7 +207,8 @@ class AudioSyncPodcasts extends HTMLElement {
       this.resetPlaylist();
       return;
     }
-    const playing = qs(`[data-title="${details.artist}"][data-episode="${details.album}"]`, this.shadowRoot);
+    const { artist, album } = details;
+    const playing = qs(`[data-title="${artist}"][data-episode="${album}"]`, this.shadowRoot);
     if (playing && playing.hasAttribute('playing')) return;
     qsa('[playing]', this.shadowRoot).forEach(el => el.removeAttribute('playing'));
     qsa('.ep-add', this.shadowRoot).forEach(el => el.classList.remove('hidden'));
@@ -827,7 +828,7 @@ class AudioSyncPodcasts extends HTMLElement {
     }
     load();
     scrollEl.onscroll = _ => {
-      if (scrollEl.scrollTop / (scrollEl.scrollHeight - scrollEl.clientHeight) === 1) {
+      if (scrollEl.scrollTop / (scrollEl.scrollHeight - scrollEl.clientHeight) >= 0.8) {
         ndx += pullNumber;
         load();
       }
